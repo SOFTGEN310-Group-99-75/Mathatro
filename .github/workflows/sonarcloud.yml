@@ -1,0 +1,20 @@
+on:
+  push:
+    branches:
+      - main
+  # Trigger analysis when pushing to your main branches, and when creating a pull request.
+  pull_request:
+      types: [opened, synchronize, reopened]
+
+name: SonarQube
+jobs:
+  sonarqube:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: SonarQube Scan
+      uses: sonarsource/sonarcloud-github-action@v5.0.0
+      with:
+        projectBaseDir: src
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
