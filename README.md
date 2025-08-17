@@ -9,5 +9,5 @@ This project aims to provide a entertaining while educational way for student to
 3. Once installed, start the development server with `npm run dev`.
 4. If you want to build the project, run `npm run build`.
 # License
-
+This project is under [License](https://github.com/SOFTGEN310-Group-99-75/JOhn-Repository/blob/main/LICENSE)
 # Contributor
