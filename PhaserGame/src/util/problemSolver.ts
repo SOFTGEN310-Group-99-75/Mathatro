@@ -40,7 +40,7 @@ export function solveProblem(cardArray: any[]): number[] | null {
     return solutions;
 }
 
-function solveStringProblem(stringProblem: string): number | null {
+function solveStringProblem(stringProblem: string): number {
     let solution: number = 0;
     let lastOperator: string = "";
     let numberBuffer: string = "";
