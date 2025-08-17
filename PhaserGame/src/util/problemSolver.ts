@@ -7,20 +7,20 @@ export function solveProblem(cardArray: any[]): number[] | null {
     cardArray.forEach(card => {
         if (card.value === undefined || card.isOperator === undefined) {
             console.log("Error: card does not have value or isOperator: " + JSON.stringify(card));
-            return null;
+            return; // this does not return out of solveProblem, it just acts as a break in the forEach
         }
 
         if (card.isOperator === true) {
             lastWasNumber = false;
             // add operator 
-            problems[-1] += card.value;
+            problems[problems.length - 1] += card.value;
         } else if (card.isOperator === false) {
             if (lastWasNumber === true) {
                 // if the last entry was a number, we start a new problem
                 problems.push("" + card.value);
             } else if (lastWasNumber === false) {
                 // if the previous entry was an operator, we need to have numbers either sides
-                problems[-1] += card.value;
+                problems[problems.length - 1] += card.value;
             }
             lastWasNumber = true;
         }
@@ -50,31 +50,42 @@ function solveStringProblem(stringProblem: string): number {
             numberBuffer += character;
         } else {
             // operator - apply last operator and buffered number, then update last operator and reset buffered number
-            switch (lastOperator) {
-                case '+':
-                    solution += Number(numberBuffer);
-                    break;
-                case '-':
-                    solution -= Number(numberBuffer);
-                    break;
-                case '*':
-                    solution *= Number(numberBuffer);
-                    break;
-                case '/':
-                    solution /= Number(numberBuffer);
-                    break;
-                case '^':
-                    solution = Math.pow(solution, Number(numberBuffer));
-                    break;
-                case '':
-                    break;
-                default:
-                    console.log("Error: unsupported operator: " + lastOperator);
-            }
+            solution = handleOperator(solution, lastOperator, Number(numberBuffer));
 
             numberBuffer = "";
             lastOperator = character;
         }
     }
+
+    // always handle the last number & operator
+    solution = handleOperator(solution, lastOperator, Number(numberBuffer));
+
     return solution;
+}
+
+
+function handleOperator(total: number, operator: string, num: number): number {
+    switch (operator) {
+        case '+':
+            total += num;
+            break;
+        case '-':
+            total -= num;
+            break;
+        case '*':
+            total *= num;
+            break;
+        case '/':
+            total /= num;
+            break;
+        case '^':
+            total = Math.pow(total, num);
+            break;
+        case '':
+            total += num;
+            break;
+        default:
+            console.log("Error: unsupported operator: " + operator);
+    }
+    return total;
 }
