@@ -9,7 +9,7 @@ Whether you’re a math whiz or someone who finds math challenging, you’re bou
 4. If you want to build the project, run `npm run build`.
 
 # License
-This project is under [License](https://github.com/SOFTGEN310-Group-99-75/JOhn-Repository/blob/main/LICENSE)
+This project is under [GNU Affero General Public License v3.0](https://github.com/SOFTGEN310-Group-99-75/JOhn-Repository/blob/main/LICENSE)
 
 # Contributing
 See [Contributor Guidline](https://github.com/SOFTGEN310-Group-99-75/JOhn-Repository/blob/main/CODE_OF_CONDUCT.md) for more detail 
