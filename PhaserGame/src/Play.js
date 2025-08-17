@@ -116,6 +116,7 @@ export class Play extends Phaser.Scene
 
     startGame () {
         // Launch the UI layout when the game starts
+        this.scene.launch('GameUI');
 
         // WinnerText and GameOverText
         const winnerText = this.add.text(this.sys.game.scale.width / 2, -1000, "YOU WIN",
