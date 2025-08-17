@@ -1,3 +1,4 @@
+
 # "Project Name"
 "Name of Software" aims to provide a entertaining while educational way for student to learn math. Through interaction with numbers and operators student will be more familiarize with the math concepts.
 Whether you’re a math whiz or someone who finds math challenging, you’re bound to have some fun!!!
@@ -9,7 +10,7 @@ Whether you’re a math whiz or someone who finds math challenging, you’re bou
 4. If you want to build the project, run `npm run build`.
 
 # License
-This project is under [GNU Affero General Public License v3.0](https://github.com/SOFTGEN310-Group-99-75/JOhn-Repository/blob/main/LICENSE)
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). See `LICENSE` for full terms.
 
 # Contributing
 See [Contributor Guidline](https://github.com/SOFTGEN310-Group-99-75/JOhn-Repository/blob/main/CODE_OF_CONDUCT.md) for more detail 
