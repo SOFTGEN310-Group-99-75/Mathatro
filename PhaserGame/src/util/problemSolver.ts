@@ -1,9 +1,9 @@
 export function solveProblem(cardArray: any[]): number[] | null {
 
     // First we seperate the card array into different problems - an array of strings
-    var problems: string[] = [];
+    let problems: string[] = [];
 
-    var lastWasNumber = false;
+    let lastWasNumber = false;
     cardArray.forEach(card => {
         if (card.value === undefined || card.isOperator === undefined) {
             console.log("Error: card does not have value or isOperator: " + JSON.stringify(card));
@@ -27,7 +27,7 @@ export function solveProblem(cardArray: any[]): number[] | null {
     });
 
     // solve each problem 
-    var solutions: number[] = [];
+    let solutions: number[] = [];
     problems.forEach(problem => {
         let solution = solveStringProblem(problem);
         if (solution !== null) {
@@ -41,9 +41,9 @@ export function solveProblem(cardArray: any[]): number[] | null {
 }
 
 function solveStringProblem(stringProblem: string): number | null {
-    var solution: number = 0;
-    var lastOperator: string = "";
-    var numberBuffer: string = "";
+    let solution: number = 0;
+    let lastOperator: string = "";
+    let numberBuffer: string = "";
     for (const character of stringProblem) {
         if (!isNaN(Number(character))) {
             // digits
