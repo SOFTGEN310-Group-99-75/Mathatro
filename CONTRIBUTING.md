@@ -11,7 +11,7 @@ We are happy for any contributors join and help with source code, documentation,
 
 ## <a name="start"></a> Getting started with contributing
 
-Before getting started to contributing, take a look at our **[Code of Conduct](https://github.com/SOFTGEN310-Group-99-75/JOhn-Repository/blob/main/CODE_OF_CONDUCT.md)** and our **[design and vision](https://github.com/SOFTGEN310-Group-99-75/JOhn-Repository/blob/main/Game_Design_Doc.md)** for the project.
+Before getting started to contributing, take a look at our **[Code of Conduct](/CODE_OF_CONDUCT.md)** and our **[design and vision](/Game_Design_Doc.md)** for the project.
 
 If you don't know where to begin, issues with the good first issue label can be a great entry point.
 
