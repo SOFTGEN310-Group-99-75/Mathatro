@@ -6,8 +6,8 @@ import Phaser from 'phaser';
 const config = {
     title: 'Card Memory Game',
     type: Phaser.AUTO,
-    width: 1100,
-    height: 600,
+    width: 1280,
+    height: 720,
     parent: 'game-container',
     backgroundColor: '#f8f8ff',
     pixelArt: false,
