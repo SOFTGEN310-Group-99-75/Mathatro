@@ -1,30 +1,39 @@
 # Contributing to JOhn 
 
-## Getting started with contributing
+We are happy for any contributors join and help with source code, documentation, or testing!
+
+- [Getting started](#start)
+- [Bug reports](#bugs)
+- [Feature suggestions](#features)
+- [Running tests](#tests)
+- [Submission guidelines](#submission)
+- [Getting in touch](#contact)
+
+## <a name="start"></a> Getting started with contributing
 
 Before getting started to contributing, take a look at our **[Code of Conduct](https://github.com/SOFTGEN310-Group-99-75/JOhn-Repository/blob/main/CODE_OF_CONDUCT.md)** and our **[design and vision](https://github.com/SOFTGEN310-Group-99-75/JOhn-Repository/blob/main/Game_Design_Doc.md)** for the project.
 
 If you don't know where to begin, issues with the good first issue label can be a great entry point.
 
-## Found a bug?
+## <a name="bugs"></a>Found a bug?
 
 If you have found a bug in the source code, you can bring it up to attention by submitting a **Bug report** issue with the details of the bug you encountered.
 
-**Please see the issue submission guidelines below.**
+**Please see the [issue submission](#issues) guidelines below.**
 
-## Have a feature suggestion?
+## <a name="features"></a>Have a feature suggestion?
 
 If theres a feature you want to see added, or something you want to see changed, you can submit a **Feature request** issue with any details.
 
-**Please see the issue submission guidelines below.**
+**Please see the [issue submission](#issues) guidelines below.**
 
-## Running tests
+## <a name="tests"></a> Running tests
 
 TBA
 
-## Submission guidelines
+## <a name="submission"></a> Submission guidelines
 
-### Issue submission
+### <a name="issues"></a> Issue submission
 
 Before submitting an issue, search through the list to see if it has already been brought up.
 
@@ -36,7 +45,7 @@ To submit an issue, follow these steps:
 4. Add any appropriate labels
 5. Identify the issue type as bug, feature or task
 
-### Pull requests
+### <a name="prs"></a> Pull requests
 
 Any pull requests made must follow this set of rules:
 
@@ -47,6 +56,6 @@ Any pull requests made must follow this set of rules:
 - A PR is to be merged **only** by the author
 - **For Reviewers:** before approving a pull request, spend time testing to make sure it doesn't break anything. You may also request changes or just leave a comment - [read more here](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/about-pull-request-reviews).
 
-## Getting in touch?
+## <a name="contact"></a> Getting in touch?
 
 Any contact from contributors should be left in the form of issues submitted.
