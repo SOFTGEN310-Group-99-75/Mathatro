@@ -1,7 +1,7 @@
-class Card{
+export class Card{
     protected multiplier: number;
     protected baseScore: number;
-    isOperator: boolean;
+    isOperator!: boolean;
 
     constructor(multiplier: number, baseScore: number)
     {
@@ -29,7 +29,7 @@ class Card{
         this.baseScore = baseScore;
     }
 }
-class NumberCard extends Card{
+export class NumberCard extends Card{
     public value: number;
 
     constructor(value: number)
@@ -40,7 +40,7 @@ class NumberCard extends Card{
     }
 }
 
-class OperatorCard extends Card{
+export class OperatorCard extends Card{
     public value: string;
 
     constructor(symbol: string)
