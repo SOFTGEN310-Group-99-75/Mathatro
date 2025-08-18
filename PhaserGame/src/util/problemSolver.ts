@@ -1,7 +1,7 @@
 export function solveProblem(cardArray: any[]): number[] | null {
 
     // First we seperate the card array into different problems - an array of strings
-    let problems: string[] = [];
+    let problems: string[] = [""];
 
     let lastWasNumber = false;
     cardArray.forEach(card => {
