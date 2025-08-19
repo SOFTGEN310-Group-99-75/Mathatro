@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { createCard } from './createCard.js';
 
 /**
  * Game UI Scene
@@ -48,32 +49,6 @@ export class GameUI extends Phaser.Scene {
             }).setOrigin(0.5);
             group.add([box, t]);
             return { group, box, t };
-        };
-        this.makeCard = (x, y, w, h, label = '', opts = {}) => {
-            const group = this.add.container(x, y);
-            // white rounded rectangle, bold border, drop shadow
-            const shadow = this.add.rectangle(4, 6, w, h, 0x000000, 0.18).setOrigin(0, 0);
-            const card = this.add.rectangle(0, 0, w, h, opts.fill ?? 0xffffff, opts.alpha ?? 1).setOrigin(0, 0);
-            card.setStrokeStyle(3, 0xd4af37, 1); // gold border
-            card.isFilled = true;
-            card.radius = 8; // rounded corners
-            let textColor = '#000000';
-            const text = this.add.text(w / 2, h / 2, label, {
-                fontSize: opts.fontSize ?? 22,
-                color: opts.color ?? textColor,
-                fontStyle: opts.fontStyle ?? 'bold',
-                stroke: '#000000',
-                strokeThickness: 2,
-                shadow: {
-                    offsetX: 2,
-                    offsetY: 2,
-                    color: '#000000',
-                    blur: 2,
-                    fill: true
-                }
-            }).setOrigin(0.5);
-            group.add([shadow, card, text]);
-            return group;
         };
 
         // Score Board panel
@@ -158,7 +133,7 @@ export class GameUI extends Phaser.Scene {
         for (let i = 0; i < n; i++) {
             const label = (items[i] ?? '').toString();
             const isPlaceholder = items.length === 0;
-            const card = this.makeCard(x, y, cardW, cardH, label, { fontSize: 22, color: '#222222' });
+            const card = createCard(this, x, y, cardW, cardH, label, { fontSize: 22, color: '#222222' });
             if (isPlaceholder) {
                 card.list[1].fillColor = 0xeeeeee;
                 card.list[2].setText('');
@@ -174,7 +149,7 @@ export class GameUI extends Phaser.Scene {
             const r = this.slots[i];
             const cx = r.x + (r.width - cardW2) / 2;
             const cy = r.y + (r.height - cardH2) / 2;
-            const card = this.makeCard(cx, cy, cardW2, cardH2, String(items[i]), { fontSize: 18 });
+            const card = createCard(this, cx, cy, cardW2, cardH2, String(items[i]), { fontSize: 18 });
             this.slotsContainer.add(card);
         }
     }
