@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { createCard } from './createCard.js';
+import { createCardSlot } from './createCardSlot.js';
 
 /**
  * Game UI Scene
@@ -84,6 +85,7 @@ export class GameUI extends Phaser.Scene {
         this.handBar = this.rect(MAIN_X + 20, this.slotsBar.y + 80, MAIN_W - 40, 110, 0x000000, 0.05);
         this.handCaption = this.add.text(this.handBar.x + this.handBar.width / 2, this.handBar.y + this.handBar.height + 16, 'Cards, either operator(+,-,*,/) or number (0–9)', { fontSize: 12, color: '#666666' }).setOrigin(0.5, 0);
 
+
         // Containers for dynamic visuals
         this.slotsContainer = this.add.container(0, 0).setDepth(1002);
         this.handContainer = this.add.container(0, 0).setDepth(1002);
@@ -93,7 +95,8 @@ export class GameUI extends Phaser.Scene {
         this.setGames('1 / 10');
         this.setObjective('> 17');
         this.setScore(0);
-        this.updateHand([]);
+        this.createHandSlots(8);
+        this.updateHand([1, 2, 3, 4, 'x', '+']);
         this.updateSlots([]);
 
         // Event handlers for UI updates
@@ -124,24 +127,37 @@ export class GameUI extends Phaser.Scene {
     setScore(val) {
         this.currentScore.t.setText(String(val));
     }
-    updateHand(items = []) {
-        this.handContainer.removeAll(true);
+    createHandSlots(count) {
         const innerPad = 12, cardW = 60, cardH = 84;
-        const n = items.length || 8;
         const innerW = this.handBar.width - innerPad * 2;
-        const gap = Math.max(8, (innerW - n * cardW) / (n + 1));
+        const gap = Math.max(8, (innerW - count * cardW) / (count + 1));
         let x = this.handBar.x + innerPad + gap;
         const y = this.handBar.y + (this.handBar.height - cardH) / 2;
-        for (let i = 0; i < n; i++) {
+
+        this.handSlots = [];
+        for (let i = 0; i < count; i++) {
+            const slot = createCardSlot(this, x, y, cardW, cardH, {});
+            this.handSlots.push(slot);
+            this.handContainer.add(slot);
+            x += cardW + gap;
+        }
+    }
+    updateHand(items = []) {
+        const cardW = 60, cardH = 84;
+
+        for (let i = 0; i < this.handSlots.length; i++) {
+            const slot = this.handSlots[i];
             const label = (items[i] ?? '').toString();
             const isPlaceholder = items.length === 0;
-            const card = createCard(this, x, y, cardW, cardH, label, true,{ fontSize: 22, color: '#222222' });
+
+            const card = createCard(this, 0, 0, cardW, cardH, label, true, { fontSize: 22, color: '#222222' });
             if (isPlaceholder) {
                 card.list[1].fillColor = 0xeeeeee;
                 card.list[2].setText('');
             }
+            slot.setCard(card);
+
             this.handContainer.add(card);
-            x += cardW + gap;
         }
     }
     updateSlots(items = []) {
