@@ -1,4 +1,6 @@
 import Phaser from 'phaser';
+import { createCard } from './createCard.js';
+import { createCardSlot } from './createCardSlot.js';
 
 /**
  * Game UI Scene
@@ -49,32 +51,6 @@ export class GameUI extends Phaser.Scene {
             group.add([box, t]);
             return { group, box, t };
         };
-        this.makeCard = (x, y, w, h, label = '', opts = {}) => {
-            const group = this.add.container(x, y);
-            // white rounded rectangle, bold border, drop shadow
-            const shadow = this.add.rectangle(4, 6, w, h, 0x000000, 0.18).setOrigin(0, 0);
-            const card = this.add.rectangle(0, 0, w, h, opts.fill ?? 0xffffff, opts.alpha ?? 1).setOrigin(0, 0);
-            card.setStrokeStyle(3, 0xd4af37, 1); // gold border
-            card.isFilled = true;
-            card.radius = 8; // rounded corners
-            let textColor = '#000000';
-            const text = this.add.text(w / 2, h / 2, label, {
-                fontSize: opts.fontSize ?? 22,
-                color: opts.color ?? textColor,
-                fontStyle: opts.fontStyle ?? 'bold',
-                stroke: '#000000',
-                strokeThickness: 2,
-                shadow: {
-                    offsetX: 2,
-                    offsetY: 2,
-                    color: '#000000',
-                    blur: 2,
-                    fill: true
-                }
-            }).setOrigin(0.5);
-            group.add([shadow, card, text]);
-            return group;
-        };
 
         // Score Board panel
         this.sidebar = this.rect(M, M, SIDEBAR_W, H - M * 2, 0x000000, 0.08);
@@ -109,6 +85,7 @@ export class GameUI extends Phaser.Scene {
         this.handBar = this.rect(MAIN_X + 20, this.slotsBar.y + 80, MAIN_W - 40, 110, 0x000000, 0.05);
         this.handCaption = this.add.text(this.handBar.x + this.handBar.width / 2, this.handBar.y + this.handBar.height + 16, 'Cards, either operator(+,-,*,/) or number (0–9)', { fontSize: 12, color: '#666666' }).setOrigin(0.5, 0);
 
+
         // Containers for dynamic visuals
         this.slotsContainer = this.add.container(0, 0).setDepth(1002);
         this.handContainer = this.add.container(0, 0).setDepth(1002);
@@ -118,7 +95,8 @@ export class GameUI extends Phaser.Scene {
         this.setGames('1 / 10');
         this.setObjective('> 17');
         this.setScore(0);
-        this.updateHand([]);
+        this.createHandSlots(8);
+        this.updateHand([1, 2, 3, 4, 'x', '+']);
         this.updateSlots([]);
 
         // Event handlers for UI updates
@@ -130,6 +108,8 @@ export class GameUI extends Phaser.Scene {
         });
         this.game.events.on('ui:hand', (items = []) => this.updateHand(items));
         this.game.events.on('ui:slots', (items = []) => this.updateSlots(items));
+
+        this.createDragEvents();
     }
 
     setHealth(ratio) {
@@ -147,24 +127,38 @@ export class GameUI extends Phaser.Scene {
     setScore(val) {
         this.currentScore.t.setText(String(val));
     }
-    updateHand(items = []) {
-        this.handContainer.removeAll(true);
+    createHandSlots(count) {
         const innerPad = 12, cardW = 60, cardH = 84;
-        const n = items.length || 8;
         const innerW = this.handBar.width - innerPad * 2;
-        const gap = Math.max(8, (innerW - n * cardW) / (n + 1));
+        const gap = Math.max(8, (innerW - count * cardW) / (count + 1));
         let x = this.handBar.x + innerPad + gap;
         const y = this.handBar.y + (this.handBar.height - cardH) / 2;
-        for (let i = 0; i < n; i++) {
+
+        this.handSlots = [];
+        for (let i = 0; i < count; i++) {
+            const slot = createCardSlot(this, x, y, cardW, cardH, {});
+            this.handSlots.push(slot);
+            this.handContainer.add(slot);
+            x += cardW + gap;
+        }
+    }
+    updateHand(items = []) {
+        const cardW = 60, cardH = 84;
+
+        for (let i = 0; i < this.handSlots.length; i++) {
+            const slot = this.handSlots[i];
             const label = (items[i] ?? '').toString();
             const isPlaceholder = items.length === 0;
-            const card = this.makeCard(x, y, cardW, cardH, label, { fontSize: 22, color: '#222222' });
+
+            const card = createCard(this, 0, 0, cardW, cardH, label, true, { fontSize: 22, color: '#222222' });
             if (isPlaceholder) {
                 card.list[1].fillColor = 0xeeeeee;
                 card.list[2].setText('');
             }
+            slot.setCard(card);
+            card.slot = slot; // link card to its slot
+
             this.handContainer.add(card);
-            x += cardW + gap;
         }
     }
     updateSlots(items = []) {
@@ -174,8 +168,73 @@ export class GameUI extends Phaser.Scene {
             const r = this.slots[i];
             const cx = r.x + (r.width - cardW2) / 2;
             const cy = r.y + (r.height - cardH2) / 2;
-            const card = this.makeCard(cx, cy, cardW2, cardH2, String(items[i]), { fontSize: 18 });
+            const card = createCard(this, cx, cy, cardW2, cardH2, String(items[i]), false, { fontSize: 18 });
             this.slotsContainer.add(card);
         }
+    }
+
+    // Create drag events to allow card movement
+    createDragEvents() {
+        this.createCardDragStartEventListener();
+        this.createCardDragHoldEventListener();
+        this.createCardDragEndEventListener();
+    }
+
+    createCardDragStartEventListener() {
+        this.input.on(Phaser.Input.Events.DRAG_START, (pointer, gameObject) => {
+            gameObject.setAlpha(0.85);
+            if (gameObject.parentContainer) {
+                gameObject.parentContainer.bringToTop(gameObject);
+            }
+            if (gameObject.shadow) {
+                gameObject.shadow.setAlpha(0.4);
+            }
+
+            gameObject.setDepth(100);
+        });
+    }
+
+    createCardDragHoldEventListener() {
+        this.input.on(Phaser.Input.Events.DRAG, (pointer, gameObject, cursorDragX, cursorDragY) => {
+            gameObject.setPosition(cursorDragX, cursorDragY)
+        });
+    }
+
+    createCardDragEndEventListener() {
+        this.input.on(Phaser.Input.Events.DRAG_END, (pointer, gameObject) => {
+            gameObject.setAlpha(1);
+            if (gameObject.shadow) {
+                gameObject.shadow.setAlpha(1);
+            }
+            gameObject.setDepth(0);
+
+            const hoveredSlot = this.handSlots.find(slot => slot.isPointerOver(pointer));
+
+            console.log(hoveredSlot)
+
+            // return card to slot if not hovering over anything
+            if (!hoveredSlot) {
+                if (gameObject.slot) {
+                    gameObject.slot.setCard(gameObject);
+                }
+                return;
+            }
+
+            if (hoveredSlot.card && hoveredSlot.card !== gameObject) {
+                // swap cards around if hovering over different card
+                const oldSlot = gameObject.slot;
+                const replacedCard = hoveredSlot.card;
+
+                hoveredSlot.setCard(gameObject);
+
+                if (oldSlot) {
+                    oldSlot.setCard(replacedCard);
+                }
+
+            } else {
+                // if hovering over original slot, snap it back
+                hoveredSlot.setCard(gameObject)
+            }
+        });
     }
 }

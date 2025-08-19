@@ -1,89 +1,43 @@
 /**
  * Create a card game object
  */
-export const createCard = ({
-    scene,
-    x,
-    y,
-    frontTexture,
-    cardName
-}) => {
+export const createCard = (scene, x, y, w, h, label = '', draggable = false, opts = {}) => {
 
-    let isFlipping = false;
-    const rotation = { y: 0 };
+    // white rounded rectangle, bold border, drop shadow
+    const group = scene.add.container(x, y);
+    const shadow = scene.add.rectangle(4, 6, w, h, 0x000000, 0.18).setOrigin(0, 0);
+    const card = scene.add.rectangle(0, 0, w, h, opts.fill ?? 0xffffff, opts.alpha ?? 1).setOrigin(0, 0);
 
-    const backTexture = "card-back";
+    card.setStrokeStyle(3, 0xd4af37, 1); // gold border
+    card.isFilled = true;
+    card.radius = 8; // rounded corners
 
-    const card = scene.add.plane(x, y, backTexture)
-        .setName(cardName)
-        .setInteractive();
-
-    // start with the card face down
-    card.modelRotationY = 180;
-
-    const flipCard = (callbackComplete) => {
-        if (isFlipping) {
-            return;
+    let textColor = '#000000';
+    const text = scene.add.text(w / 2, h / 2, label, {
+        fontSize: opts.fontSize ?? 22,
+        color: opts.color ?? textColor,
+        fontStyle: opts.fontStyle ?? 'bold',
+        stroke: '#000000',
+        strokeThickness: 2,
+        shadow: {
+            offsetX: 2,
+            offsetY: 2,
+            color: '#000000',
+            blur: 2,
+            fill: true
         }
-        scene.add.tween({
-            targets: [rotation],
-            y: (rotation.y === 180) ? 0 : 180,
-            ease: Phaser.Math.Easing.Expo.Out,
-            duration: 500,
-            onStart: () => {
-                isFlipping = true;
-                scene.sound.play("card-flip");
-                scene.tweens.chain({
-                    targets: card,
-                    ease: Phaser.Math.Easing.Expo.InOut,
-                    tweens: [
-                        {
-                            duration: 200,
-                            scale: 1.1,
-                        },
-                        {
-                            duration: 300,
-                            scale: 1
-                        },
-                    ]
-                })
-            },
-            onUpdate: () => {
-                // card.modelRotation.y = Phaser.Math.DegToRad(180) + Phaser.Math.DegToRad(rotation.y);
-                card.rotateY = 180 + rotation.y;
-                const cardRotation = Math.floor(card.rotateY) % 360;
-                if ((cardRotation >= 0 && cardRotation <= 90) || (cardRotation >= 270 && cardRotation <= 359)) {
-                    card.setTexture(frontTexture);
-                }
-                else {
-                    card.setTexture(backTexture);
-                }
-            },
-            onComplete: () => {
-                isFlipping = false;
-                if (callbackComplete) {
-                    callbackComplete();
-                }
-            }
-        });
+    }).setOrigin(0.5);
+
+    group.add([shadow, card, text]);
+
+    group.shadow = shadow; // used to individually change shadow properties on drag
+    group.slot = null; // the slot the card is in
+
+    if (draggable) {
+        group.setSize(w, h);
+        group.setInteractive(new Phaser.Geom.Rectangle(w / 2, h / 2, w, h), Phaser.Geom.Rectangle.Contains);
+        scene.input.setDraggable(group);
     }
 
-    const destroy = () => {
-        scene.add.tween({
-            targets: [card],
-            y: card.y - 1000,
-            easing: Phaser.Math.Easing.Elastic.In,
-            duration: 500,
-            onComplete: () => {
-                card.destroy();
-            }
-        })
-    }
-
-    return {
-        gameObject: card,
-        flip: flipCard,
-        destroy,
-        cardName
-    }
+    return group;
 }
