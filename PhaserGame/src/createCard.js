@@ -30,6 +30,9 @@ export const createCard = (scene, x, y, w, h, label = '', draggable = false, opt
 
     group.add([shadow, card, text]);
 
+    // used to individually change shadow properties on drag
+    group.shadow = shadow;
+
     if (draggable) {
         group.setSize(w, h);
         group.setInteractive(new Phaser.Geom.Rectangle(w / 2, h / 2, w, h), Phaser.Geom.Rectangle.Contains);

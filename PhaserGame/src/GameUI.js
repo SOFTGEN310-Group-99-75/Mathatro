@@ -165,7 +165,15 @@ export class GameUI extends Phaser.Scene {
 
     createCardDragStartEventListener() {
         this.input.on(Phaser.Input.Events.DRAG_START, (pointer, gameObject) => {
-            gameObject.setAlpha(0.8);
+            gameObject.setAlpha(0.85);
+            if (gameObject.parentContainer) {
+                gameObject.parentContainer.bringToTop(gameObject);
+            }
+            if (gameObject.shadow) {
+                gameObject.shadow.setAlpha(0.4);
+            }
+
+            gameObject.setDepth(100);
         });
     }
 
@@ -178,6 +186,10 @@ export class GameUI extends Phaser.Scene {
     createCardDragEndEventListener() {
         this.input.on(Phaser.Input.Events.DRAG_END, (pointer, gameObject) => {
             gameObject.setAlpha(1);
+            if (gameObject.shadow) {
+                gameObject.shadow.setAlpha(1);
+            }
+            gameObject.setDepth(0);
         });
     }
 }
