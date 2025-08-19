@@ -156,6 +156,7 @@ export class GameUI extends Phaser.Scene {
                 card.list[2].setText('');
             }
             slot.setCard(card);
+            card.slot = slot; // link card to its slot
 
             this.handContainer.add(card);
         }
@@ -206,6 +207,34 @@ export class GameUI extends Phaser.Scene {
                 gameObject.shadow.setAlpha(1);
             }
             gameObject.setDepth(0);
+
+            const hoveredSlot = this.handSlots.find(slot => slot.isPointerOver(pointer));
+
+            console.log(hoveredSlot)
+
+            // return card to slot if not hovering over anything
+            if (!hoveredSlot) {
+                if (gameObject.slot) {
+                    gameObject.slot.setCard(gameObject);
+                }
+                return;
+            }
+
+            if (hoveredSlot.card && hoveredSlot.card !== gameObject) {
+                // swap cards around if hovering over different card
+                const oldSlot = gameObject.slot;
+                const replacedCard = hoveredSlot.card;
+
+                hoveredSlot.setCard(gameObject);
+
+                if (oldSlot) {
+                    oldSlot.setCard(replacedCard);
+                }
+
+            } else {
+                // if hovering over original slot, snap it back
+                hoveredSlot.setCard(gameObject)
+            }
         });
     }
 }

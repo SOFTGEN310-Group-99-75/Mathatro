@@ -30,8 +30,8 @@ export const createCard = (scene, x, y, w, h, label = '', draggable = false, opt
 
     group.add([shadow, card, text]);
 
-    // used to individually change shadow properties on drag
-    group.shadow = shadow;
+    group.shadow = shadow; // used to individually change shadow properties on drag
+    group.slot = null; // the slot the card is in
 
     if (draggable) {
         group.setSize(w, h);
