@@ -105,6 +105,8 @@ export class GameUI extends Phaser.Scene {
         });
         this.game.events.on('ui:hand', (items = []) => this.updateHand(items));
         this.game.events.on('ui:slots', (items = []) => this.updateSlots(items));
+
+        this.createDragEvents();
     }
 
     setHealth(ratio) {
@@ -133,7 +135,7 @@ export class GameUI extends Phaser.Scene {
         for (let i = 0; i < n; i++) {
             const label = (items[i] ?? '').toString();
             const isPlaceholder = items.length === 0;
-            const card = createCard(this, x, y, cardW, cardH, label, { fontSize: 22, color: '#222222' });
+            const card = createCard(this, x, y, cardW, cardH, label, true,{ fontSize: 22, color: '#222222' });
             if (isPlaceholder) {
                 card.list[1].fillColor = 0xeeeeee;
                 card.list[2].setText('');
@@ -149,8 +151,33 @@ export class GameUI extends Phaser.Scene {
             const r = this.slots[i];
             const cx = r.x + (r.width - cardW2) / 2;
             const cy = r.y + (r.height - cardH2) / 2;
-            const card = createCard(this, cx, cy, cardW2, cardH2, String(items[i]), { fontSize: 18 });
+            const card = createCard(this, cx, cy, cardW2, cardH2, String(items[i]), false, { fontSize: 18 });
             this.slotsContainer.add(card);
         }
+    }
+
+    // Create drag events to allow card movement
+    createDragEvents() {
+        this.createCardDragStartEventListener();
+        this.createCardDragHoldEventListener();
+        this.createCardDragEndEventListener();
+    }
+
+    createCardDragStartEventListener() {
+        this.input.on(Phaser.Input.Events.DRAG_START, (pointer, gameObject) => {
+            gameObject.setAlpha(0.8);
+        });
+    }
+
+    createCardDragHoldEventListener() {
+        this.input.on(Phaser.Input.Events.DRAG, (pointer, gameObject, cursorDragX, cursorDragY) => {
+            gameObject.setPosition(cursorDragX, cursorDragY)
+        });
+    }
+
+    createCardDragEndEventListener() {
+        this.input.on(Phaser.Input.Events.DRAG_END, (pointer, gameObject) => {
+            gameObject.setAlpha(1);
+        });
     }
 }

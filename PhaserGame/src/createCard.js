@@ -1,8 +1,8 @@
 /**
  * Create a card game object
  */
-export const createCard = (scene, x, y, w, h, label = '', opts = {}) => {
-    
+export const createCard = (scene, x, y, w, h, label = '', draggable = false, opts = {}) => {
+
     // white rounded rectangle, bold border, drop shadow
     const group = scene.add.container(x, y);
     const shadow = scene.add.rectangle(4, 6, w, h, 0x000000, 0.18).setOrigin(0, 0);
@@ -29,6 +29,12 @@ export const createCard = (scene, x, y, w, h, label = '', opts = {}) => {
     }).setOrigin(0.5);
 
     group.add([shadow, card, text]);
+
+    if (draggable) {
+        group.setSize(w, h);
+        group.setInteractive(new Phaser.Geom.Rectangle(w / 2, h / 2, w, h), Phaser.Geom.Rectangle.Contains);
+        scene.input.setDraggable(group);
+    }
 
     return group;
 }
