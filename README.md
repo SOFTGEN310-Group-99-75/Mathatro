@@ -4,10 +4,16 @@
 
 The game uses a deck of playing cards with numbers and operators. To progress, the player must combine these cards to meet the objective of each level — for example, “>17” or “<9”. The aim is to beat all 10 levels and achieve the highest score possible.  
 
+"IMAGE or GIF of game here"
+
 Whether you’re a math whiz or someone who finds math challenging, you’re bound to have some fun!!!
 
-<sub>By Team SOFTENG 310 Group 99.75</sub>  
+<sub>By Team SOFTGEN 310 Group 99.75</sub>  
 <sub>This project is associated with the University of Auckland – SOFTENG 310</sub>
+
+## Built With
+- [Node.js](https://nodejs.org/) – JavaScript runtime  
+- [Phaser](https://phaser.io) (game framework)
 
 # Running Locally
 1. First ensure Node.js is installed on your machine: run `npm --version` on command line prompt. If not installed, check out relevant website for instruction.
