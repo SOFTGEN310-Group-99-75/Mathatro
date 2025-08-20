@@ -48,7 +48,7 @@ const requirements = [
 // List of prime numbers
 const primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97];
 
-export const generateNonePrime = () => {
+export const generateNonPrime = () => {
     var num = Phaser.Math.Between(10, 100);
     while (primes.includes(num)) {
         num = Phaser.Math.Between(10, 100);
