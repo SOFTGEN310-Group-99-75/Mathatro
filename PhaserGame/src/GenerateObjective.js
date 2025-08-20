@@ -12,7 +12,7 @@ export const GenerateObjective = () => {
             objective = `${obj} ${num}`;
             break;
         case "Factor of":
-            var factor = generateNonePrime();
+            var factor = generateNonPrime();
             objective = `${obj} ${factor}`;
             break;
         // starting from 3 so don't conflict with even number
