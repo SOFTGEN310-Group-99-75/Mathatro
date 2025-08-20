@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
+import { GenerateObjective } from './GenerateObjective';
 import { createCard } from './createCard.js';
 import { createCardSlot } from './createCardSlot.js';
+
 
 /**
  * Game UI Scene
@@ -69,6 +71,22 @@ export class GameUI extends Phaser.Scene {
         this.objective = this.labelBox(MAIN_X + MAIN_W / 2 - 60, M + 70, 120, 36, '> 17', { fontSize: 20, fontStyle: 'bold' });
         this.objectiveCaption = this.add.text(this.objective.group.x + 60, this.objective.group.y - 6, 'Objective', { fontSize: 10, color: '#666666' }).setOrigin(0.5, 1);
 
+
+        // -------------- Test Section remove any time
+        this.objectiveTestLabel = this.add.text(MAIN_X + MAIN_W / 2 + 100, M + 75, 'Test Objective', {
+            fontSize: 16,
+            color: '#ffffff',
+            fill: 0x3498db,
+            alpha: 0.8,
+            fontStyle: 'bold',
+        });
+        this.objectiveTestLabel.setInteractive();
+        // when label box is clicked, call generateObjective
+        this.objectiveTestLabel.on(Phaser.Input.Events.POINTER_DOWN, () => {
+            this.setObjective();
+        });
+        // -----------------------------------------
+
         // Result slots
         this.slotsBar = this.rect(MAIN_X + 40, this.objective.group.y + 50, MAIN_W - 80, 52, 0x000000, 0.05);
         this.SLOT_N = 6;
@@ -122,7 +140,7 @@ export class GameUI extends Phaser.Scene {
         this.gamesCounter.t.setText(txt);
     }
     setObjective(txt) {
-        this.objective.t.setText(txt);
+        this.objective.t.setText(GenerateObjective());
     }
     setScore(val) {
         this.currentScore.t.setText(String(val));
