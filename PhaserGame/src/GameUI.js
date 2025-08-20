@@ -12,13 +12,14 @@ export class GameUI extends Phaser.Scene {
     constructor() {
         super({ key: 'GameUI' });
     }
-    
 
     create() {
         this.scene.bringToTop();
         const { width: W, height: H } = this.sys.game.scale;
+        this.input.dragDistanceThreshold = 8; // Set a threshold for drag distance to avoid accidental drags
+
         // Layout constants
-        const M = 12;
+        const M = 12; // margin
         const SIDEBAR_W = 170;
         const DECK_W = 120;
         const MAIN_W = W - SIDEBAR_W - DECK_W - (M * 4);
@@ -88,24 +89,17 @@ export class GameUI extends Phaser.Scene {
         // -----------------------------------------
 
         // Result slots
-        this.slotsBar = this.rect(MAIN_X + 40, this.objective.group.y + 50, MAIN_W - 80, 52, 0x000000, 0.05);
-        this.SLOT_N = 6;
-        this.slotW = 40;
-        this.slotPad = ((MAIN_W - 80) - (this.SLOT_N * this.slotW)) / (this.SLOT_N + 1);
-        this.slots = [];
-        for (let i = 0; i < this.SLOT_N; i++) {
-            const sx = this.slotsBar.x + this.slotPad + i * (this.slotW + this.slotPad);
-            this.slots.push(this.rect(sx, this.slotsBar.y + 6, this.slotW, 40, 0x000000, 0.08));
-        }
-        this.equalsText = this.add.text(this.slotsBar.x + this.slotsBar.width + 8, this.slotsBar.y + 12, '=  ?', { fontSize: 20, color: '#000000' });
+        this.resultBar = this.rect(MAIN_X + 40, this.objective.group.y + 50, MAIN_W - 80, 110, 0x000000, 0.05);
+        this.equalsText = this.add.text(this.resultBar.x + this.resultBar.width + 8, this.resultBar.y + 40, '=  ?', { fontSize: 30, color: '#000000' });
+
 
         // Hand bar
-        this.handBar = this.rect(MAIN_X + 20, this.slotsBar.y + 80, MAIN_W - 40, 110, 0x000000, 0.05);
+        this.handBar = this.rect(MAIN_X + 20, this.resultBar.y + 150, MAIN_W - 40, 110, 0x000000, 0.05);
         this.handCaption = this.add.text(this.handBar.x + this.handBar.width / 2, this.handBar.y + this.handBar.height + 16, 'Cards, either operator(+,-,*,/) or number (0–9)', { fontSize: 12, color: '#666666' }).setOrigin(0.5, 0);
 
 
         // Containers for dynamic visuals
-        this.slotsContainer = this.add.container(0, 0).setDepth(1002);
+        this.resultContainer = this.add.container(0, 0).setDepth(1002);
         this.handContainer = this.add.container(0, 0).setDepth(1002);
 
         // Initialize with defaults
@@ -114,8 +108,9 @@ export class GameUI extends Phaser.Scene {
         this.setObjective('> 17');
         this.setScore(0);
         this.createHandSlots(8);
-        this.updateHand([1, 2, 3, 4, 'x', '+']);
-        this.updateSlots([]);
+        this.updateHand([1, 2, 3, 4, 'x', '+', '/']);
+        this.createResultSlots(6);
+        
 
         // Event handlers for UI updates
         this.game.events.on('ui:update', (payload = {}) => {
@@ -125,7 +120,7 @@ export class GameUI extends Phaser.Scene {
             if (typeof payload.objective === 'string') this.setObjective(payload.objective);
         });
         this.game.events.on('ui:hand', (items = []) => this.updateHand(items));
-        this.game.events.on('ui:slots', (items = []) => this.updateSlots(items));
+        this.game.events.on('ui:result', (items = []) => this.updateResultSlots(items));
 
         this.createDragEvents();
     }
@@ -177,17 +172,39 @@ export class GameUI extends Phaser.Scene {
             card.slot = slot; // link card to its slot
 
             this.handContainer.add(card);
+            this.attachCardPointerListeners(card);
         }
     }
-    updateSlots(items = []) {
-        this.slotsContainer.removeAll(true);
-        const cardW2 = this.slotW, cardH2 = 40;
-        for (let i = 0; i < Math.min(items.length, this.SLOT_N); i++) {
-            const r = this.slots[i];
-            const cx = r.x + (r.width - cardW2) / 2;
-            const cy = r.y + (r.height - cardH2) / 2;
-            const card = createCard(this, cx, cy, cardW2, cardH2, String(items[i]), false, { fontSize: 18 });
-            this.slotsContainer.add(card);
+    createResultSlots(count) {
+        const innerPad = 12, cardW = 60, cardH = 84;
+        const innerW = this.resultBar.width - innerPad * 2;
+        const gap = Math.max(8, (innerW - count * cardW) / (count + 1));
+        let x = this.resultBar.x + innerPad + gap;
+        const y = this.resultBar.y + (this.resultBar.height - cardH) / 2;
+
+        this.resultSlots = [];
+        for (let i = 0; i < count; i++) {
+            const slot = createCardSlot(this, x, y, cardW, cardH, {});
+            this.resultSlots.push(slot);
+            this.resultContainer.add(slot);
+            x += cardW + gap;
+        }
+    }
+    updateResultSlots(items = []) {
+        const cardW = 60, cardH = 84;
+        for (let i = 0; i < this.resultSlots.length; i++) {
+            const slot = this.resultSlots[i];
+            const label = (items[i] ?? '').toString();
+            const isPlaceholder = items.length === 0;
+            const card = createCard(this, 0, 0, cardW, cardH, label, true, { fontSize: 22, color: '#222222' });
+            if (isPlaceholder) {
+                card.list[1].fillColor = 0xeeeeee;
+                card.list[2].setText('');
+            }
+            slot.setCard(card);
+            card.slot = slot;
+            this.resultContainer.add(card);
+            this.attachCardPointerListeners(card);
         }
     }
 
@@ -226,9 +243,9 @@ export class GameUI extends Phaser.Scene {
             }
             gameObject.setDepth(0);
 
-            const hoveredSlot = this.handSlots.find(slot => slot.isPointerOver(pointer));
-
-            console.log(hoveredSlot)
+            // Check both handSlots and resultSlots for hovered slot
+            const allSlots = [...this.handSlots, ...(this.resultSlots || [])];
+            const hoveredSlot = allSlots.find(slot => slot.isPointerOver(pointer));
 
             // return card to slot if not hovering over anything
             if (!hoveredSlot) {
@@ -250,8 +267,35 @@ export class GameUI extends Phaser.Scene {
                 }
 
             } else {
-                // if hovering over original slot, snap it back
+                // if hovering over original slot, snap it back or move to empty slot
                 hoveredSlot.setCard(gameObject)
+            }
+        });
+    }
+
+    // Attach pointer listeners to a card container for click/drag logic
+    attachCardPointerListeners(card) {
+        card.on('pointerdown', function (pointer) {
+            this._wasDrag = false;
+        });
+        card.on('dragstart', function (pointer) {
+            this._wasDrag = true;
+        });
+        card.on('pointerup', function (pointer) {
+            if (!this._wasDrag) {
+                // click-to-move logic: move to first empty slot in opposing bar
+                const scene = this.scene;
+                if (scene.handSlots && scene.handSlots.includes(this.slot)) {
+                    const emptyResultSlot = (scene.resultSlots || []).find(s => !s.card);
+                    if (emptyResultSlot) {
+                        emptyResultSlot.setCard(this);
+                    }
+                } else if (scene.resultSlots && scene.resultSlots.includes(this.slot)) {
+                    const emptyHandSlot = (scene.handSlots || []).find(s => !s.card);
+                    if (emptyHandSlot) {
+                        emptyHandSlot.setCard(this);
+                    }
+                }
             }
         });
     }
