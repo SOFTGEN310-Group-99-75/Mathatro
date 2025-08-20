@@ -10,7 +10,7 @@ import { createCardSlot } from './createCardSlot.js';
  */
 export class GameUI extends Phaser.Scene {
     constructor() {
-        super({ key: 'GameUI' });1
+        super({ key: 'GameUI' });
     }
 
     create() {
