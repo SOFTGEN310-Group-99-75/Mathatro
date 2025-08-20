@@ -16,6 +16,7 @@ export class GameUI extends Phaser.Scene {
     create() {
         this.scene.bringToTop();
         const { width: W, height: H } = this.sys.game.scale;
+        this.input.dragDistanceThreshold = 8; // Set a threshold for drag distance to avoid accidental drags
 
         // Layout constants
         const M = 12; // margin
@@ -171,6 +172,7 @@ export class GameUI extends Phaser.Scene {
             card.slot = slot; // link card to its slot
 
             this.handContainer.add(card);
+            this.attachCardPointerListeners(card);
         }
     }
     createResultSlots(count) {
@@ -202,6 +204,7 @@ export class GameUI extends Phaser.Scene {
             slot.setCard(card);
             card.slot = slot;
             this.resultContainer.add(card);
+            this.attachCardPointerListeners(card);
         }
     }
 
@@ -266,6 +269,33 @@ export class GameUI extends Phaser.Scene {
             } else {
                 // if hovering over original slot, snap it back or move to empty slot
                 hoveredSlot.setCard(gameObject)
+            }
+        });
+    }
+
+    // Attach pointer listeners to a card container for click/drag logic
+    attachCardPointerListeners(card) {
+        card.on('pointerdown', function (pointer) {
+            this._wasDrag = false;
+        });
+        card.on('dragstart', function (pointer) {
+            this._wasDrag = true;
+        });
+        card.on('pointerup', function (pointer) {
+            if (!this._wasDrag) {
+                // click-to-move logic: move to first empty slot in opposing bar
+                const scene = this.scene;
+                if (scene.handSlots && scene.handSlots.includes(this.slot)) {
+                    const emptyResultSlot = (scene.resultSlots || []).find(s => !s.card);
+                    if (emptyResultSlot) {
+                        emptyResultSlot.setCard(this);
+                    }
+                } else if (scene.resultSlots && scene.resultSlots.includes(this.slot)) {
+                    const emptyHandSlot = (scene.handSlots || []).find(s => !s.card);
+                    if (emptyHandSlot) {
+                        emptyHandSlot.setCard(this);
+                    }
+                }
             }
         });
     }
