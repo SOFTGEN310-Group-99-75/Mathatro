@@ -1,7 +1,9 @@
 export const GenerateObjective = () => {
 
-    obj = requirements[Phaser.Math.Between(0, requirements.length - 1)];
+    var obj = requirements[Phaser.Math.Between(0, requirements.length - 1)];
+    console.log(obj);
 
+    var objective = '';
     switch(obj){
         case "Greater than":
         case "Less than":
@@ -46,7 +48,7 @@ const requirements = [
 // List of prime numbers
 const primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97];
 
-generateNonePrime = () => {
+export const generateNonePrime = () => {
     var num = Phaser.Math.Between(10, 100);
     while (primes.includes(num)) {
         num = Phaser.Math.Between(10, 100);
