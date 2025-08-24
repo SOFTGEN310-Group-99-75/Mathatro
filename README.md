@@ -1,10 +1,10 @@
 
-# "Project Name"
-"Name of Software" aims to provide an educational while entertaining way for students to learn math. Through interaction with numbers and operators, students will be more familiar with the math concepts.
+# Mathatro
+Mathatro aims to provide an educational while entertaining way for students to learn math. Through interaction with numbers and operators, students will be more familiar with the math concepts.
 
 The game uses a deck of playing cards with numbers and operators. To progress, the player must combine these cards to meet the objective of each level — for example, “>17” or “<9”. The aim is to beat all 10 levels and achieve the highest score possible.  
 
-"IMAGE or GIF of game here"
+![Game Screenshot](./docs/images/Game_Preview.png)
 
 Whether you’re a math whiz or someone who finds math challenging, you’re bound to have some fun!!!
 
