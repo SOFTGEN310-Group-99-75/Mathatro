@@ -1,4 +1,4 @@
-# Contributing to JOhn 
+# Contributing to Mathatro 
 
 We are happy for any contributors join and help with source code, documentation, or testing!
 
@@ -29,7 +29,9 @@ If theres a feature you want to see added, or something you want to see changed,
 
 ## <a name="tests"></a> Running tests
 
-TBA
+A test suite is included in the source code, which can be ran by following the **[Test Suite Documentation](/PhaserGame/Tests/README.md)**.
+
+Any new logic functionality should have test alongside them.
 
 ## <a name="submission"></a> Submission guidelines
 
