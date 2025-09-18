@@ -1,15 +1,16 @@
 import { Preloader } from './Preloader';
 import { Play } from './Play';
 import { GameUI } from './GameUI';
+import { GAME_CONFIG } from './config/GameConstants';
 import Phaser from 'phaser';
 
 const config = {
     title: 'Card Memory Game',
     type: Phaser.AUTO,
-    width: 1280,
-    height: 720,
+    width: GAME_CONFIG.CANVAS_WIDTH,
+    height: GAME_CONFIG.CANVAS_HEIGHT,
     parent: 'game-container',
-    backgroundColor: '#f8f8ff',
+    backgroundColor: GAME_CONFIG.BACKGROUND_COLOR,
     pixelArt: false,
     scale: {
         mode: Phaser.Scale.FIT,

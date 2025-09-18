@@ -1,51 +1,44 @@
-export class Card{
+export class Card {
     protected multiplier: number;
     protected baseScore: number;
     isOperator!: boolean;
 
-    constructor(multiplier: number, baseScore: number)
-    {
+    constructor(multiplier: number, baseScore: number) {
         this.multiplier = multiplier;
         this.baseScore = baseScore;
     }
 
-    getMultiplier()
-    {
+    getMultiplier() {
         return this.multiplier;
     }
 
-    getBaseScore()
-    {
+    getBaseScore() {
         return this.baseScore;
     }
 
-    setMultiplier(multiplier: number)
-    {
+    setMultiplier(multiplier: number) {
         this.multiplier = multiplier;
     }
 
-    setBaseScore(baseScore: number)
-    {
+    setBaseScore(baseScore: number) {
         this.baseScore = baseScore;
     }
 }
-export class NumberCard extends Card{
+export class NumberCard extends Card {
     public value: number;
 
-    constructor(value: number)
-    {
-        super(1,10); // by default   
+    constructor(value: number) {
+        super(1, 10); // by default   
         this.value = value;
         this.isOperator = false;
     }
 }
 
-export class OperatorCard extends Card{
+export class OperatorCard extends Card {
     public value: string;
 
-    constructor(symbol: string)
-    {
-        super(1,10); // by default
+    constructor(symbol: string) {
+        super(1, 10); // by default
         this.value = symbol;
         this.isOperator = true;
     }

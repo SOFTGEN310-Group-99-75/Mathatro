@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { GAME_CONFIG } from './config/GameConstants';
 
 /**
  * Maths Card Game
@@ -10,8 +11,7 @@ import Phaser from 'phaser';
  * "Fat Caps" by Audionautix is licensed under the Creative Commons Attribution 4.0 license. https://creativecommons.org/licenses/by/4.0/
  * Artist http://audionautix.com/
  */
-export class Play extends Phaser.Scene
-{
+export class Play extends Phaser.Scene {
     // All cards names
     cardNames = ["card-0", "card-1", "card-2", "card-3", "card-4", "card-5"];
     // Cards Game Objects
@@ -21,26 +21,29 @@ export class Play extends Phaser.Scene
     lives = 0;
 
 
-    constructor ()
-    {
+    constructor() {
         super({
             key: 'Play'
         });
     }
 
-    init ()
-    {
+    init() {
         // Fadein camera
-        this.cameras.main.fadeIn(500);
-        this.volumeButton();
+        this.cameras.main.fadeIn(GAME_CONFIG.ANIMATION.FADE_DURATION);
+        this.createVolumeButton();
     }
 
-    create ()
-    {
+    create() {
         //prob belongs in ui
         const titleText = this.add.text(this.sys.game.scale.width / 2, this.sys.game.scale.height / 2,
             "Maths Card Game\nClick to Play",
-            { align: "center", strokeThickness: 4, fontSize: 40, fontStyle: "bold", color: "#8c7ae6" }
+            {
+                align: "center",
+                strokeThickness: GAME_CONFIG.FONT.STROKE_THICKNESS,
+                fontSize: GAME_CONFIG.FONT.TITLE_SIZE,
+                fontStyle: "bold",
+                color: GAME_CONFIG.COLORS.PURPLE
+            }
         )
             .setOrigin(.5)
             .setDepth(3)
@@ -48,7 +51,7 @@ export class Play extends Phaser.Scene
         // title tween like retro arcade
         this.add.tween({
             targets: titleText,
-            duration: 800,
+            duration: GAME_CONFIG.ANIMATION.TWEEN_DURATION,
             ease: (value) => (value > .8),
             alpha: 0,
             repeat: -1,
@@ -57,22 +60,22 @@ export class Play extends Phaser.Scene
 
         // Text Events
         titleText.on(Phaser.Input.Events.POINTER_OVER, () => {
-            titleText.setColor("#9c88ff");
+            titleText.setColor(GAME_CONFIG.COLORS.LIGHT_PURPLE);
             this.input.setDefaultCursor("pointer");
         });
         titleText.on(Phaser.Input.Events.POINTER_OUT, () => {
-            titleText.setColor("#8c7ae6");
+            titleText.setColor(GAME_CONFIG.COLORS.PURPLE);
             this.input.setDefaultCursor("default");
         });
         titleText.on(Phaser.Input.Events.POINTER_DOWN, () => {
-            this.sound.play("whoosh", { volume: 1.3 });
+            this.sound.play("whoosh", { volume: GAME_CONFIG.AUDIO.WHOOSH_VOLUME });
             this.add.tween({
                 targets: titleText,
-                ease: Phaser.Math.Easing.Bounce.InOut,
+                ease: Phaser.Math.Easing[GAME_CONFIG.ANIMATION.BOUNCE_EASING],
                 y: -1000,
                 onComplete: () => {
                     if (!this.sound.get("theme-song")) {
-                        this.sound.play("theme-song", { loop: true, volume: .5 });
+                        this.sound.play("theme-song", { loop: true, volume: GAME_CONFIG.AUDIO.THEME_VOLUME });
                     }
                     this.startGame();
                 }
@@ -80,13 +83,11 @@ export class Play extends Phaser.Scene
         });
     }
 
-    restartGame ()
-    {
+    restartGame() {
         //TODO implement  method
     }
 
-    volumeButton ()
-    {
+    createVolumeButton() {
         const volumeIcon = this.add.image(25, 25, "volume-icon").setName("volume-icon");
         volumeIcon.setInteractive();
 
@@ -96,10 +97,8 @@ export class Play extends Phaser.Scene
         });
         // Mouse leave
         volumeIcon.on(Phaser.Input.Events.POINTER_OUT, () => {
-            console.log("Mouse leave");
             this.input.setDefaultCursor("default");
         });
-
 
         volumeIcon.on(Phaser.Input.Events.POINTER_DOWN, () => {
             if (this.sound.volume === 0) {
@@ -109,25 +108,37 @@ export class Play extends Phaser.Scene
             } else {
                 this.sound.setVolume(0);
                 volumeIcon.setTexture("volume-icon_off");
-                volumeIcon.setAlpha(.5)
+                volumeIcon.setAlpha(GAME_CONFIG.ALPHA.VOLUME_OFF)
             }
         });
     }
 
-    startGame () {
+    startGame() {
         // Launch the UI layout when the game starts
         this.scene.launch('GameUI');
 
         // WinnerText and GameOverText
         const winnerText = this.add.text(this.sys.game.scale.width / 2, -1000, "YOU WIN",
-            { align: "center", strokeThickness: 4, fontSize: 40, fontStyle: "bold", color: "#8c7ae6" }
+            {
+                align: "center",
+                strokeThickness: GAME_CONFIG.FONT.STROKE_THICKNESS,
+                fontSize: GAME_CONFIG.FONT.TITLE_SIZE,
+                fontStyle: "bold",
+                color: GAME_CONFIG.COLORS.PURPLE
+            }
         ).setOrigin(.5)
             .setDepth(3)
             .setInteractive();
 
         const gameOverText = this.add.text(this.sys.game.scale.width / 2, -1000,
             "GAME OVER\nClick to restart",
-            { align: "center", strokeThickness: 4, fontSize: 40, fontStyle: "bold", color: "#ff0000" }
+            {
+                align: "center",
+                strokeThickness: GAME_CONFIG.FONT.STROKE_THICKNESS,
+                fontSize: GAME_CONFIG.FONT.TITLE_SIZE,
+                fontStyle: "bold",
+                color: GAME_CONFIG.COLORS.RED
+            }
         )
             .setName("gameOverText")
             .setDepth(3)
