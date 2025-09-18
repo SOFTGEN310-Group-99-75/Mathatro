@@ -12,6 +12,8 @@ export const GAME_CONFIG = {
     // Game progression
     MAX_LEVELS: 10,
     INITIAL_LIVES: 3,
+    DEFAULT_LEVEL: 1,
+    DEFAULT_SCORE: 0,
 
     // Health system
     HEALTH_FULL: 1,

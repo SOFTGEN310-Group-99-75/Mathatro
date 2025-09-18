@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_CONFIG } from './config/GameConstants';
 import { createTitleText, createAnimatedTitle, createVolumeButton } from './utils/UIHelpers';
+import { GameStateManager } from './game/GameStateManager';
 
 /**
  * Maths Card Game
@@ -13,13 +14,8 @@ import { createTitleText, createAnimatedTitle, createVolumeButton } from './util
  * Artist http://audionautix.com/
  */
 export class Play extends Phaser.Scene {
-    // All cards names
-    cardNames = ["card-0", "card-1", "card-2", "card-3", "card-4", "card-5"];
-    // Cards Game Objects
-    cards = [];
-
-    // Game variables
-    lives = 0;
+    // Game state manager - centralized game logic
+    gameState = null;
 
 
     constructor() {
@@ -29,6 +25,9 @@ export class Play extends Phaser.Scene {
     }
 
     init() {
+        // Initialize game state
+        this.gameState = new GameStateManager();
+
         // Fadein camera
         this.cameras.main.fadeIn(GAME_CONFIG.ANIMATION.FADE_DURATION);
         this.createVolumeButton();
@@ -51,7 +50,8 @@ export class Play extends Phaser.Scene {
     }
 
     restartGame() {
-        //TODO implement  method
+        // Restart game using GameStateManager
+        this.gameState.restartGame();
     }
 
     createVolumeButton() {

@@ -1,6 +1,17 @@
 
 import { GAME_CONFIG } from './config/GameConstants';
 
+/**
+ * Creates an interactive card slot (drop zone) for the game
+ * @param {Phaser.Scene} scene - The Phaser scene
+ * @param {number} x - X position
+ * @param {number} y - Y position  
+ * @param {number} w - Width
+ * @param {number} h - Height
+ * @param {Object} opts - Options object with fill and alpha properties
+ * @returns {Phaser.GameObjects.Container} Container with slot functionality
+ */
+
 export const createCardSlot = (scene, x, y, w, h, opts = {}) => {
     const group = scene.add.container(x, y);
     const rect = scene.add.rectangle(0, 0, w, h, opts.fill ?? GAME_CONFIG.COLORS.GRAY, opts.alpha ?? 0.3)
