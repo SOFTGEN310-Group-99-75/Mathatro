@@ -1,9 +1,11 @@
 
+import { GAME_CONFIG } from './config/GameConstants';
+
 export const createCardSlot = (scene, x, y, w, h, opts = {}) => {
     const group = scene.add.container(x, y);
-    const rect = scene.add.rectangle(0, 0, w, h, opts.fill ?? 0xbbbbbb, opts.alpha ?? 0.3)
+    const rect = scene.add.rectangle(0, 0, w, h, opts.fill ?? GAME_CONFIG.COLORS.GRAY, opts.alpha ?? 0.3)
         .setOrigin(0, 0)
-        .setStrokeStyle(3, 0xa1a1a1)
+        .setStrokeStyle(GAME_CONFIG.CARD_BORDER_WIDTH, GAME_CONFIG.COLORS.LIGHT_GRAY)
         .setInteractive();
 
 

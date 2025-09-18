@@ -185,3 +185,163 @@ export const createVolumeButton = (scene: Phaser.Scene) => {
 
     return volumeIcon;
 };
+
+/**
+ * Creates a styled text with consistent styling
+ */
+export const createStyledText = (
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    text: string,
+    options: Partial<LabelBoxOptions> = {}
+) => {
+    return scene.add.text(x, y, text, {
+        fontSize: options.fontSize ?? GAME_CONFIG.FONT.SCORE_SIZE,
+        color: options.color ?? GAME_CONFIG.COLORS.BLACK,
+        fontStyle: options.fontStyle ?? 'bold',
+        align: options.align ?? 'center',
+        stroke: GAME_CONFIG.FONT.STROKE_COLOR,
+        strokeThickness: 2,
+        shadow: {
+            offsetX: GAME_CONFIG.FONT.SHADOW_OFFSET_X,
+            offsetY: GAME_CONFIG.FONT.SHADOW_OFFSET_Y,
+            color: GAME_CONFIG.COLORS.BLACK,
+            blur: GAME_CONFIG.FONT.SHADOW_BLUR,
+            fill: true
+        }
+    }).setOrigin(0.5);
+};
+
+/**
+ * Creates a styled card with consistent styling
+ */
+export const createStyledCard = (
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    label: string = '',
+    draggable: boolean = false,
+    options: LabelBoxOptions = {}
+) => {
+    const group = scene.add.container(x, y);
+
+    // Shadow
+    const shadow = scene.add.rectangle(
+        GAME_CONFIG.CARD_SHADOW_OFFSET_X,
+        GAME_CONFIG.CARD_SHADOW_OFFSET_Y,
+        w, h,
+        0x000000,
+        GAME_CONFIG.CARD_SHADOW_ALPHA
+    ).setOrigin(0, 0);
+
+    // Card background
+    const card = scene.add.rectangle(0, 0, w, h, options.fill ?? 0xffffff, options.alpha ?? 1)
+        .setOrigin(0, 0);
+
+    card.setStrokeStyle(
+        GAME_CONFIG.CARD_BORDER_WIDTH,
+        GAME_CONFIG.CARD_BORDER_COLOR,
+        1
+    );
+
+    // Text
+    const text = scene.add.text(w / 2, h / 2, label, {
+        fontSize: options.fontSize ?? GAME_CONFIG.FONT.CARD_SIZE,
+        color: options.color ?? GAME_CONFIG.COLORS.BLACK,
+        fontStyle: options.fontStyle ?? 'bold',
+        stroke: GAME_CONFIG.FONT.STROKE_COLOR,
+        strokeThickness: 2,
+        shadow: {
+            offsetX: GAME_CONFIG.FONT.SHADOW_OFFSET_X,
+            offsetY: GAME_CONFIG.FONT.SHADOW_OFFSET_Y,
+            color: GAME_CONFIG.COLORS.BLACK,
+            blur: GAME_CONFIG.FONT.SHADOW_BLUR,
+            fill: true
+        }
+    }).setOrigin(0.5);
+
+    group.add([shadow, card, text]);
+    (group as any).shadow = shadow;
+    (group as any).slot = null;
+
+    if (draggable) {
+        group.setSize(w, h);
+        group.setInteractive(
+            new Phaser.Geom.Rectangle(w / 2, h / 2, w, h),
+            Phaser.Geom.Rectangle.Contains
+        );
+        scene.input.setDraggable(group);
+    }
+
+    return group;
+};
+
+/**
+ * Creates a standardized game card
+ */
+export const createGameCard = (
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    label: string,
+    draggable: boolean = true
+) => {
+    return createStyledCard(scene, x, y,
+        GAME_CONFIG.CARD_WIDTH,
+        GAME_CONFIG.CARD_HEIGHT,
+        label,
+        draggable,
+        {
+            fontSize: GAME_CONFIG.FONT.CARD_SIZE,
+            color: GAME_CONFIG.COLORS.BLACK
+        }
+    );
+};
+
+/**
+ * Makes an element interactive with hover effects
+ */
+export const makeInteractive = (
+    element: Phaser.GameObjects.GameObject & { setColor?: (color: string) => any },
+    hoverColor: string,
+    originalColor: string,
+    scene: Phaser.Scene
+) => {
+    element.setInteractive();
+
+    element.on(Phaser.Input.Events.POINTER_OVER, () => {
+        if (element.setColor) {
+            element.setColor(hoverColor);
+        }
+        scene.input.setDefaultCursor("pointer");
+    });
+
+    element.on(Phaser.Input.Events.POINTER_OUT, () => {
+        if (element.setColor) {
+            element.setColor(originalColor);
+        }
+        scene.input.setDefaultCursor("default");
+    });
+
+    return element;
+};
+
+/**
+ * Creates a styled container with consistent styling
+ */
+export const createStyledContainer = (
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    options: RectOptions = {}
+) => {
+    const group = scene.add.container(x, y);
+    const rect = createStyledRect(scene, 0, 0, w, h, options);
+    group.add(rect);
+    return group;
+};

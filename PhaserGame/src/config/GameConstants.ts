@@ -48,6 +48,9 @@ export const GAME_CONFIG = {
         GRAY: 0xbbbbbb,
         LIGHT_GRAY: 0xa1a1a1,
         BLUE: 0x3498db,
+        DARK_GRAY: '#333333',
+        MEDIUM_GRAY: '#666666',
+        LIGHT_PLACEHOLDER: 0xeeeeee,
     },
 
     // UI Alpha values
@@ -101,6 +104,66 @@ export const GAME_CONFIG = {
     // Hand and result slots
     HAND_SLOTS: 8,
     RESULT_SLOTS: 6,
+
+    // Layout positioning
+    LAYOUT: {
+        // Score board positioning
+        SCORE_TITLE_Y_OFFSET: 14,
+        CURRENT_SCORE_Y_OFFSET: 34,
+        CURRENT_SCORE_HEIGHT: 44,
+        CALC_TEXT_Y_OFFSET: 20,
+        CUMULATED_Y_OFFSET: 100,
+        CUMULATED_HEIGHT: 80,
+
+        // Health bar positioning
+        HEALTH_BAR_HEIGHT: 22,
+        HEALTH_BAR_GAMES_COUNTER_WIDTH: 110,
+        HEALTH_HINT_Y_OFFSET: 12,
+        GAMES_COUNTER_WIDTH: 92,
+        GAMES_COUNTER_HEIGHT: 30,
+
+        // Objective positioning
+        OBJECTIVE_Y_OFFSET: 70,
+        OBJECTIVE_WIDTH: 120,
+        OBJECTIVE_HEIGHT: 36,
+        OBJECTIVE_CAPTION_Y_OFFSET: 6,
+
+        // Bar positioning
+        RESULT_BAR_X_OFFSET: 40,
+        RESULT_BAR_WIDTH_OFFSET: 80,
+        RESULT_BAR_HEIGHT: 110,
+        RESULT_BAR_Y_OFFSET: 50,
+        HAND_BAR_X_OFFSET: 20,
+        HAND_BAR_WIDTH_OFFSET: 40,
+        HAND_BAR_HEIGHT: 110,
+        HAND_BAR_Y_OFFSET: 150,
+        HAND_CAPTION_Y_OFFSET: 16,
+
+        // Border and inset values
+        HEALTH_BAR_INSET: 2,
+        HEALTH_BAR_BORDER: 4,
+
+        // Text positioning
+        CALC_TEXT_X_OFFSET: 16,
+        CALC_TEXT_WIDTH_OFFSET: 32,
+
+        // Test section positioning
+        TEST_LABEL_X_OFFSET: 100,
+        TEST_LABEL_Y_OFFSET: 75,
+
+        // Result bar positioning
+        RESULT_EQUALS_X_OFFSET: 8,
+        RESULT_EQUALS_Y_OFFSET: 40,
+        RESULT_EQUALS_FONT_SIZE: 30,
+
+        // Default values
+        DEFAULT_GAME_TEXT: '1 / 10',
+        DEFAULT_OBJECTIVE_TEXT: '> 17',
+        DEFAULT_ALPHA: 0.8,
+
+        // Health bar calculation
+        HEALTH_BAR_CALC_OFFSET: 4,
+    },
 
     // Card values
     CARD_VALUES: {
