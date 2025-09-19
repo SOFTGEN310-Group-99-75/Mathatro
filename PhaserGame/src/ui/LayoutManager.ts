@@ -235,7 +235,7 @@ export class LayoutManager {
             currentScoreHeight: GAME_CONFIG.LAYOUT.CURRENT_SCORE_HEIGHT,
             calcTextX: M + GAME_CONFIG.LAYOUT.CALC_TEXT_X_OFFSET,
             calcTextY: M + GAME_CONFIG.LAYOUT.CURRENT_SCORE_Y_OFFSET + GAME_CONFIG.LAYOUT.CURRENT_SCORE_HEIGHT + GAME_CONFIG.LAYOUT.CALC_TEXT_Y_OFFSET,
-            cumulatedX: M + GAME_CONFIG.INNER_PADDING,
+            cumulatedX: M + GAME_CONFIG.INNER_PADDING + 20,
             cumulatedY: gameHeight - M - GAME_CONFIG.LAYOUT.CUMULATED_Y_OFFSET,
             cumulatedWidth: SIDEBAR_W - GAME_CONFIG.INNER_PADDING * 2,
             cumulatedHeight: GAME_CONFIG.LAYOUT.CUMULATED_HEIGHT

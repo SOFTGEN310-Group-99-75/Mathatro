@@ -65,12 +65,16 @@ export class CardUtils {
      * Update multiple cards in slots
      */
     static updateCardsInSlots(scene: Phaser.Scene, slots: any[], items: any[]) {
+        console.log('CardUtils.updateCardsInSlots called with:', { slotsCount: slots.length, itemsCount: items.length, items });
+
         for (let i = 0; i < slots.length; i++) {
             const slot = slots[i];
             const label = (items[i] ?? '').toString();
             const isPlaceholder = items.length === 0;
 
+            console.log(`Creating card ${i}: label="${label}", isPlaceholder=${isPlaceholder}`);
             const card = this.createStandardCard(scene, 0, 0, label, true);
+            console.log('Card created:', card);
 
             if (isPlaceholder) {
                 this.setCardAsPlaceholder(card);
@@ -78,7 +82,9 @@ export class CardUtils {
                 this.setCardWithContent(card, label);
             }
 
+            console.log('Setting card in slot...');
             slot.setCard(card);
+            console.log('Card set in slot, slot.card:', slot.card);
         }
     }
 }

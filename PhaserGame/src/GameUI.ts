@@ -42,6 +42,7 @@ export class GameUI extends Phaser.Scene {
     }
 
     create() {
+        console.log('GameUI.create() called');
         this.scene.bringToTop();
         const { width: W, height: H } = this.sys.game.scale;
         this.input.dragDistanceThreshold = GAME_CONFIG.DRAG.DISTANCE_THRESHOLD;
@@ -120,9 +121,14 @@ export class GameUI extends Phaser.Scene {
         const currentObjective = this.gameManager.getCurrentObjective();
         this.setObjective(currentObjective || GAME_CONFIG.LAYOUT.DEFAULT_OBJECTIVE_TEXT);
         this.setScore(GAME_CONFIG.DEFAULT_SCORE);
+        console.log('Creating hand slots...');
         this.createHandSlots(GAME_CONFIG.HAND_SLOTS);
+        console.log('Updating hand with cards...');
         this.updateHand([1, 2, 3, 4, 'x', '+', '/']);
+        console.log('Creating result slots...');
         this.createResultSlots(GAME_CONFIG.RESULT_SLOTS);
+        console.log('Updating result slots...');
+        this.updateResultSlots(['?', '?', '?', '?', '?', '?']); // Add some placeholder result slots
 
 
         // UI is now updated via GameManager events - no direct event handling needed
@@ -145,17 +151,19 @@ export class GameUI extends Phaser.Scene {
         this.healthBarFill.fillColor = healthColor;
     }
     setGames(txt: string) {
-        this.gamesCounter.t.setText(txt);
+        this.gamesCounter.text.setText(txt);
     }
     setObjective(txt: string) {
-        this.objective.t.setText(txt);
+        this.objective.text.setText(txt);
     }
     setScore(val: number | string) {
-        this.currentScore.t.setText(String(val));
+        this.currentScore.text.setText(String(val));
     }
     createHandSlots(count: number) {
+        console.log('createHandSlots called with count:', count);
         // Use LayoutManager for positioning calculations
         const slotLayout = LayoutManager.calculateHandSlotPositions(this.handBar.width, this.handBar.height, count);
+        console.log('Hand slot layout:', slotLayout);
 
         this.handSlots = [];
         for (let i = 0; i < count; i++) {
@@ -163,7 +171,9 @@ export class GameUI extends Phaser.Scene {
             const slot = createCardSlot(this, this.handBar.x + position.x, this.handBar.y + position.y, slotLayout.cardWidth, slotLayout.cardHeight, {});
             this.handSlots.push(slot);
             this.handContainer.add(slot);
+            console.log(`Hand slot ${i} created at:`, { x: this.handBar.x + position.x, y: this.handBar.y + position.y });
         }
+        console.log('All hand slots created:', this.handSlots.length);
     }
     updateHand(items: any[] = []) {
         // Use CardUtils to eliminate duplication

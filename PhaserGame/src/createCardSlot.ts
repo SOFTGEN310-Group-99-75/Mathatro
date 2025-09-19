@@ -26,7 +26,6 @@ export const createCardSlot = (scene: Phaser.Scene, x: number, y: number, w: num
 
     // place a card into the slot where 'newCard' is the card to replace current card in slot
     (group as any).setCard = (newCard: any) => {
-
         // remove newCard from old slot if it has one
         if (newCard.slot && newCard.slot !== group) {
             newCard.slot.card = null;

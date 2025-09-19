@@ -33,7 +33,7 @@ export const GAME_CONFIG = {
     MARGIN: 12,
     SIDEBAR_WIDTH: 170,
     DECK_WIDTH: 120,
-    INNER_PADDING: 12,
+    INNER_PADDING: 35,
     CARD_GAP: 8,
 
     // UI Colors
@@ -139,7 +139,7 @@ export const GAME_CONFIG = {
         HAND_BAR_WIDTH_OFFSET: 40,
         HAND_BAR_HEIGHT: 110,
         HAND_BAR_Y_OFFSET: 150,
-        HAND_CAPTION_Y_OFFSET: 16,
+        HAND_CAPTION_Y_OFFSET: 25,
 
         // Border and inset values
         HEALTH_BAR_INSET: 2,
