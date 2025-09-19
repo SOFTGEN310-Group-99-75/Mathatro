@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_CONFIG } from './config/GameConstants';
 import { createTitleText, createAnimatedTitle, createVolumeButton } from './utils/UIHelpers';
-import { GameStateManager } from './game/GameStateManager';
+import { GameManager } from './game/GameManager';
 
 /**
  * Maths Card Game
@@ -14,8 +14,8 @@ import { GameStateManager } from './game/GameStateManager';
  * Artist http://audionautix.com/
  */
 export class Play extends Phaser.Scene {
-    // Game state manager - centralized game logic
-    gameState = null;
+    // Game manager - centralized game coordination
+    private gameManager: GameManager;
 
 
     constructor() {
@@ -25,8 +25,9 @@ export class Play extends Phaser.Scene {
     }
 
     init() {
-        // Initialize game state
-        this.gameState = new GameStateManager();
+        // Initialize game manager (singleton)
+        this.gameManager = GameManager.getInstance();
+        this.gameManager.initialize(this);
 
         // Fadein camera
         this.cameras.main.fadeIn(GAME_CONFIG.ANIMATION.FADE_DURATION);
@@ -50,8 +51,8 @@ export class Play extends Phaser.Scene {
     }
 
     restartGame() {
-        // Restart game using GameStateManager
-        this.gameState.restartGame();
+        // Restart game using GameManager
+        this.gameManager.restartGame();
     }
 
     createVolumeButton() {
@@ -69,7 +70,7 @@ export class Play extends Phaser.Scene {
             -1000,
             "YOU WIN",
             { fontSize: GAME_CONFIG.FONT.TITLE_SIZE, color: GAME_CONFIG.COLORS.PURPLE }
-        ).setDepth(3).setInteractive();
+        ).setName("winnerText").setDepth(3).setInteractive();
 
         createTitleText(
             this,

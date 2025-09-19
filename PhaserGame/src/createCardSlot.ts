@@ -12,7 +12,7 @@ import { GAME_CONFIG } from './config/GameConstants';
  * @returns {Phaser.GameObjects.Container} Container with slot functionality
  */
 
-export const createCardSlot = (scene, x, y, w, h, opts = {}) => {
+export const createCardSlot = (scene: Phaser.Scene, x: number, y: number, w: number, h: number, opts: any = {}) => {
     const group = scene.add.container(x, y);
     const rect = scene.add.rectangle(0, 0, w, h, opts.fill ?? GAME_CONFIG.COLORS.GRAY, opts.alpha ?? 0.3)
         .setOrigin(0, 0)
@@ -22,10 +22,10 @@ export const createCardSlot = (scene, x, y, w, h, opts = {}) => {
 
     group.add(rect);
 
-    group.card = null;
+    (group as any).card = null;
 
     // place a card into the slot where 'newCard' is the card to replace current card in slot
-    group.setCard = (newCard) => {
+    (group as any).setCard = (newCard: any) => {
 
         // remove newCard from old slot if it has one
         if (newCard.slot && newCard.slot !== group) {
@@ -33,18 +33,18 @@ export const createCardSlot = (scene, x, y, w, h, opts = {}) => {
         }
 
         // remove current card from the current slot if it has one
-        if (group.card && group.card !== newCard) {
-            group.card.slot = null;
+        if ((group as any).card && (group as any).card !== newCard) {
+            (group as any).card.slot = null;
         }
 
-        group.card = newCard;
+        (group as any).card = newCard;
         newCard.slot = group;
 
         newCard.setPosition(group.x - group.width / 2, group.y);
     };
 
     // for checking whether pointer is over the slot
-    group.isPointerOver = (pointer) => {
+    (group as any).isPointerOver = (pointer: Phaser.Input.Pointer) => {
         const slotBounds = rect.getBounds();
         return slotBounds.contains(pointer.x, pointer.y);
     };

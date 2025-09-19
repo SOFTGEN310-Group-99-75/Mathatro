@@ -3,7 +3,6 @@ import { GAME_CONFIG, OBJECTIVE_TYPES, PRIME_NUMBERS } from './config/GameConsta
 export const GenerateObjective = () => {
 
     const obj = OBJECTIVE_TYPES[Phaser.Math.Between(0, OBJECTIVE_TYPES.length - 1)];
-    console.log(obj);
 
     let objective = '';
     switch (obj) {
@@ -42,7 +41,7 @@ export const GenerateObjective = () => {
 
 export const generateNonPrime = () => {
     let num = Phaser.Math.Between(GAME_CONFIG.OBJECTIVE.MIN_FACTOR, GAME_CONFIG.OBJECTIVE.MAX_FACTOR);
-    while (PRIME_NUMBERS.includes(num)) {
+    while (PRIME_NUMBERS.includes(num as any)) {
         num = Phaser.Math.Between(GAME_CONFIG.OBJECTIVE.MIN_FACTOR, GAME_CONFIG.OBJECTIVE.MAX_FACTOR);
     }
     return num;

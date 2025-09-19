@@ -9,7 +9,7 @@ export class CardUtils {
     /**
      * Create a card with standard styling
      */
-    static createStandardCard(scene, x, y, label, draggable = true) {
+    static createStandardCard(scene: Phaser.Scene, x: number, y: number, label: string, draggable = true) {
         return createStyledCard(scene, x, y,
             GAME_CONFIG.CARD_WIDTH,
             GAME_CONFIG.CARD_HEIGHT,
@@ -25,12 +25,12 @@ export class CardUtils {
     /**
      * Create a placeholder card (empty slot)
      */
-    static createPlaceholderCard(scene, x, y) {
+    static createPlaceholderCard(scene: Phaser.Scene, x: number, y: number) {
         const card = this.createStandardCard(scene, x, y, '', true);
 
         // Style as placeholder
-        card.list[1].fillColor = GAME_CONFIG.COLORS.LIGHT_PLACEHOLDER;
-        card.list[2].setText('');
+        (card.list[1] as any).fillColor = GAME_CONFIG.COLORS.LIGHT_PLACEHOLDER;
+        (card.list[2] as any).setText('');
 
         return card;
     }
@@ -38,7 +38,7 @@ export class CardUtils {
     /**
      * Update a card's appearance to be a placeholder
      */
-    static setCardAsPlaceholder(card) {
+    static setCardAsPlaceholder(card: any) {
         card.list[1].fillColor = GAME_CONFIG.COLORS.LIGHT_PLACEHOLDER;
         card.list[2].setText('');
     }
@@ -46,7 +46,7 @@ export class CardUtils {
     /**
      * Update a card's appearance with content
      */
-    static setCardWithContent(card, label) {
+    static setCardWithContent(card: any, label: string) {
         card.list[1].fillColor = 0xffffff; // White background
         card.list[2].setText(label);
     }
@@ -54,7 +54,7 @@ export class CardUtils {
     /**
      * Create multiple cards from an array of labels
      */
-    static createCardsFromArray(scene, positions, labels, draggable = true) {
+    static createCardsFromArray(scene: Phaser.Scene, positions: any[], labels: string[], draggable = true) {
         return labels.map((label, index) => {
             const position = positions[index];
             return this.createStandardCard(scene, position.x, position.y, label, draggable);
@@ -64,7 +64,7 @@ export class CardUtils {
     /**
      * Update multiple cards in slots
      */
-    static updateCardsInSlots(scene, slots, items) {
+    static updateCardsInSlots(scene: Phaser.Scene, slots: any[], items: any[]) {
         for (let i = 0; i < slots.length; i++) {
             const slot = slots[i];
             const label = (items[i] ?? '').toString();
