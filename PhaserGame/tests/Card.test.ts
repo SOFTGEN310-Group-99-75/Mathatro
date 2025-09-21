@@ -1,119 +1,144 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { CardUtils } from '../src/utils/CardUtils';
 
-// Mock Card classes for testing since the actual Card.ts was removed
-class Card {
-    protected multiplier: number;
-    protected baseScore: number;
-    isOperator!: boolean;
-
-    constructor(multiplier: number, baseScore: number) {
-        this.multiplier = multiplier;
-        this.baseScore = baseScore;
+// Mock Phaser objects for testing
+const mockScene = {
+    add: {
+        container: vi.fn().mockReturnValue({
+            add: vi.fn(),
+            setSize: vi.fn(),
+            setInteractive: vi.fn()
+        }),
+        rectangle: vi.fn().mockReturnValue({
+            setOrigin: vi.fn().mockReturnThis(),
+            setStrokeStyle: vi.fn().mockReturnThis()
+        }),
+        text: vi.fn().mockReturnValue({
+            setOrigin: vi.fn().mockReturnThis(),
+            setText: vi.fn().mockReturnThis()
+        })
+    },
+    input: {
+        setDraggable: vi.fn()
     }
+};
 
-    getMultiplier() {
-        return this.multiplier;
-    }
+const mockSlot = {
+    setCard: vi.fn()
+};
 
-    getBaseScore() {
-        return this.baseScore;
-    }
+describe('CardUtils', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
 
-    setMultiplier(multiplier: number) {
-        this.multiplier = multiplier;
-    }
+    describe('createStandardCard', () => {
+        it('should create a standard card with default styling', () => {
+            const card = CardUtils.createStandardCard(
+                mockScene as any,
+                100,
+                200,
+                'Test Card'
+            );
 
-    setBaseScore(baseScore: number) {
-        this.baseScore = baseScore;
-    }
-}
-
-class NumberCard extends Card {
-    public value: number;
-
-    constructor(value: number) {
-        super(1, 10); // by default   
-        this.value = value;
-        this.isOperator = false;
-    }
-}
-
-class OperatorCard extends Card {
-    public value: string;
-
-    constructor(symbol: string) {
-        super(1, 10); // by default
-        this.value = symbol;
-        this.isOperator = true;
-    }
-}
-
-describe('Card', () => {
-    describe('Base Card class', () => {
-        it('should create a card with default multiplier and base score', () => {
-            const card = new Card(2, 20);
-
-            expect(card.getMultiplier()).toBe(2);
-            expect(card.getBaseScore()).toBe(20);
+            expect(mockScene.add.container).toHaveBeenCalledWith(100, 200);
+            expect(mockScene.add.text).toHaveBeenCalled();
+            expect(mockScene.input.setDraggable).toHaveBeenCalled();
         });
 
-        it('should allow updating multiplier and base score', () => {
-            const card = new Card(1, 10);
-            
-            card.setMultiplier(3);
-            card.setBaseScore(30);
+        it('should create a non-draggable card when specified', () => {
+            const card = CardUtils.createStandardCard(
+                mockScene as any,
+                100,
+                200,
+                'Static Card',
+                false
+            );
 
-            expect(card.getMultiplier()).toBe(3);
-            expect(card.getBaseScore()).toBe(30);
+            expect(mockScene.input.setDraggable).not.toHaveBeenCalled();
         });
     });
 
-    describe('NumberCard class', () => {
-        it('should create a number card with correct properties', () => {
-            const numberCard = new NumberCard(5);
+    describe('createPlaceholderCard', () => {
+        it('should create a placeholder card with empty text', () => {
+            const card = CardUtils.createPlaceholderCard(
+                mockScene as any,
+                150,
+                250
+            );
 
-            expect(numberCard.value).toBe(5);
-            expect(numberCard.isOperator).toBe(false);
-            expect(numberCard.getMultiplier()).toBe(1);
-            expect(numberCard.getBaseScore()).toBe(10);
-        });
-
-        it('should handle different number values', () => {
-            const card1 = new NumberCard(0);
-            const card2 = new NumberCard(9);
-
-            expect(card1.value).toBe(0);
-            expect(card2.value).toBe(9);
-            expect(card1.isOperator).toBe(false);
-            expect(card2.isOperator).toBe(false);
+            expect(mockScene.add.container).toHaveBeenCalledWith(150, 250);
+            expect(mockScene.add.text).toHaveBeenCalled();
         });
     });
 
-    describe('OperatorCard class', () => {
-        it('should create an operator card with correct properties', () => {
-            const operatorCard = new OperatorCard('+');
+    describe('setCardAsPlaceholder', () => {
+        it('should update card appearance to placeholder style', () => {
+            const mockCard = {
+                list: [
+                    null,
+                    { fillColor: 0xffffff },
+                    { setText: vi.fn() }
+                ]
+            };
 
-            expect(operatorCard.value).toBe('+');
-            expect(operatorCard.isOperator).toBe(true);
-            expect(operatorCard.getMultiplier()).toBe(1);
-            expect(operatorCard.getBaseScore()).toBe(10);
+            CardUtils.setCardAsPlaceholder(mockCard);
+
+            expect(mockCard.list[1]?.fillColor).toBeDefined();
+            expect(mockCard.list[2]?.setText).toHaveBeenCalledWith('');
+        });
+    });
+
+    describe('setCardWithContent', () => {
+        it('should update card appearance with content', () => {
+            const mockCard = {
+                list: [
+                    null,
+                    { fillColor: 0x000000 },
+                    { setText: vi.fn() }
+                ]
+            };
+
+            CardUtils.setCardWithContent(mockCard, 'New Content');
+
+            expect(mockCard.list[1]?.fillColor).toBe(0xffffff);
+            expect(mockCard.list[2]?.setText).toHaveBeenCalledWith('New Content');
+        });
+    });
+
+    describe('createCardsFromArray', () => {
+        it('should create multiple cards from array of labels', () => {
+            const positions = [{ x: 100, y: 200 }, { x: 200, y: 300 }];
+            const labels = ['Card 1', 'Card 2'];
+
+            const cards = CardUtils.createCardsFromArray(
+                mockScene as any,
+                positions,
+                labels
+            );
+
+            expect(cards).toHaveLength(2);
+            expect(mockScene.add.container).toHaveBeenCalledTimes(2);
+        });
+    });
+
+    describe('updateCardsInSlots', () => {
+        it('should update cards in slots with items', () => {
+            const slots = [mockSlot, mockSlot];
+            const items = ['Item 1', 'Item 2'];
+
+            CardUtils.updateCardsInSlots(mockScene as any, slots, items);
+
+            expect(mockSlot.setCard).toHaveBeenCalledTimes(2);
         });
 
-        it('should handle different operator symbols', () => {
-            const addCard = new OperatorCard('+');
-            const subCard = new OperatorCard('-');
-            const mulCard = new OperatorCard('*');
-            const divCard = new OperatorCard('/');
+        it('should create placeholder cards when items array is empty', () => {
+            const slots = [mockSlot];
+            const items: any[] = [];
 
-            expect(addCard.value).toBe('+');
-            expect(subCard.value).toBe('-');
-            expect(mulCard.value).toBe('*');
-            expect(divCard.value).toBe('/');
-            
-            expect(addCard.isOperator).toBe(true);
-            expect(subCard.isOperator).toBe(true);
-            expect(mulCard.isOperator).toBe(true);
-            expect(divCard.isOperator).toBe(true);
+            CardUtils.updateCardsInSlots(mockScene as any, slots, items);
+
+            expect(mockSlot.setCard).toHaveBeenCalledTimes(1);
         });
     });
 });

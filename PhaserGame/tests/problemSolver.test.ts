@@ -1,204 +1,216 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { GenerateObjective, generateNonPrime } from '../src/GenerateObjective';
+import { GameStateManager } from '../src/game/GameStateManager';
 
-// Mock problemSolver functions since the actual problemSolver.ts was removed
-function solveProblem(cardArray: any[]): number[] | null {
-    // First we separate the card array into different problems - an array of strings
-    let problems: string[] = [""];
+// Mock Phaser.Math for testing
+const mockPhaserMath = {
+    Between: vi.fn()
+};
+// Mock Phaser globally for testing
+(globalThis as any).Phaser = {
+    Math: mockPhaserMath
+};
 
-    let lastWasNumber = false;
-    cardArray.forEach(card => {
-        if (card.value === undefined || card.isOperator === undefined) {
-            console.log("Error: card does not have value or isOperator: " + JSON.stringify(card));
-            return; // this does not return out of solveProblem, it just acts as a break in the forEach
-        }
-
-        if (card.isOperator === true) {
-            lastWasNumber = false;
-            // add operator 
-            problems[problems.length - 1] += card.value;
-        } else if (card.isOperator === false) {
-            if (lastWasNumber === true) {
-                // if the last entry was a number, we start a new problem
-                problems.push("" + card.value);
-            } else if (lastWasNumber === false) {
-                // if the previous entry was an operator, we need to have numbers either sides
-                problems[problems.length - 1] += card.value;
-            }
-            lastWasNumber = true;
-        }
+describe('GenerateObjective', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
     });
 
-    // solve each problem 
-    let solutions: number[] = [];
-    problems.forEach(problem => {
-        let solution = solveStringProblem(problem);
-        if (solution !== null) {
-            solutions.push(solution);
-        } else {
-            console.log("Error: problem could not be solved: " + problem)
-        }
-    });
+    describe('GenerateObjective function', () => {
+        it('should generate comparison objectives', () => {
+            mockPhaserMath.Between
+                .mockReturnValueOnce(0) // "Greater than" index
+                .mockReturnValueOnce(10); // number value
 
-    return solutions;
-}
-
-function solveStringProblem(stringProblem: string): number {
-    let solution: number = 0;
-    let lastOperator: string = "";
-    let numberBuffer: string = "";
-    for (const character of stringProblem) {
-        if (!isNaN(Number(character))) {
-            // digits
-            numberBuffer += character;
-        } else {
-            // operator - apply last operator and buffered number, then update last operator and reset buffered number
-            solution = handleOperator(solution, lastOperator, Number(numberBuffer));
-
-            numberBuffer = "";
-            lastOperator = character;
-        }
-    }
-
-    // always handle the last number & operator
-    solution = handleOperator(solution, lastOperator, Number(numberBuffer));
-
-    return solution;
-}
-
-function handleOperator(total: number, operator: string, num: number): number {
-    switch (operator) {
-        case '+':
-            total += num;
-            break;
-        case '-':
-            total -= num;
-            break;
-        case '*':
-            total *= num;
-            break;
-        case '/':
-            total /= num;
-            break;
-        case '^':
-            total = Math.pow(total, num);
-            break;
-        case '':
-            total += num;
-            break;
-        default:
-            console.log("Error: unsupported operator: " + operator);
-    }
-    return total;
-}
-
-describe('problemSolver', () => {
-    describe('solveProblem', () => {
-        it('should solve simple addition', () => {
-            const cards = [
-                { value: 2, isOperator: false },
-                { value: '+', isOperator: true },
-                { value: 3, isOperator: false }
-            ];
-
-            const result = solveProblem(cards);
-            expect(result).toEqual([5]);
+            const objective = GenerateObjective();
+            expect(objective).toBe('Greater than 10');
         });
 
-        it('should solve simple subtraction', () => {
-            const cards = [
-                { value: 5, isOperator: false },
-                { value: '-', isOperator: true },
-                { value: 2, isOperator: false }
-            ];
+        it('should generate factor objectives', () => {
+            mockPhaserMath.Between
+                .mockReturnValueOnce(3) // "Factor of" index
+                .mockReturnValueOnce(12); // non-prime number
 
-            const result = solveProblem(cards);
-            expect(result).toEqual([3]);
+            const objective = GenerateObjective();
+            expect(objective).toBe('Factor of 12');
         });
 
-        it('should solve simple multiplication', () => {
-            const cards = [
-                { value: 3, isOperator: false },
-                { value: '*', isOperator: true },
-                { value: 4, isOperator: false }
-            ];
+        it('should generate divisible by objectives', () => {
+            mockPhaserMath.Between
+                .mockReturnValueOnce(4) // "Divisible by" index
+                .mockReturnValueOnce(5); // divisor
 
-            const result = solveProblem(cards);
-            expect(result).toEqual([12]);
+            const objective = GenerateObjective();
+            expect(objective).toBe('Divisible by 5');
         });
 
-        it('should solve simple division', () => {
-            const cards = [
-                { value: 8, isOperator: false },
-                { value: '/', isOperator: true },
-                { value: 2, isOperator: false }
-            ];
+        it('should generate power objectives', () => {
+            mockPhaserMath.Between
+                .mockReturnValueOnce(5) // "Power of" index
+                .mockReturnValueOnce(3); // power
 
-            const result = solveProblem(cards);
-            expect(result).toEqual([4]);
+            const objective = GenerateObjective();
+            expect(objective).toBe('Power of 3');
         });
 
-        it('should solve complex expressions', () => {
-            const cards = [
-                { value: 2, isOperator: false },
-                { value: '+', isOperator: true },
-                { value: 3, isOperator: false },
-                { value: '*', isOperator: true },
-                { value: 4, isOperator: false }
-            ];
+        it('should generate simple objectives without parameters', () => {
+            mockPhaserMath.Between.mockReturnValueOnce(6); // "Prime number" index
 
-            const result = solveProblem(cards);
-            expect(result).toEqual([14]); // 2 + (3 * 4) = 14
-        });
-
-        it('should handle multiple separate problems', () => {
-            const cards = [
-                { value: 1, isOperator: false },
-                { value: '+', isOperator: true },
-                { value: 2, isOperator: false },
-                { value: 3, isOperator: false },
-                { value: '+', isOperator: true },
-                { value: 4, isOperator: false }
-            ];
-
-            const result = solveProblem(cards);
-            expect(result).toEqual([3, 7]); // [1+2, 3+4] = [3, 7]
-        });
-
-        it('should handle invalid cards gracefully', () => {
-            const cards = [
-                { value: 2, isOperator: false },
-                { value: '+', isOperator: true },
-                { invalid: true }, // Invalid card
-                { value: 3, isOperator: false }
-            ];
-
-            const result = solveProblem(cards);
-            expect(result).toEqual([2]); // Should still solve the valid part
+            const objective = GenerateObjective();
+            expect(objective).toBe('Prime number');
         });
     });
 
-    describe('solveStringProblem', () => {
-        it('should solve simple string expressions', () => {
-            expect(solveStringProblem("2+3")).toBe(5);
-            expect(solveStringProblem("5-2")).toBe(3);
-            expect(solveStringProblem("3*4")).toBe(12);
-            expect(solveStringProblem("8/2")).toBe(4);
+    describe('generateNonPrime function', () => {
+        it('should return a non-prime number', () => {
+            mockPhaserMath.Between
+                .mockReturnValueOnce(4) // first call returns 4 (not prime)
+                .mockReturnValueOnce(12); // second call returns 12 (not prime)
+
+            const result = generateNonPrime();
+            expect(result).toBe(4);
         });
 
-        it('should handle single numbers', () => {
-            expect(solveStringProblem("5")).toBe(5);
-            expect(solveStringProblem("0")).toBe(0);
+        it('should retry when prime number is generated', () => {
+            mockPhaserMath.Between
+                .mockReturnValueOnce(7) // first call returns 7 (prime)
+                .mockReturnValueOnce(8); // second call returns 8 (not prime)
+
+            const result = generateNonPrime();
+            expect(result).toBe(8);
+            expect(mockPhaserMath.Between).toHaveBeenCalledTimes(2);
+        });
+    });
+});
+
+describe('GameStateManager', () => {
+    let gameState: GameStateManager;
+
+    beforeEach(() => {
+        gameState = new GameStateManager();
+    });
+
+    describe('Initialization', () => {
+        it('should initialize with default values', () => {
+            expect(gameState.lives).toBeGreaterThan(0);
+            expect(gameState.score).toBe(0);
+            expect(gameState.currentLevel).toBe(1);
+            expect(gameState.isGameActive).toBe(true);
+            expect(gameState.isGameWon).toBe(false);
+            expect(gameState.isGameOver).toBe(false);
+        });
+
+        it('should have an initial objective', () => {
+            expect(gameState.currentObjective).toBeTruthy();
+            expect(typeof gameState.currentObjective).toBe('string');
         });
     });
 
-    describe('handleOperator', () => {
-        it('should handle all supported operators', () => {
-            expect(handleOperator(0, '', 5)).toBe(5); // Default addition
-            expect(handleOperator(2, '+', 3)).toBe(5);
-            expect(handleOperator(5, '-', 2)).toBe(3);
-            expect(handleOperator(3, '*', 4)).toBe(12);
-            expect(handleOperator(8, '/', 2)).toBe(4);
-            expect(handleOperator(2, '^', 3)).toBe(8); // 2^3 = 8
+    describe('Score Management', () => {
+        it('should update score correctly', () => {
+            const initialScore = gameState.score;
+            gameState.updateScore(10);
+            expect(gameState.score).toBe(initialScore + 10);
+        });
+
+        it('should set score directly', () => {
+            gameState.setScore(100);
+            expect(gameState.score).toBe(100);
+        });
+    });
+
+    describe('Lives Management', () => {
+        it('should update lives correctly', () => {
+            const initialLives = gameState.lives;
+            gameState.updateLives(-1);
+            expect(gameState.lives).toBe(initialLives - 1);
+        });
+
+        it('should not go below 0 lives', () => {
+            gameState.setLives(0);
+            expect(gameState.lives).toBe(0);
+        });
+
+        it('should trigger game over when lives reach 0', () => {
+            gameState.setLives(0);
+            expect(gameState.isGameOver).toBe(true);
+            expect(gameState.isGameActive).toBe(false);
+        });
+    });
+
+    describe('Objective Management', () => {
+        it('should generate new objectives', () => {
+            const newObjective = gameState.generateNewObjective();
+
+            expect(newObjective).toBeTruthy();
+            expect(newObjective).toBe(gameState.currentObjective);
+        });
+
+        it('should set objective directly', () => {
+            const testObjective = 'Test objective';
+            gameState.setObjective(testObjective);
+            expect(gameState.currentObjective).toBe(testObjective);
+        });
+    });
+
+    describe('Game State Management', () => {
+        it('should handle game win', () => {
+            gameState.gameWin();
+            expect(gameState.isGameWon).toBe(true);
+            expect(gameState.isGameActive).toBe(false);
+        });
+
+        it('should handle game over', () => {
+            gameState.gameOver();
+            expect(gameState.isGameOver).toBe(true);
+            expect(gameState.isGameActive).toBe(false);
+        });
+
+        it('should restart game correctly', () => {
+            gameState.updateScore(50);
+            gameState.updateLives(-1);
+            gameState.restartGame();
+
+            expect(gameState.score).toBe(0);
+            expect(gameState.lives).toBeGreaterThan(0);
+            expect(gameState.isGameActive).toBe(true);
+            expect(gameState.isGameOver).toBe(false);
+            expect(gameState.isGameWon).toBe(false);
+        });
+    });
+
+    describe('Card Management', () => {
+        it('should update hand cards', () => {
+            const testCards = ['card1', 'card2'];
+            gameState.setHandCards(testCards);
+            expect(gameState.handCards).toEqual(testCards);
+        });
+
+        it('should update result cards', () => {
+            const testCards = ['result1', 'result2'];
+            gameState.setResultCards(testCards);
+            expect(gameState.resultCards).toEqual(testCards);
+        });
+    });
+
+    describe('Game Status', () => {
+        it('should return current game status', () => {
+            const status = gameState.getGameStatus();
+
+            expect(status).toHaveProperty('lives');
+            expect(status).toHaveProperty('score');
+            expect(status).toHaveProperty('currentLevel');
+            expect(status).toHaveProperty('currentObjective');
+            expect(status).toHaveProperty('isGameActive');
+            expect(status).toHaveProperty('isGameWon');
+            expect(status).toHaveProperty('isGameOver');
+            expect(status).toHaveProperty('healthRatio');
+        });
+
+        it('should calculate health ratio correctly', () => {
+            const healthRatio = gameState.getHealthRatio();
+            expect(healthRatio).toBeGreaterThanOrEqual(0);
+            expect(healthRatio).toBeLessThanOrEqual(1);
         });
     });
 });

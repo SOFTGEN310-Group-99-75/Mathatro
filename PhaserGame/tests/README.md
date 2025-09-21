@@ -20,7 +20,34 @@ npm test -- problemSolver
 
 ## Current Test Files
 
-- **Card.test.ts** - Tests for Card, NumberCard, and OperatorCard classes (includes mocked implementations)
-- **problemSolver.test.ts** - Tests for mathematical problem-solving logic (includes mocked implementations)
+- **Card.test.ts** - Tests for CardUtils class methods (card creation, management, and styling)
+- **problemSolver.test.ts** - Tests for GenerateObjective functions and GameStateManager class
 
-Note: These test files include mocked implementations of the original classes/functions since the source files were removed during refactoring. The tests ensure the expected behavior is maintained.
+## Current Codebase Structure
+
+The codebase has been refactored and now includes:
+- **UIHelpers.ts** - Utility functions for creating styled UI components
+- **CardUtils.ts** - Utility functions for card creation and management
+- **GameConstants.ts** - Centralized configuration constants
+- **GameManager.ts** - Singleton for game coordination
+- **GameStateManager.ts** - Game state and logic management
+- **LayoutManager.ts** - UI layout calculations
+- **GenerateObjective.ts** - Mathematical objective generation logic
+
+## Test Coverage
+
+The tests now cover the actual functionality in the codebase:
+
+### Card.test.ts
+- Tests `CardUtils.createStandardCard()` - card creation with proper styling
+- Tests `CardUtils.createPlaceholderCard()` - placeholder card creation
+- Tests `CardUtils.setCardAsPlaceholder()` and `setCardWithContent()` - card appearance updates
+- Tests `CardUtils.createCardsFromArray()` - bulk card creation
+- Tests `CardUtils.updateCardsInSlots()` - slot management
+
+### problemSolver.test.ts
+- Tests `GenerateObjective()` - mathematical objective generation (comparison, factor, divisible, power, prime, etc.)
+- Tests `generateNonPrime()` - non-prime number generation
+- Tests `GameStateManager` - game state management, score tracking, lives management, objective handling, game flow control
+
+Note: These tests now cover the actual refactored functionality instead of mocked implementations, ensuring the real game logic works correctly.
