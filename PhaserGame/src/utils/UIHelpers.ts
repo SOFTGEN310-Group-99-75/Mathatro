@@ -15,6 +15,10 @@ export interface LabelBoxOptions {
     bg?: string;
 }
 
+export interface CardOptions extends LabelBoxOptions {
+    draggable?: boolean;
+}
+
 export interface RectOptions {
     fill?: number;
     alpha?: number;
@@ -223,9 +227,9 @@ export const createStyledCard = (
     w: number,
     h: number,
     label: string = '',
-    draggable: boolean = false,
-    options: LabelBoxOptions = {}
+    options: CardOptions = {}
 ) => {
+    const { draggable = false } = options;
     const group = scene.add.container(x, y);
 
     // Shadow
@@ -293,8 +297,8 @@ export const createGameCard = (
         GAME_CONFIG.CARD_WIDTH,
         GAME_CONFIG.CARD_HEIGHT,
         label,
-        draggable,
         {
+            draggable,
             fontSize: GAME_CONFIG.FONT.CARD_SIZE,
             color: GAME_CONFIG.COLORS.BLACK
         }

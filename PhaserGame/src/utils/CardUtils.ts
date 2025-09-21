@@ -14,8 +14,8 @@ export class CardUtils {
             GAME_CONFIG.CARD_WIDTH,
             GAME_CONFIG.CARD_HEIGHT,
             label,
-            draggable,
             {
+                draggable,
                 fontSize: GAME_CONFIG.FONT.CARD_SIZE,
                 color: GAME_CONFIG.COLORS.BLACK
             }
