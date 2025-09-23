@@ -7,6 +7,8 @@ import { GameManager } from './game/GameManager';
 import { CardUtils } from './utils/CardUtils';
 import { evaluateExpression } from './utils/ExpressionEvaluator';
 import { checkObjective } from './utils/ObjectiveChecker';
+import { UserProfile } from './auth/UserProfile';
+
 
 /**
  * Game UI Scene
@@ -43,6 +45,7 @@ export class GameUI extends Phaser.Scene {
     private gamesProgressHandler?: (data: { current: number; total: number }) => void;
     private gameWonHandler?: () => void;
     private objectiveChangedHandler?: (objective: string) => void;
+    private userProfile: UserProfile;
 
     constructor() {
         super({ key: 'GameUI' });
@@ -208,6 +211,10 @@ export class GameUI extends Phaser.Scene {
 
 
         // UI is now updated via GameManager events - no direct event handling needed
+
+        // Create user profile component
+        this.userProfile = new UserProfile(this);
+        this.userProfile.create(W - 120, 40);
 
         this.createDragEvents();
     }
