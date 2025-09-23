@@ -20,19 +20,19 @@ export class LoginScene extends Phaser.Scene {
         const { width: W, height: H } = this.sys.game.scale;
         this.authService = AuthService.getInstance();
 
-        // Background
-        this.add.rectangle(W / 2, H / 2, W, H, 0x2c3e50);
+        // Background - match main game background
+        this.add.rectangle(W / 2, H / 2, W, H, 0xf8f9fa);
 
-        // Title
+        // Title - match main game styling
         this.add.text(W / 2, H * 0.15, 'Mathatro', {
             fontSize: '48px',
-            color: '#ecf0f1',
+            color: '#2c3e50',
             fontStyle: 'bold'
         }).setOrigin(0.5);
 
         this.add.text(W / 2, H * 0.2, 'Card Memory Game', {
             fontSize: '24px',
-            color: '#bdc3c7'
+            color: '#7f8c8d'
         }).setOrigin(0.5);
 
         // Create containers for login and signup forms
@@ -51,16 +51,16 @@ export class LoginScene extends Phaser.Scene {
         // Set initial positions for login mode
         this.updateInputPositions();
 
-        // Error and loading text
+        // Error and loading text - match main game styling
         this.errorText = this.add.text(W / 2, H * 0.85, '', {
             fontSize: '16px',
-            color: '#e74c3c',
+            color: '#dc3545',
             align: 'center'
         }).setOrigin(0.5);
 
         this.loadingText = this.add.text(W / 2, H * 0.9, '', {
             fontSize: '16px',
-            color: '#3498db',
+            color: '#007bff',
             align: 'center'
         }).setOrigin(0.5);
 
@@ -80,15 +80,15 @@ export class LoginScene extends Phaser.Scene {
     private createLoginForm() {
         const container = this.loginContainer;
 
-        // Login form background
-        const formBg = this.add.rectangle(0, 0, 600, 400, 0x34495e, 0.9);
-        formBg.setStrokeStyle(2, 0xecf0f1);
+        // Login form background - match main game sidebar style
+        const formBg = this.add.rectangle(0, 0, 600, 400, 0xe9ecef, 0.95);
+        formBg.setStrokeStyle(2, 0x6c757d);
         container.add(formBg);
 
-        // Login title
+        // Login title - match main game text styling
         const loginTitle = this.add.text(0, -150, 'Login', {
             fontSize: '28px',
-            color: '#ecf0f1',
+            color: '#2c3e50',
             fontStyle: 'bold'
         }).setOrigin(0.5);
         container.add(loginTitle);
@@ -99,8 +99,8 @@ export class LoginScene extends Phaser.Scene {
         // Password input
         this.createInputField(container, 10, 'Password', 'password');
 
-        // Login button
-        const loginBtn = this.add.rectangle(0, 80, 200, 40, 0x27ae60);
+        // Login button - match main game green button style
+        const loginBtn = this.add.rectangle(0, 80, 200, 40, 0x28a745);
         const loginBtnText = this.add.text(0, 80, 'Login', {
             fontSize: '18px',
             color: '#ffffff',
@@ -110,10 +110,10 @@ export class LoginScene extends Phaser.Scene {
         loginBtn.on('pointerdown', () => this.handleLogin());
         container.add([loginBtn, loginBtnText]);
 
-        // Switch to signup
+        // Switch to signup - match main game link styling
         const switchText = this.add.text(0, 120, 'Don\'t have an account? Sign up', {
             fontSize: '14px',
-            color: '#3498db'
+            color: '#007bff'
         }).setOrigin(0.5);
         switchText.setInteractive();
         switchText.on('pointerdown', () => this.switchToSignup());
@@ -123,15 +123,15 @@ export class LoginScene extends Phaser.Scene {
     private createSignupForm() {
         const container = this.signupContainer;
 
-        // Signup form background
-        const formBg = this.add.rectangle(0, 0, 600, 500, 0x34495e, 0.9);
-        formBg.setStrokeStyle(2, 0xecf0f1);
+        // Signup form background - match main game sidebar style
+        const formBg = this.add.rectangle(0, 0, 600, 500, 0xe9ecef, 0.95);
+        formBg.setStrokeStyle(2, 0x6c757d);
         container.add(formBg);
 
-        // Signup title
+        // Signup title - match main game text styling
         const signupTitle = this.add.text(0, -170, 'Sign Up', {
             fontSize: '28px',
-            color: '#ecf0f1',
+            color: '#2c3e50',
             fontStyle: 'bold'
         }).setOrigin(0.5);
         container.add(signupTitle);
@@ -145,8 +145,8 @@ export class LoginScene extends Phaser.Scene {
         // Password input
         this.createInputField(container, 40, 'Password', 'password');
 
-        // Signup button
-        const signupBtn = this.add.rectangle(0, 110, 200, 40, 0x27ae60);
+        // Signup button - match main game green button style
+        const signupBtn = this.add.rectangle(0, 110, 200, 40, 0x28a745);
         const signupBtnText = this.add.text(0, 110, 'Sign Up', {
             fontSize: '18px',
             color: '#ffffff',
@@ -156,10 +156,10 @@ export class LoginScene extends Phaser.Scene {
         signupBtn.on('pointerdown', () => this.handleSignup());
         container.add([signupBtn, signupBtnText]);
 
-        // Switch to login
+        // Switch to login - match main game link styling
         const switchText = this.add.text(0, 150, 'Already have an account? Login', {
             fontSize: '14px',
-            color: '#3498db'
+            color: '#007bff'
         }).setOrigin(0.5);
         switchText.setInteractive();
         switchText.on('pointerdown', () => this.switchToLogin());
@@ -169,12 +169,12 @@ export class LoginScene extends Phaser.Scene {
     private createInputField(container: Phaser.GameObjects.Container, y: number, label: string, type: string) {
         const labelText = this.add.text(-280, y, label, {
             fontSize: '16px',
-            color: '#ecf0f1'
+            color: '#2c3e50'
         }).setOrigin(0, 0.5);
         container.add(labelText);
 
-        const inputBg = this.add.rectangle(0, y, 350, 35, 0x2c3e50);
-        inputBg.setStrokeStyle(2, 0x7f8c8d);
+        const inputBg = this.add.rectangle(0, y, 350, 35, 0xffffff);
+        inputBg.setStrokeStyle(2, 0x6c757d);
         container.add(inputBg);
     }
 
@@ -191,8 +191,8 @@ export class LoginScene extends Phaser.Scene {
         input.style.padding = '5px';
         input.style.border = 'none';
         input.style.borderRadius = '3px';
-        input.style.backgroundColor = '#2c3e50';
-        input.style.color = '#ecf0f1';
+        input.style.backgroundColor = '#ffffff';
+        input.style.color = '#2c3e50';
         input.style.fontSize = '14px';
         input.style.outline = 'none';
         input.style.zIndex = '1000';
