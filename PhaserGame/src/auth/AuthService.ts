@@ -7,7 +7,10 @@ import {
   updateProfile
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
+<<<<<<< HEAD
 import { UsernameService } from './UsernameService';
+=======
+>>>>>>> cd236af (created firebase authentication for user profiles and added UI elements for logging in and signing up)
 
 export interface AuthUser {
   uid: string;
@@ -19,7 +22,10 @@ export class AuthService {
   private static instance: AuthService;
   private currentUser: AuthUser | null = null;
   private readonly authStateListeners: ((user: AuthUser | null) => void)[] = [];
+<<<<<<< HEAD
   private readonly usernameService: UsernameService = UsernameService.getInstance();
+=======
+>>>>>>> cd236af (created firebase authentication for user profiles and added UI elements for logging in and signing up)
 
   private constructor() {
     // Listen for authentication state changes
@@ -80,6 +86,7 @@ export class AuthService {
     }
   }
 
+<<<<<<< HEAD
   public async signInWithUsername(username: string, password: string): Promise<AuthUser> {
     try {
       // Get email associated with username
@@ -127,6 +134,8 @@ export class AuthService {
     }
   }
 
+=======
+>>>>>>> cd236af (created firebase authentication for user profiles and added UI elements for logging in and signing up)
   public async signOut(): Promise<void> {
     try {
       await signOut(auth);
@@ -155,4 +164,8 @@ export class AuthService {
       }
     };
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> cd236af (created firebase authentication for user profiles and added UI elements for logging in and signing up)
