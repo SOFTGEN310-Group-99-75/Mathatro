@@ -45,7 +45,7 @@ export class LoginScene extends Phaser.Scene {
         this.createSignupForm();
         
         // Create HTML inputs once and manage them
-        this.emailInput = this.createHTMLInput('email', 'Enter your email', -50);
+        this.emailInput = this.createHTMLInput('text', 'Enter your username', -50);
         this.passwordInput = this.createHTMLInput('password', 'Enter your password', 10);
         this.displayNameInput = this.createHTMLInput('text', 'Enter your username', -80);
         
@@ -94,8 +94,8 @@ export class LoginScene extends Phaser.Scene {
         }).setOrigin(0.5);
         container.add(loginTitle);
 
-        // Email input
-        this.createInputField(container, -50, 'Email', 'email');
+        // Username input
+        this.createInputField(container, -50, 'Username', 'text');
 
         // Password input
         this.createInputField(container, 10, 'Password', 'password');
@@ -252,7 +252,7 @@ export class LoginScene extends Phaser.Scene {
             }
             if (this.emailInput) {
                 this.emailInput.style.top = `${baseY - 50}px`;
-                this.emailInput.placeholder = 'Enter your email';
+                this.emailInput.placeholder = 'Enter your username';
             }
             if (this.passwordInput) {
                 this.passwordInput.style.top = `${baseY + 10}px`;
@@ -262,10 +262,10 @@ export class LoginScene extends Phaser.Scene {
     }
 
     private async handleLogin() {
-        const email = this.emailInput?.value.trim() || '';
+        const username = this.emailInput?.value.trim() || '';
         const password = this.passwordInput?.value || '';
 
-        if (!email || !password) {
+        if (!username || !password) {
             this.showError('Please fill in all fields');
             return;
         }
@@ -274,11 +274,11 @@ export class LoginScene extends Phaser.Scene {
         this.clearError();
 
         try {
-            await this.authService.signIn(email, password);
+            await this.authService.signInWithUsername(username, password);
             // Authentication state change will trigger startGame()
         } catch (error: any) {
             this.hideLoading();
-            this.showError(this.getErrorMessage(error.code));
+            this.showError(this.getErrorMessage(error.message || error.code));
         }
     }
 
@@ -301,11 +301,11 @@ export class LoginScene extends Phaser.Scene {
         this.clearError();
 
         try {
-            await this.authService.signUp(email, password, username);
+            await this.authService.signUpWithUsername(username, password, email);
             // Authentication state change will trigger startGame()
         } catch (error: any) {
             this.hideLoading();
-            this.showError(this.getErrorMessage(error.code));
+            this.showError(this.getErrorMessage(error.message || error.code));
         }
     }
 
@@ -346,7 +346,7 @@ export class LoginScene extends Phaser.Scene {
     private getErrorMessage(errorCode: string): string {
         switch (errorCode) {
             case 'auth/user-not-found':
-                return 'No account found with this email';
+                return 'No account found with this username';
             case 'auth/wrong-password':
                 return 'Incorrect password';
             case 'auth/email-already-in-use':
@@ -357,6 +357,10 @@ export class LoginScene extends Phaser.Scene {
                 return 'Invalid email address';
             case 'auth/too-many-requests':
                 return 'Too many failed attempts. Please try again later';
+            case 'Username not found':
+                return 'Username not found. Please check your username or sign up for a new account.';
+            case 'Username is already taken':
+                return 'This username is already taken. Please choose a different username.';
             default:
                 return 'An error occurred. Please try again';
         }
