@@ -36,8 +36,9 @@ export class LoginScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // Create containers for login and signup forms
-        this.loginContainer = this.add.container(W / 2, H * 0.5);
-        this.signupContainer = this.add.container(W / 2, H * 0.5);
+        // Position forms lower to avoid overlap with title
+        this.loginContainer = this.add.container(W / 2, H * 0.6);
+        this.signupContainer = this.add.container(W / 2, H * 0.6);
         this.signupContainer.setVisible(false);
 
         this.createLoginForm();
@@ -199,7 +200,7 @@ export class LoginScene extends Phaser.Scene {
         
         // Position the input based on y offset
         const gameHeight = this.sys.game.scale.height;
-        const inputY = (gameHeight * 0.5) + y;
+        const inputY = (gameHeight * 0.6) + y;
         input.style.top = `${inputY}px`;
         
         document.body.appendChild(input);
@@ -228,7 +229,7 @@ export class LoginScene extends Phaser.Scene {
 
     private updateInputPositions() {
         const gameHeight = this.sys.game.scale.height;
-        const baseY = gameHeight * 0.5;
+        const baseY = gameHeight * 0.6;
 
         if (this.isSignUpMode) {
             // Signup form positions
@@ -361,8 +362,7 @@ export class LoginScene extends Phaser.Scene {
         }
     }
 
-    destroy() {
+    shutdown() {
         this.removeHTMLInputs();
-        super.destroy();
     }
 }
