@@ -8,9 +8,13 @@ import {
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { UsernameService } from './UsernameService';
 =======
 >>>>>>> cd236af (created firebase authentication for user profiles and added UI elements for logging in and signing up)
+=======
+import { UsernameService } from './UsernameService';
+>>>>>>> d26bac2 (made it so that username is asked for instead of email)
 
 export interface AuthUser {
   uid: string;
@@ -23,9 +27,13 @@ export class AuthService {
   private currentUser: AuthUser | null = null;
   private readonly authStateListeners: ((user: AuthUser | null) => void)[] = [];
 <<<<<<< HEAD
+<<<<<<< HEAD
   private readonly usernameService: UsernameService = UsernameService.getInstance();
 =======
 >>>>>>> cd236af (created firebase authentication for user profiles and added UI elements for logging in and signing up)
+=======
+  private readonly usernameService: UsernameService = UsernameService.getInstance();
+>>>>>>> d26bac2 (made it so that username is asked for instead of email)
 
   private constructor() {
     // Listen for authentication state changes
@@ -87,6 +95,9 @@ export class AuthService {
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d26bac2 (made it so that username is asked for instead of email)
   public async signInWithUsername(username: string, password: string): Promise<AuthUser> {
     try {
       // Get email associated with username
@@ -134,8 +145,11 @@ export class AuthService {
     }
   }
 
+<<<<<<< HEAD
 =======
 >>>>>>> cd236af (created firebase authentication for user profiles and added UI elements for logging in and signing up)
+=======
+>>>>>>> d26bac2 (made it so that username is asked for instead of email)
   public async signOut(): Promise<void> {
     try {
       await signOut(auth);
