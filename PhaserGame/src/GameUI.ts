@@ -5,7 +5,8 @@ import { createStyledRect, createLabelBox } from './utils/UIHelpers';
 import { LayoutManager } from './ui/LayoutManager';
 import { GameManager } from './game/GameManager';
 import { CardUtils } from './utils/CardUtils';
-
+import { evaluateExpression } from './utils/ExpressionEvaluator';
+import { checkObjective } from './utils/ObjectiveChecker';
 
 /**
  * Game UI Scene
@@ -124,6 +125,53 @@ export class GameUI extends Phaser.Scene {
         this.updateHand([1, 2, 3, 4, 'x', '+', '/']);
         this.createResultSlots(GAME_CONFIG.RESULT_SLOTS);
         this.updateResultSlots(['?', '?', '?', '?', '?', '?']); // Add some placeholder result slots
+
+        // Submit Button
+        const submitBtn = this.add.text(
+            this.sys.game.scale.width / 2,
+            this.sys.game.scale.height - 80,
+            "Submit",
+            {
+                fontSize: "28px",
+                color: "#ffffff",
+                backgroundColor: "#8c7ae6",
+                padding: { left: 12, right: 12, top: 6, bottom: 6 }
+            }
+        )
+        .setOrigin(0.5)
+        .setDepth(1000) // keep on top
+        .setInteractive()
+        .on("pointerdown", () => {
+            console.log("Submit clicked ✅");
+
+            // Collect labels safely
+            const cards = this.resultSlots
+                .map(slot => slot.card?.list?.[2]?.text ?? "")
+                .filter(label => label !== "");
+
+            console.log("Collected Cards:", cards);
+
+            if (cards.length === 0) {
+                console.warn("No cards in result slots!");
+                return;
+            }
+
+            const result = evaluateExpression(cards);
+            console.log("Evaluated Result:", result);
+
+            const isCorrect = checkObjective(result, this.gameManager.getCurrentObjective());
+            console.log("Objective:", this.gameManager.getCurrentObjective(), "=>", isCorrect);
+            
+            if (isCorrect) {
+                this.gameManager.updateScore(10);
+                this.gameManager.getGameState().advanceRound();
+                this.setObjective(this.gameManager.getCurrentObjective());
+                this.setGames(`${this.gameManager.getGameState().gamesPlayed} / ${this.gameManager.getGameState().maxGames}`);
+            } else {
+                this.gameManager.updateLives(-1);
+            }
+
+        });
 
 
         // UI is now updated via GameManager events - no direct event handling needed
