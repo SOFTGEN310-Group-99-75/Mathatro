@@ -206,3 +206,35 @@ export const PRIME_NUMBERS = [
 export const CARD_NAMES = [
     "card-0", "card-1", "card-2", "card-3", "card-4", "card-5"
 ] as const;
+
+
+export type DifficultyMode = 'easy' | 'medium' | 'hard';
+
+export interface DifficultyConfig {
+  operators: string[];
+  minNumber: number;
+  maxNumber: number;
+  maxLevels: number;
+}
+export const DIFFICULTY_CONFIG: Record<DifficultyMode, DifficultyConfig> = {
+  easy: {
+    operators: ['+', '-'],
+    minNumber: 1,
+    maxNumber: 9,
+    maxLevels: 5
+  },
+  medium: {
+    operators: ['+', '-', '*', '/'],
+    minNumber: 1,
+    maxNumber: 20,
+    maxLevels: 7
+  },
+  hard: {
+    operators: ['+', '-', '*', '/', '^'],
+    minNumber: 1,
+    maxNumber: 50,
+    maxLevels: 10
+  }
+};
+
+
