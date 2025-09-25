@@ -105,7 +105,7 @@ export class GameStateManager {
      * Update the current objective
      */
     setObjective(objective: string): void {
-        this.currentObjective = objective; // use the passed-in value
+        this.currentObjective = objective; 
         this.emitGameEvent('objectiveChanged', objective);
     }
 
@@ -214,7 +214,7 @@ export class GameStateManager {
     this.score = GAME_CONFIG.DEFAULT_SCORE;
     this.currentLevel = GAME_CONFIG.DEFAULT_LEVEL;
     this.gamesPlayed = 1; // <-- correct
-    this.maxGames = DIFFICULTY_CONFIG[this.difficulty].maxLevels; // <-- use correct max per difficulty
+    this.maxGames = DIFFICULTY_CONFIG[this.difficulty].maxLevels; 
 
     const hand = this.generateHandCards();
     this.setHandCards(hand);
