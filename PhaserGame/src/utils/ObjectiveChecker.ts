@@ -33,7 +33,7 @@ export function checkObjective(result: number, objective: string): boolean {
   }
   if (objective.startsWith("Factor of")) {
     const num = parseInt(objective.split(" ")[2]);
-    return num % result === 0; // ✅ correct direction
+    return num % result === 0; 
   }
   if (objective.startsWith("Divisible by")) {
     const num = parseInt(objective.split(" ")[2]);
