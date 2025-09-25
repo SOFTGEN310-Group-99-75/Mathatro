@@ -59,20 +59,26 @@ export class Play extends Phaser.Scene {
             .on("pointerover", () => btn.setStyle({ backgroundColor: "#9c88ff" }))
             .on("pointerout", () => btn.setStyle({ backgroundColor: "#8c7ae6" }))
             .on("pointerdown", () => {
-                // set difficulty
-                this.gameManager.getGameState().setDifficulty(mode);
+            const state = this.gameManager.getGameState();
 
-                // remove buttons before launching game
-                this.difficultyButtons.forEach(b => b.destroy());
+            // 1) set difficulty
+            state.setDifficulty(mode);
 
-                // play music if not already
-                if (!this.sound.get("theme-song")) {
-                    this.sound.play("theme-song", { loop: true, volume: GAME_CONFIG.AUDIO.THEME_VOLUME });
-                }
+            // 2) regenerate hand & objective using this difficulty
+            state.restartGame();
 
-                // launch the main game
-                this.startGame();
+            // (optional) debug
+            console.log("[Difficulty set to]:", state.difficulty);
+
+            // 3) go to GameUI
+            this.difficultyButtons.forEach(b => b.destroy());
+            if (!this.sound.get("theme-song")) {
+                this.sound.play("theme-song", { loop: true, volume: GAME_CONFIG.AUDIO.THEME_VOLUME });
+            }
+            this.scene.stop('Play');
+            this.scene.start('GameUI');
             });
+
 
             this.difficultyButtons.push(btn);
         };

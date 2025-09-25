@@ -122,7 +122,13 @@ export class GameUI extends Phaser.Scene {
         this.setObjective(currentObjective || GAME_CONFIG.LAYOUT.DEFAULT_OBJECTIVE_TEXT);
         this.setScore(GAME_CONFIG.DEFAULT_SCORE);
         this.createHandSlots(GAME_CONFIG.HAND_SLOTS);
-        this.updateHand([1, 2, 3, 4, 'x', '+', '/']);
+        // initial paint from state
+        this.updateHand(this.gameManager.getGameState().handCards);
+
+        // keep UI in sync when a new hand is generated
+        this.gameManager.getGameState().onGameEvent('handCardsChanged', (hand: string[]) => {
+        this.updateHand(hand);
+        });
         this.createResultSlots(GAME_CONFIG.RESULT_SLOTS);
         this.updateResultSlots(['?', '?', '?', '?', '?', '?']); // Add some placeholder result slots
 
@@ -165,6 +171,8 @@ export class GameUI extends Phaser.Scene {
             if (isCorrect) {
                 this.gameManager.updateScore(10);
                 this.gameManager.getGameState().advanceRound();
+                const newHand = this.gameManager.getGameState().handCards;
+                this.updateHand(newHand);
                 this.setObjective(this.gameManager.getCurrentObjective());
                 this.setGames(`${this.gameManager.getGameState().gamesPlayed} / ${this.gameManager.getGameState().maxGames}`);
             } else {

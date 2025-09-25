@@ -80,26 +80,34 @@ export class GameStateManager {
      * Initialize the game with starting values
      */
     initializeGame() {
+        // Generate a hand of cards based on difficulty
+        const hand = this.generateHandCards();
+        this.setHandCards(hand);
+
+        // Generate a random objective
         this.currentObjective = this.generateObjective();
+        this.emitGameEvent('objectiveChanged', this.currentObjective);
+
         this.isGameActive = true;
         this.isGameWon = false;
         this.isGameOver = false;
     }
 
-    /**
+/**
      * Generate a new objective for the current game
      */
     generateObjective(): string {
-        return GenerateObjective();
+        return GenerateObjective(this.difficulty);
     }
 
     /**
      * Update the current objective
      */
     setObjective(objective: string): void {
-        this.currentObjective = objective;
+        this.currentObjective = objective; // use the passed-in value
         this.emitGameEvent('objectiveChanged', objective);
     }
+
 
     /**
      * Generate a new objective and update state
@@ -201,15 +209,22 @@ export class GameStateManager {
     }
 
     restartGame(): void {
-    this.lives = GAME_CONFIG.INITIAL_LIVES;
-    this.score = GAME_CONFIG.DEFAULT_SCORE;
-    this.currentLevel = GAME_CONFIG.DEFAULT_LEVEL;
-    this.gamesPlayed = 1;
-    this.currentObjective = this.generateObjective();
-    this.isGameActive = true;
-    this.isGameOver = false;
-    this.isGameWon = false;
+        this.lives = GAME_CONFIG.INITIAL_LIVES;
+        this.score = GAME_CONFIG.DEFAULT_SCORE;
+        this.currentLevel = GAME_CONFIG.DEFAULT_LEVEL;
+        this.gamesPlayed = 1;
+
+        const hand = this.generateHandCards();
+        this.setHandCards(hand);
+
+        this.currentObjective = this.generateObjective();
+        this.emitGameEvent('objectiveChanged', this.currentObjective);
+
+        this.isGameActive = true;
+        this.isGameOver = false;
+        this.isGameWon = false;
     }
+
 
     /**
      * Update hand cards
@@ -298,18 +313,20 @@ export class GameStateManager {
 
 
     generateHandCards(): string[] {
-        const config = DIFFICULTY_CONFIG[this.difficulty];
+    const config = DIFFICULTY_CONFIG[this.difficulty];
 
-        const nums = Array.from({ length: 5 }, () =>
-            Phaser.Math.Between(config.minNumber, config.maxNumber).toString()
-        );
+    const nums = Array.from({ length: 5 }, () =>
+        Phaser.Math.Between(config.minNumber, config.maxNumber).toString()
+    );
 
-        const ops = Array.from({ length: 3 }, () =>
-            Phaser.Utils.Array.GetRandom(config.operators)
-        );
+    // Shuffle operator pool and take up to 3 unique ones
+    const shuffledOps = Phaser.Utils.Array.Shuffle([...config.operators]);
+    const ops = shuffledOps.slice(0, 3);
 
-        return [...nums, ...ops];
+    return [...nums, ...ops];
     }
+
+
 
 
 }

@@ -1,10 +1,30 @@
-import { GAME_CONFIG, OBJECTIVE_TYPES, PRIME_NUMBERS } from './config/GameConstants';
+import { GAME_CONFIG, OBJECTIVE_TYPES, PRIME_NUMBERS, DIFFICULTY_CONFIG, DifficultyMode } from './config/GameConstants';
 
-export const GenerateObjective = () => {
+// Difficulty-specific objective pools
+const EASY_OBJECTIVES = ["Equal to", "Odd number", "Even number"];
+const MEDIUM_OBJECTIVES = ["Greater than", "Less than", "Divisible by", "Prime number"];
+const HARD_OBJECTIVES = ["Power of", "Factor of", "Prime number", "Divisible by"];
 
-    const obj = OBJECTIVE_TYPES[Phaser.Math.Between(0, OBJECTIVE_TYPES.length - 1)];
+export const GenerateObjective = (difficulty: DifficultyMode): string => {
+    let pool: string[];
 
-    let objective = '';
+    switch (difficulty) {
+        case "easy":
+            pool = EASY_OBJECTIVES;
+            break;
+        case "medium":
+            pool = MEDIUM_OBJECTIVES;
+            break;
+        case "hard":
+            pool = HARD_OBJECTIVES;
+            break;
+        default:
+            pool = OBJECTIVE_TYPES;
+    }
+
+    const obj = Phaser.Utils.Array.GetRandom(pool);
+    let objective = "";
+
     switch (obj) {
         case "Greater than":
         case "Less than":
@@ -18,7 +38,6 @@ export const GenerateObjective = () => {
             objective = `${obj} ${factor}`;
             break;
         }
-        // starting from 3 so don't conflict with even number
         case "Divisible by": {
             const divisor = Phaser.Math.Between(GAME_CONFIG.OBJECTIVE.MIN_DIVISOR, GAME_CONFIG.OBJECTIVE.MAX_DIVISOR);
             objective = `${obj} ${divisor}`;
@@ -33,16 +52,16 @@ export const GenerateObjective = () => {
         case "Odd number":
         case "Even number":
             objective = obj;
+            break;
     }
 
     return objective;
 };
 
-
-export const generateNonPrime = () => {
+export const generateNonPrime = (): number => {
     let num = Phaser.Math.Between(GAME_CONFIG.OBJECTIVE.MIN_FACTOR, GAME_CONFIG.OBJECTIVE.MAX_FACTOR);
     while (PRIME_NUMBERS.includes(num as any)) {
         num = Phaser.Math.Between(GAME_CONFIG.OBJECTIVE.MIN_FACTOR, GAME_CONFIG.OBJECTIVE.MAX_FACTOR);
     }
     return num;
-}
+};
