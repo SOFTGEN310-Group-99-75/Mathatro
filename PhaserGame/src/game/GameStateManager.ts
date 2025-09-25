@@ -70,7 +70,8 @@ export class GameStateManager {
 
         // Game progression
         this.gamesPlayed = 1;
-        this.maxGames = GAME_CONFIG.MAX_LEVELS;
+        this.maxGames = DIFFICULTY_CONFIG[this.difficulty].maxLevels;
+
 
         // Initialize game
         this.initializeGame();
@@ -209,21 +210,29 @@ export class GameStateManager {
     }
 
     restartGame(): void {
-        this.lives = GAME_CONFIG.INITIAL_LIVES;
-        this.score = GAME_CONFIG.DEFAULT_SCORE;
-        this.currentLevel = GAME_CONFIG.DEFAULT_LEVEL;
-        this.gamesPlayed = 1;
+    this.lives = GAME_CONFIG.INITIAL_LIVES;
+    this.score = GAME_CONFIG.DEFAULT_SCORE;
+    this.currentLevel = GAME_CONFIG.DEFAULT_LEVEL;
+    this.gamesPlayed = 1; // <-- correct
+    this.maxGames = DIFFICULTY_CONFIG[this.difficulty].maxLevels; // <-- use correct max per difficulty
 
-        const hand = this.generateHandCards();
-        this.setHandCards(hand);
+    const hand = this.generateHandCards();
+    this.setHandCards(hand);
 
-        this.currentObjective = this.generateObjective();
-        this.emitGameEvent('objectiveChanged', this.currentObjective);
+    this.currentObjective = this.generateObjective();
+    this.emitGameEvent('objectiveChanged', this.currentObjective);
 
-        this.isGameActive = true;
-        this.isGameOver = false;
-        this.isGameWon = false;
+    this.isGameActive = true;
+    this.isGameOver = false;
+    this.isGameWon = false;
+
+    // Emit progress update immediately so UI shows 1 / max
+    this.emitGameEvent('gamesProgressChanged', {
+        current: this.gamesPlayed,
+        total: this.maxGames
+    });
     }
+
 
 
     /**

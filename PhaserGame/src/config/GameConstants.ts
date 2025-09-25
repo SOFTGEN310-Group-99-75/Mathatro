@@ -10,7 +10,6 @@ export const GAME_CONFIG = {
     BACKGROUND_COLOR: '#f8f8ff',
 
     // Game progression
-    MAX_LEVELS: 10,
     INITIAL_LIVES: 3,
     DEFAULT_LEVEL: 1,
     DEFAULT_SCORE: 0,
@@ -159,7 +158,6 @@ export const GAME_CONFIG = {
         RESULT_EQUALS_FONT_SIZE: 30,
 
         // Default values
-        DEFAULT_GAME_TEXT: '1 / 10',
         DEFAULT_OBJECTIVE_TEXT: '> 17',
         DEFAULT_ALPHA: 0.8,
 

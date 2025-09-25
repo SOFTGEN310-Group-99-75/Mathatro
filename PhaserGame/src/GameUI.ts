@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { createCardSlot } from './createCardSlot';
 import { GAME_CONFIG } from './config/GameConstants';
 import { createStyledRect, createLabelBox } from './utils/UIHelpers';
+import { DIFFICULTY_CONFIG } from './config/GameConstants';
 import { LayoutManager } from './ui/LayoutManager';
 import { GameManager } from './game/GameManager';
 import { CardUtils } from './utils/CardUtils';
@@ -79,8 +80,12 @@ export class GameUI extends Phaser.Scene {
         this.healthBarBg = this.rect(healthBar.backgroundX, healthBar.backgroundY, healthBar.backgroundWidth, healthBar.backgroundHeight, { fill: GAME_CONFIG.COLORS.RED, alpha: GAME_CONFIG.ALPHA.HEALTH_BG });
         this.healthBarFill = this.add.rectangle(healthBar.fillX, healthBar.fillY, healthBar.fillWidth, healthBar.fillHeight, GAME_CONFIG.COLORS.GREEN, GAME_CONFIG.ALPHA.HEALTH_FILL).setOrigin(0, 0);
         this.healthHint = this.add.text(this.healthBarBg.x, this.healthBarBg.y - GAME_CONFIG.LAYOUT.HEALTH_HINT_Y_OFFSET, 'Health bar\n(deduct health if objective is impossible for current hand)', { fontSize: GAME_CONFIG.FONT.HINT_SIZE, color: GAME_CONFIG.COLORS.MEDIUM_GRAY }).setOrigin(0, 1);
-        this.gamesCounter = this.labelBox(gamesCounter.x, gamesCounter.y, gamesCounter.width, gamesCounter.height, GAME_CONFIG.LAYOUT.DEFAULT_GAME_TEXT);
-
+        const state = this.gameManager.getGameState();
+        this.gamesCounter = this.labelBox(
+            gamesCounter.x, gamesCounter.y,
+            gamesCounter.width, gamesCounter.height,
+            `${state.gamesPlayed} / ${state.maxGames}`
+        );
         // Objective label - using LayoutManager
         this.objective = this.labelBox(objective.x, objective.y, objective.width, objective.height, GAME_CONFIG.LAYOUT.DEFAULT_OBJECTIVE_TEXT, { fontSize: GAME_CONFIG.FONT.OBJECTIVE_SIZE, fontStyle: 'bold' });
         this.objectiveCaption = this.add.text(objective.captionX, objective.captionY, 'Objective', { fontSize: GAME_CONFIG.FONT.HINT_SIZE, color: GAME_CONFIG.COLORS.MEDIUM_GRAY }).setOrigin(0.5, 1);
@@ -116,7 +121,6 @@ export class GameUI extends Phaser.Scene {
 
         // Initialize with defaults
         this.setHealth(GAME_CONFIG.HEALTH_FULL);
-        this.setGames(GAME_CONFIG.LAYOUT.DEFAULT_GAME_TEXT);
         // Initialize with current objective from game manager
         const currentObjective = this.gameManager.getCurrentObjective();
         this.setObjective(currentObjective || GAME_CONFIG.LAYOUT.DEFAULT_OBJECTIVE_TEXT);
@@ -174,7 +178,15 @@ export class GameUI extends Phaser.Scene {
                 const newHand = this.gameManager.getGameState().handCards;
                 this.updateHand(newHand);
                 this.setObjective(this.gameManager.getCurrentObjective());
-                this.setGames(`${this.gameManager.getGameState().gamesPlayed} / ${this.gameManager.getGameState().maxGames}`);
+                // Use current state instead of default text
+                const state = this.gameManager.getGameState();
+                state.maxGames = DIFFICULTY_CONFIG[state.difficulty].maxLevels; 
+                this.setGames(`${state.gamesPlayed} / ${state.maxGames}`);
+
+                // Also listen for changes
+                state.onGameEvent('gamesProgressChanged', ({ current, total }) => {
+                this.setGames(`${current} / ${total}`);
+                });
             } else {
                 this.gameManager.updateLives(-1);
             }
