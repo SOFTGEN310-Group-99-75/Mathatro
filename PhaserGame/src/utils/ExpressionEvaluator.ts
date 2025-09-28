@@ -1,4 +1,4 @@
-// utils/ExpressionEvaluator.ts
+
 export function evaluateExpression(cards: string[]): number {
   // Clean up the card labels
   const sanitized = cards

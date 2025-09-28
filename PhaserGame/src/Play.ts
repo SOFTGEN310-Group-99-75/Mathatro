@@ -34,7 +34,7 @@ export class Play extends Phaser.Scene {
         this.createVolumeButton();
     }
 
-// Store buttons so we can destroy them later
+
     private difficultyButtons: Phaser.GameObjects.Text[] = [];
 
     create() {
@@ -61,19 +61,15 @@ export class Play extends Phaser.Scene {
             .on("pointerdown", () => {
                 const state = this.gameManager.getGameState();
 
-                // 1) set difficulty
                 state.setDifficulty(mode);
 
-                // 2) restart with the right difficulty
                 state.restartGame();
 
-                // 3) ✅ force emit correct games progress before going to GameUI
                 state.emitGameEvent("gamesProgressChanged", {
                     current: state.gamesPlayed,
                     total: state.maxGames,
                 });
 
-                // continue as before
                 this.difficultyButtons.forEach(b => b.destroy());
                 if (!this.sound.get("theme-song")) {
                     this.sound.play("theme-song", { loop: true, volume: GAME_CONFIG.AUDIO.THEME_VOLUME });
@@ -103,7 +99,7 @@ export class Play extends Phaser.Scene {
     startGame() {
         // Launch the UI layout when the game starts
         this.scene.stop('Play');
-        this.scene.start('GameUI'); // replaces launch with start
+        this.scene.start('GameUI'); 
 
         // WinnerText and GameOverText
         createTitleText(

@@ -1,4 +1,4 @@
-// utils/ObjectiveChecker.ts
+
 import { PRIME_NUMBERS } from '../config/GameConstants';
 
 function isPrime(num: number): boolean {
