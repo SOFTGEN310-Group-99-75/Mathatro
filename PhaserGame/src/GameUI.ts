@@ -14,7 +14,7 @@ import { checkObjective } from './utils/ObjectiveChecker';
  * Handles the user interface elements of the game.
  */
 export class GameUI extends Phaser.Scene {
-    private gameManager: GameManager;
+    private gameManager!: GameManager; // set in create()
     private layout: any;
     private rect: any;
     private labelBox: any;
@@ -36,8 +36,14 @@ export class GameUI extends Phaser.Scene {
     private handCaption: any;
     private resultContainer: any;
     private handContainer: any;
-    private handSlots: any[];
-    private resultSlots: any[];
+    private handSlots: any[] = [];
+    private resultSlots: any[] = [];
+    private winOverlay?: Phaser.GameObjects.Container;
+    // Stored handlers for proper cleanup
+    private handCardsHandler?: (hand: string[]) => void;
+    private gamesProgressHandler?: (data: { current: number; total: number }) => void;
+    private gameWonHandler?: () => void;
+    private objectiveChangedHandler?: (objective: string) => void;
 
     constructor() {
         super({ key: 'GameUI' });
@@ -81,11 +87,29 @@ export class GameUI extends Phaser.Scene {
         this.healthBarFill = this.add.rectangle(healthBar.fillX, healthBar.fillY, healthBar.fillWidth, healthBar.fillHeight, GAME_CONFIG.COLORS.GREEN, GAME_CONFIG.ALPHA.HEALTH_FILL).setOrigin(0, 0);
         this.healthHint = this.add.text(this.healthBarBg.x, this.healthBarBg.y - GAME_CONFIG.LAYOUT.HEALTH_HINT_Y_OFFSET, 'Health bar\n(deduct health if objective is impossible for current hand)', { fontSize: GAME_CONFIG.FONT.HINT_SIZE, color: GAME_CONFIG.COLORS.MEDIUM_GRAY }).setOrigin(0, 1);
         const state = this.gameManager.getGameState();
+        // Register event listeners with stored references for cleanup
+        this.handCardsHandler = (hand: string[]) => this.updateHand(hand);
+        state.onGameEvent('handCardsChanged', this.handCardsHandler);
+        this.gamesProgressHandler = ({ current, total }) => this.setGames(`${current} / ${total}`);
+        state.onGameEvent('gamesProgressChanged', this.gamesProgressHandler);
+        this.gameWonHandler = () => this.showWinOverlay();
+        state.onGameEvent('gameWon', this.gameWonHandler);
         this.gamesCounter = this.labelBox(
             gamesCounter.x, gamesCounter.y,
             gamesCounter.width, gamesCounter.height,
             `${state.gamesPlayed} / ${state.maxGames}`
         );
+        // Listen for objective changes (so we don't rely on manual set after submit)
+        this.objectiveChangedHandler = (objective: string) => this.setObjective(objective);
+        state.onGameEvent('objectiveChanged', this.objectiveChangedHandler);
+        // Cleanup listeners when scene shuts down (ensure we don't call into destroyed objects)
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+            const stateRef = this.gameManager.getGameState();
+            if (this.handCardsHandler) stateRef.offGameEvent('handCardsChanged', this.handCardsHandler);
+            if (this.gamesProgressHandler) stateRef.offGameEvent('gamesProgressChanged', this.gamesProgressHandler);
+            if (this.gameWonHandler) stateRef.offGameEvent('gameWon', this.gameWonHandler);
+            if (this.objectiveChangedHandler) stateRef.offGameEvent('objectiveChanged', this.objectiveChangedHandler);
+        });
         // Objective label - using LayoutManager
         this.objective = this.labelBox(objective.x, objective.y, objective.width, objective.height, GAME_CONFIG.LAYOUT.DEFAULT_OBJECTIVE_TEXT, { fontSize: GAME_CONFIG.FONT.OBJECTIVE_SIZE, fontStyle: 'bold' });
         this.objectiveCaption = this.add.text(objective.captionX, objective.captionY, 'Objective', { fontSize: GAME_CONFIG.FONT.HINT_SIZE, color: GAME_CONFIG.COLORS.MEDIUM_GRAY }).setOrigin(0.5, 1);
@@ -129,10 +153,6 @@ export class GameUI extends Phaser.Scene {
         // initial paint from state
         this.updateHand(this.gameManager.getGameState().handCards);
 
-        // keep UI in sync when a new hand is generated
-        this.gameManager.getGameState().onGameEvent('handCardsChanged', (hand: string[]) => {
-        this.updateHand(hand);
-        });
         this.createResultSlots(GAME_CONFIG.RESULT_SLOTS);
         this.updateResultSlots(['?', '?', '?', '?', '?', '?']); // Add some placeholder result slots
 
@@ -174,19 +194,13 @@ export class GameUI extends Phaser.Scene {
             
             if (isCorrect) {
                 this.gameManager.updateScore(10);
-                this.gameManager.getGameState().advanceRound();
-                const newHand = this.gameManager.getGameState().handCards;
-                this.updateHand(newHand);
-                this.setObjective(this.gameManager.getCurrentObjective());
-                // Use current state instead of default text
-                const state = this.gameManager.getGameState();
-                state.maxGames = DIFFICULTY_CONFIG[state.difficulty].maxLevels; 
-                this.setGames(`${state.gamesPlayed} / ${state.maxGames}`);
-
-                // Also listen for changes
-                state.onGameEvent('gamesProgressChanged', ({ current, total }) => {
-                this.setGames(`${current} / ${total}`);
-                });
+                const stateBefore = this.gameManager.getGameState();
+                stateBefore.advanceRound();
+                // Refresh hand for new round
+                this.updateHand(stateBefore.handCards);
+                // Reset result slots back to placeholders (question marks)
+                this.resetResultSlots();
+                // Games counter will update via existing gamesProgressChanged listener
             } else {
                 this.gameManager.updateLives(-1);
             }
@@ -214,7 +228,9 @@ export class GameUI extends Phaser.Scene {
         this.healthBarFill.fillColor = healthColor;
     }
     setGames(txt: string) {
-        this.gamesCounter.text.setText(txt);
+        if (this.gamesCounter && this.gamesCounter.text && this.gamesCounter.text.setText) {
+            this.gamesCounter.text.setText(txt);
+        }
     }
     setObjective(txt: string) {
         this.objective.text.setText(txt);
@@ -281,7 +297,7 @@ export class GameUI extends Phaser.Scene {
     }
 
     createCardDragStartEventListener() {
-        this.input.on(Phaser.Input.Events.DRAG_START, (pointer, gameObject) => {
+        this.input.on(Phaser.Input.Events.DRAG_START, (pointer: Phaser.Input.Pointer, gameObject: any) => {
             gameObject.setAlpha(GAME_CONFIG.ALPHA.DRAGGING);
             gameObject.parentContainer?.bringToTop(gameObject);
             gameObject.shadow?.setAlpha(GAME_CONFIG.ALPHA.CARD_SHADOW);
@@ -291,13 +307,13 @@ export class GameUI extends Phaser.Scene {
     }
 
     createCardDragHoldEventListener() {
-        this.input.on(Phaser.Input.Events.DRAG, (pointer, gameObject, cursorDragX, cursorDragY) => {
+        this.input.on(Phaser.Input.Events.DRAG, (pointer: Phaser.Input.Pointer, gameObject: any, cursorDragX: number, cursorDragY: number) => {
             gameObject.setPosition(cursorDragX, cursorDragY)
         });
     }
 
     createCardDragEndEventListener() {
-        this.input.on(Phaser.Input.Events.DRAG_END, (pointer, gameObject) => {
+        this.input.on(Phaser.Input.Events.DRAG_END, (pointer: Phaser.Input.Pointer, gameObject: any) => {
             gameObject.setAlpha(1);
             gameObject.shadow?.setAlpha(1);
             gameObject.setDepth(0);
@@ -334,28 +350,116 @@ export class GameUI extends Phaser.Scene {
 
     // Attach pointer listeners to a card container for click/drag logic
     attachCardPointerListeners(card: any) {
-        card.on('pointerdown', function (pointer) {
+        card.on('pointerdown', function (this: any, pointer: Phaser.Input.Pointer) {
             this._wasDrag = false;
         });
-        card.on('dragstart', function (pointer) {
+        card.on('dragstart', function (this: any, pointer: Phaser.Input.Pointer) {
             this._wasDrag = true;
         });
-        card.on('pointerup', function (pointer) {
+        card.on('pointerup', function (this: any, pointer: Phaser.Input.Pointer) {
             if (!this._wasDrag) {
-                // click-to-move logic: move to first empty slot in opposing bar
-                const scene = this.scene;
+                const scene: any = this.scene;
                 if (scene.handSlots?.includes(this.slot)) {
-                    const emptyResultSlot = scene.resultSlots?.find(s => !s.card);
-                    if (emptyResultSlot) {
-                        emptyResultSlot.setCard(this);
-                    }
+                    const emptyResultSlot = scene.resultSlots?.find((s: any) => !s.card);
+                    if (emptyResultSlot) emptyResultSlot.setCard(this);
                 } else if (scene.resultSlots?.includes(this.slot)) {
-                    const emptyHandSlot = scene.handSlots?.find(s => !s.card);
-                    if (emptyHandSlot) {
-                        emptyHandSlot.setCard(this);
-                    }
+                    const emptyHandSlot = scene.handSlots?.find((s: any) => !s.card);
+                    if (emptyHandSlot) emptyHandSlot.setCard(this);
                 }
             }
         });
+    }
+
+    // Reset result slots to '?' placeholders for the next round
+    resetResultSlots() {
+        const placeholders = Array(GAME_CONFIG.RESULT_SLOTS).fill('?');
+        this.updateResultSlots(placeholders);
+    }
+
+    // Display a win overlay with a button to go back to home (Play) scene
+    private showWinOverlay() {
+        if (this.winOverlay) {
+            this.winOverlay.destroy();
+        }
+
+        const { width: W, height: H } = this.sys.game.scale;
+        const overlay = this.add.container(0, 0).setDepth(5000);
+
+        const maskBg = this.add.rectangle(0, 0, W, H, 0x000000, 0.55).setOrigin(0, 0).setInteractive();
+        overlay.add(maskBg);
+
+        const panelWidth = 480;
+        const panelHeight = 260;
+        const panelX = (W - panelWidth) / 2;
+        const panelY = (H - panelHeight) / 2;
+        const panel = this.add.rectangle(panelX, panelY, panelWidth, panelHeight, 0xffffff, 0.92)
+            .setOrigin(0, 0)
+            .setStrokeStyle(4, 0x8c7ae6, 1);
+        overlay.add(panel);
+
+        const title = this.add.text(panelX + panelWidth / 2, panelY + 60, 'YOU WIN!', {
+            fontSize: '48px',
+            fontStyle: 'bold',
+            color: '#8c7ae6',
+            stroke: '#000000',
+            strokeThickness: 4,
+            shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 4, fill: true }
+        }).setOrigin(0.5);
+        overlay.add(title);
+
+        const summary = this.add.text(panelX + panelWidth / 2, panelY + 120,
+            'Great job completing all rounds!', {
+                fontSize: '20px',
+                color: '#333',
+                align: 'center',
+                wordWrap: { width: panelWidth - 60 }
+            }).setOrigin(0.5);
+        overlay.add(summary);
+
+        const homeBtn = this.add.text(panelX + panelWidth / 2, panelY + panelHeight - 60, 'Return Home', {
+            fontSize: '28px',
+            fontStyle: 'bold',
+            color: '#ffffff',
+            backgroundColor: '#8c7ae6',
+            padding: { left: 20, right: 20, top: 10, bottom: 10 }
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+        overlay.add(homeBtn);
+
+        homeBtn.on('pointerover', () => homeBtn.setStyle({ backgroundColor: '#9c88ff' }));
+        homeBtn.on('pointerout', () => homeBtn.setStyle({ backgroundColor: '#8c7ae6' }));
+        let hasReturned = false;
+        let autoReturnTimer: Phaser.Time.TimerEvent | null = null;
+
+        const returnHome = () => {
+            if (hasReturned) return; // idempotent
+            hasReturned = true;
+            if (autoReturnTimer) {
+                autoReturnTimer.remove(false);
+                autoReturnTimer = null;
+            }
+            this.winOverlay?.destroy();
+            this.winOverlay = undefined;
+            // Stop GameUI and go back to Play; Play scene re-initializes difficulty selection UI
+            if (this.scene.isActive('GameUI')) {
+                this.scene.stop('GameUI');
+            }
+            if (this.scene.isActive('Play')) {
+                // Already active: just ensure it is brought to top
+                this.scene.bringToTop('Play');
+            } else {
+                this.scene.start('Play');
+            }
+        };
+
+        homeBtn.on('pointerdown', returnHome);
+
+        // Auto-return after delay for smoother flow (optional)
+        autoReturnTimer = this.time.delayedCall(4000, () => {
+            if (!hasReturned) {
+                returnHome();
+            }
+        });
+
+        this.winOverlay = overlay;
     }
 }

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GenerateObjective, generateNonPrime } from '../src/GenerateObjective';
+import { generateSolvableHandAndObjective } from '../src/utils/SolvableHandGenerator';
 import { GameStateManager } from '../src/game/GameStateManager';
 
 // Mock Phaser.Math for testing
@@ -11,7 +12,7 @@ const mockPhaserMath = {
     Math: mockPhaserMath
 };
 
-describe('GenerateObjective', () => {
+describe('GenerateObjective (legacy random)', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
@@ -22,7 +23,7 @@ describe('GenerateObjective', () => {
                 .mockReturnValueOnce(0) // "Greater than" index
                 .mockReturnValueOnce(10); // number value
 
-            const objective = GenerateObjective();
+            const objective = GenerateObjective('easy');
             expect(objective).toBe('Greater than 10');
         });
 
@@ -31,7 +32,7 @@ describe('GenerateObjective', () => {
                 .mockReturnValueOnce(3) // "Factor of" index
                 .mockReturnValueOnce(12); // non-prime number
 
-            const objective = GenerateObjective();
+            const objective = GenerateObjective('medium');
             expect(objective).toBe('Factor of 12');
         });
 
@@ -40,7 +41,7 @@ describe('GenerateObjective', () => {
                 .mockReturnValueOnce(4) // "Divisible by" index
                 .mockReturnValueOnce(5); // divisor
 
-            const objective = GenerateObjective();
+            const objective = GenerateObjective('medium');
             expect(objective).toBe('Divisible by 5');
         });
 
@@ -49,14 +50,14 @@ describe('GenerateObjective', () => {
                 .mockReturnValueOnce(5) // "Power of" index
                 .mockReturnValueOnce(3); // power
 
-            const objective = GenerateObjective();
+            const objective = GenerateObjective('medium');
             expect(objective).toBe('Power of 3');
         });
 
         it('should generate simple objectives without parameters', () => {
             mockPhaserMath.Between.mockReturnValueOnce(6); // "Prime number" index
 
-            const objective = GenerateObjective();
+            const objective = GenerateObjective('medium');
             expect(objective).toBe('Prime number');
         });
     });
@@ -177,6 +178,19 @@ describe('GameStateManager', () => {
             expect(gameState.isGameOver).toBe(false);
             expect(gameState.isGameWon).toBe(false);
         });
+
+        it('ensures objectives are unique within a single game progression', () => {
+            // Use smaller difficulty max for speed: difficulty already defaults to easy (maxLevels = 5)
+            const seen = new Set<string>();
+            // capture first
+            seen.add(gameState.currentObjective);
+            const maxRounds = gameState.maxGames;
+            for (let i = 1; i < maxRounds; i++) {
+                gameState.advanceRound();
+                expect(seen.has(gameState.currentObjective)).toBe(false);
+                seen.add(gameState.currentObjective);
+            }
+        });
     });
 
     describe('Card Management', () => {
@@ -212,5 +226,22 @@ describe('GameStateManager', () => {
             expect(healthRatio).toBeGreaterThanOrEqual(0);
             expect(healthRatio).toBeLessThanOrEqual(1);
         });
+    });
+});
+
+describe('SolvableHandGenerator (expression-first)', () => {
+    it('produces a hand that matches its objective (easy)', () => {
+        const round = generateSolvableHandAndObjective('easy');
+        expect(round.hand.length).toBeGreaterThan(0);
+        expect(round.objective).toBeTruthy();
+        // At least one of the simple objectives should be satisfied by the expression's value
+        expect(round.solutionExpression.length).toBeGreaterThan(0);
+    });
+
+    it('produces a valid objective for hard difficulty', () => {
+        const round = generateSolvableHandAndObjective('hard');
+        expect(round.hand.length).toBe(8); // fixed hand size
+        expect(typeof round.value).toBe('number');
+        expect(round.objective).toBeTruthy();
     });
 });

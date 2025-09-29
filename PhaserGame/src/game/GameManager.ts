@@ -9,6 +9,7 @@ export class GameManager {
     private static instance: GameManager;
     private readonly gameState: GameStateManager;
     private scene: Phaser.Scene | null = null;
+    private listenersRegistered = false;
 
     private constructor() {
         this.gameState = new GameStateManager();
@@ -29,7 +30,10 @@ export class GameManager {
      */
     public initialize(scene: Phaser.Scene): void {
         this.scene = scene;
-        this.setupGameEventListeners();
+        if (!this.listenersRegistered) {
+            this.setupGameEventListeners();
+            this.listenersRegistered = true;
+        }
         this.gameState.initializeGame();
     }
 
