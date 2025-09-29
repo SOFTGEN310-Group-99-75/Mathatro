@@ -1,21 +1,19 @@
+import { Parser } from "expr-eval";
+
 export function evaluateExpression(cards: string[]): number {
   const sanitized = cards
     .filter(c => c !== "?")
-    .map(c => {
-      if (c === "x") return "*";
-      if (c === "÷") return "/";
-      return c;
-    });
+    .map(c => (c === "x" ? "*" : c === "÷" ? "/" : c));
 
-  const expr = sanitized.join(" ");
-  console.log("Sanitized Expression:", expr);
+  const expr = sanitized.join(" ").trim();
+  if (!expr) return NaN;
 
   try {
-    //  Safe evaluation: only numbers and + - * / ^ allowed
-    if (!/^[0-9+\-*/^().\s]+$/.test(expr)) {
-      return NaN; // reject invalid tokens
-    }
-    return Function(`"use strict"; return (${expr})`)(); // <-- still flagged
+    // Parser validates + evaluates without using eval/new Function
+    const parser = new Parser({ operators: { add: true, subtract: true, multiply: true, divide: true, power: true }});
+    const value = parser.evaluate(expr);
+    if (typeof value !== "number" || !isFinite(value)) return NaN;
+    return value;
   } catch {
     return NaN;
   }
