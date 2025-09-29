@@ -10,7 +10,6 @@ export const GAME_CONFIG = {
     BACKGROUND_COLOR: '#f8f8ff',
 
     // Game progression
-    MAX_LEVELS: 10,
     INITIAL_LIVES: 3,
     DEFAULT_LEVEL: 1,
     DEFAULT_SCORE: 0,
@@ -159,7 +158,6 @@ export const GAME_CONFIG = {
         RESULT_EQUALS_FONT_SIZE: 30,
 
         // Default values
-        DEFAULT_GAME_TEXT: '1 / 10',
         DEFAULT_OBJECTIVE_TEXT: '> 17',
         DEFAULT_ALPHA: 0.8,
 
@@ -206,3 +204,35 @@ export const PRIME_NUMBERS = [
 export const CARD_NAMES = [
     "card-0", "card-1", "card-2", "card-3", "card-4", "card-5"
 ] as const;
+
+
+export type DifficultyMode = 'easy' | 'medium' | 'hard';
+
+export interface DifficultyConfig {
+  operators: string[];
+  minNumber: number;
+  maxNumber: number;
+  maxLevels: number;
+}
+export const DIFFICULTY_CONFIG: Record<DifficultyMode, DifficultyConfig> = {
+  easy: {
+    operators: ['+', '-'],
+    minNumber: 1,
+    maxNumber: 9,
+    maxLevels: 5
+  },
+  medium: {
+    operators: ['+', '-', '*', '/'],
+    minNumber: 1,
+    maxNumber: 20,
+    maxLevels: 7
+  },
+  hard: {
+    operators: ['+', '-', '*', '/', '^'],
+    minNumber: 1,
+    maxNumber: 50,
+    maxLevels: 10
+  }
+};
+
+

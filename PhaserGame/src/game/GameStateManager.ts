@@ -1,5 +1,8 @@
-import { GAME_CONFIG } from '../config/GameConstants';
+import { DIFFICULTY_CONFIG, DifficultyMode, GAME_CONFIG } from '../config/GameConstants';
 import { GenerateObjective } from '../GenerateObjective';
+import { evaluateExpression } from '../utils/ExpressionEvaluator'; 
+import Phaser from 'phaser';
+
 
 // Type definitions
 interface GameStatus {
@@ -47,6 +50,8 @@ export class GameStateManager {
     // Game progression
     public gamesPlayed: number;
     public maxGames: number;
+    public difficulty: DifficultyMode = 'easy';
+
 
     constructor() {
         // Game state
@@ -65,7 +70,8 @@ export class GameStateManager {
 
         // Game progression
         this.gamesPlayed = 1;
-        this.maxGames = GAME_CONFIG.MAX_LEVELS;
+        this.maxGames = DIFFICULTY_CONFIG[this.difficulty].maxLevels;
+
 
         // Initialize game
         this.initializeGame();
@@ -75,26 +81,34 @@ export class GameStateManager {
      * Initialize the game with starting values
      */
     initializeGame() {
+        // Generate a hand of cards based on difficulty
+        const hand = this.generateHandCards();
+        this.setHandCards(hand);
+
+        // Generate a random objective
         this.currentObjective = this.generateObjective();
+        this.emitGameEvent('objectiveChanged', this.currentObjective);
+
         this.isGameActive = true;
         this.isGameWon = false;
         this.isGameOver = false;
     }
 
-    /**
+/**
      * Generate a new objective for the current game
      */
     generateObjective(): string {
-        return GenerateObjective();
+        return GenerateObjective(this.difficulty);
     }
 
     /**
      * Update the current objective
      */
     setObjective(objective: string): void {
-        this.currentObjective = objective;
+        this.currentObjective = objective; 
         this.emitGameEvent('objectiveChanged', objective);
     }
+
 
     /**
      * Generate a new objective and update state
@@ -145,6 +159,14 @@ export class GameStateManager {
         }
     }
 
+
+
+    setDifficulty(mode: DifficultyMode) {
+    this.difficulty = mode;
+    const config = DIFFICULTY_CONFIG[mode];
+    this.maxGames = config.maxLevels;
+    }
+
     /**
      * Get current health ratio (0-1)
      */
@@ -187,16 +209,31 @@ export class GameStateManager {
         this.emitGameEvent('gameStarted');
     }
 
-    /**
-     * Restart the current game
-     */
     restartGame(): void {
-        this.lives = GAME_CONFIG.INITIAL_LIVES;
-        this.score = GAME_CONFIG.DEFAULT_SCORE;
-        this.currentLevel = GAME_CONFIG.DEFAULT_LEVEL;
-        this.gamesPlayed = 1;
-        this.startNewGame();
+    this.lives = GAME_CONFIG.INITIAL_LIVES;
+    this.score = GAME_CONFIG.DEFAULT_SCORE;
+    this.currentLevel = GAME_CONFIG.DEFAULT_LEVEL;
+    this.gamesPlayed = 1; // <-- correct
+    this.maxGames = DIFFICULTY_CONFIG[this.difficulty].maxLevels; 
+
+    const hand = this.generateHandCards();
+    this.setHandCards(hand);
+
+    this.currentObjective = this.generateObjective();
+    this.emitGameEvent('objectiveChanged', this.currentObjective);
+
+    this.isGameActive = true;
+    this.isGameOver = false;
+    this.isGameWon = false;
+
+    // Emit progress update immediately so UI shows 1 / max
+    this.emitGameEvent('gamesProgressChanged', {
+        current: this.gamesPlayed,
+        total: this.maxGames
+    });
     }
+
+
 
     /**
      * Update hand cards
@@ -259,4 +296,46 @@ export class GameStateManager {
             (window as any).game.events.off(`game:${eventType}`, callback);
         }
     }
+
+
+    advanceRound() {
+        if (this.gamesPlayed < this.maxGames) {
+            this.gamesPlayed++;
+
+            // Generate a new random objective
+            this.currentObjective = this.generateObjective();
+            this.emitGameEvent('objectiveChanged', this.currentObjective);
+
+            // Generate a new random hand of cards
+            const hand = this.generateHandCards();
+            this.setHandCards(hand);
+
+            // Emit progress
+            this.emitGameEvent('gamesProgressChanged', {
+                current: this.gamesPlayed,
+                total: this.maxGames
+            });
+        } else {
+            this.gameWin();
+        }
+    }
+
+
+    generateHandCards(): string[] {
+    const config = DIFFICULTY_CONFIG[this.difficulty];
+
+    const nums = Array.from({ length: 5 }, () =>
+        Phaser.Math.Between(config.minNumber, config.maxNumber).toString()
+    );
+
+    // Shuffle operator pool and take up to 3 unique ones
+    const shuffledOps = Phaser.Utils.Array.Shuffle([...config.operators]);
+    const ops = shuffledOps.slice(0, 3);
+
+    return [...nums, ...ops];
+    }
+
+
+
+
 }

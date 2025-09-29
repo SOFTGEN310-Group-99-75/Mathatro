@@ -34,20 +34,57 @@ export class Play extends Phaser.Scene {
         this.createVolumeButton();
     }
 
+
+    private difficultyButtons: Phaser.GameObjects.Text[] = [];
+
     create() {
-        // Create animated title using utility function
-        createAnimatedTitle(
-            this,
-            this.sys.game.scale.width / 2,
-            this.sys.game.scale.height / 2,
-            "Maths Card Game\nClick to Play",
-            () => {
+        const { width, height } = this.sys.game.scale;
+
+        createTitleText(this, width / 2, height / 4, "Mathatro", { fontSize: 48 });
+
+        this.add.text(width / 2, height / 3, "Select Difficulty", {
+            fontSize: "24px",
+            color: "#000000"
+        }).setOrigin(0.5);
+
+        const makeButton = (label: string, y: number, mode: 'easy' | 'medium' | 'hard') => {
+            const btn = this.add.text(width / 2, y, label, {
+                fontSize: "32px",
+                backgroundColor: "#8c7ae6",
+                color: "#ffffff",
+                padding: { left: 12, right: 12, top: 6, bottom: 6 }
+            })
+            .setOrigin(0.5)
+            .setInteractive({ useHandCursor: true })
+            .on("pointerover", () => btn.setStyle({ backgroundColor: "#9c88ff" }))
+            .on("pointerout", () => btn.setStyle({ backgroundColor: "#8c7ae6" }))
+            .on("pointerdown", () => {
+                const state = this.gameManager.getGameState();
+
+                state.setDifficulty(mode);
+
+                state.restartGame();
+
+                state.emitGameEvent("gamesProgressChanged", {
+                    current: state.gamesPlayed,
+                    total: state.maxGames,
+                });
+
+                this.difficultyButtons.forEach(b => b.destroy());
                 if (!this.sound.get("theme-song")) {
                     this.sound.play("theme-song", { loop: true, volume: GAME_CONFIG.AUDIO.THEME_VOLUME });
                 }
-                this.startGame();
-            }
-        );
+                this.scene.stop("Play");
+                this.scene.start("GameUI");
+            });
+
+
+            this.difficultyButtons.push(btn);
+        };
+
+        makeButton("Easy", height / 2, "easy");
+        makeButton("Medium", height / 2 + 60, "medium");
+        makeButton("Hard", height / 2 + 120, "hard");
     }
 
     restartGame() {
@@ -61,7 +98,8 @@ export class Play extends Phaser.Scene {
 
     startGame() {
         // Launch the UI layout when the game starts
-        this.scene.launch('GameUI');
+        this.scene.stop('Play');
+        this.scene.start('GameUI'); 
 
         // WinnerText and GameOverText
         createTitleText(

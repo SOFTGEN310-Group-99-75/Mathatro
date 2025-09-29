@@ -2,10 +2,12 @@ import Phaser from 'phaser';
 import { createCardSlot } from './createCardSlot';
 import { GAME_CONFIG } from './config/GameConstants';
 import { createStyledRect, createLabelBox } from './utils/UIHelpers';
+import { DIFFICULTY_CONFIG } from './config/GameConstants';
 import { LayoutManager } from './ui/LayoutManager';
 import { GameManager } from './game/GameManager';
 import { CardUtils } from './utils/CardUtils';
-
+import { evaluateExpression } from './utils/ExpressionEvaluator';
+import { checkObjective } from './utils/ObjectiveChecker';
 
 /**
  * Game UI Scene
@@ -78,8 +80,12 @@ export class GameUI extends Phaser.Scene {
         this.healthBarBg = this.rect(healthBar.backgroundX, healthBar.backgroundY, healthBar.backgroundWidth, healthBar.backgroundHeight, { fill: GAME_CONFIG.COLORS.RED, alpha: GAME_CONFIG.ALPHA.HEALTH_BG });
         this.healthBarFill = this.add.rectangle(healthBar.fillX, healthBar.fillY, healthBar.fillWidth, healthBar.fillHeight, GAME_CONFIG.COLORS.GREEN, GAME_CONFIG.ALPHA.HEALTH_FILL).setOrigin(0, 0);
         this.healthHint = this.add.text(this.healthBarBg.x, this.healthBarBg.y - GAME_CONFIG.LAYOUT.HEALTH_HINT_Y_OFFSET, 'Health bar\n(deduct health if objective is impossible for current hand)', { fontSize: GAME_CONFIG.FONT.HINT_SIZE, color: GAME_CONFIG.COLORS.MEDIUM_GRAY }).setOrigin(0, 1);
-        this.gamesCounter = this.labelBox(gamesCounter.x, gamesCounter.y, gamesCounter.width, gamesCounter.height, GAME_CONFIG.LAYOUT.DEFAULT_GAME_TEXT);
-
+        const state = this.gameManager.getGameState();
+        this.gamesCounter = this.labelBox(
+            gamesCounter.x, gamesCounter.y,
+            gamesCounter.width, gamesCounter.height,
+            `${state.gamesPlayed} / ${state.maxGames}`
+        );
         // Objective label - using LayoutManager
         this.objective = this.labelBox(objective.x, objective.y, objective.width, objective.height, GAME_CONFIG.LAYOUT.DEFAULT_OBJECTIVE_TEXT, { fontSize: GAME_CONFIG.FONT.OBJECTIVE_SIZE, fontStyle: 'bold' });
         this.objectiveCaption = this.add.text(objective.captionX, objective.captionY, 'Objective', { fontSize: GAME_CONFIG.FONT.HINT_SIZE, color: GAME_CONFIG.COLORS.MEDIUM_GRAY }).setOrigin(0.5, 1);
@@ -115,15 +121,77 @@ export class GameUI extends Phaser.Scene {
 
         // Initialize with defaults
         this.setHealth(GAME_CONFIG.HEALTH_FULL);
-        this.setGames(GAME_CONFIG.LAYOUT.DEFAULT_GAME_TEXT);
         // Initialize with current objective from game manager
         const currentObjective = this.gameManager.getCurrentObjective();
         this.setObjective(currentObjective || GAME_CONFIG.LAYOUT.DEFAULT_OBJECTIVE_TEXT);
         this.setScore(GAME_CONFIG.DEFAULT_SCORE);
         this.createHandSlots(GAME_CONFIG.HAND_SLOTS);
-        this.updateHand([1, 2, 3, 4, 'x', '+', '/']);
+        // initial paint from state
+        this.updateHand(this.gameManager.getGameState().handCards);
+
+        // keep UI in sync when a new hand is generated
+        this.gameManager.getGameState().onGameEvent('handCardsChanged', (hand: string[]) => {
+        this.updateHand(hand);
+        });
         this.createResultSlots(GAME_CONFIG.RESULT_SLOTS);
         this.updateResultSlots(['?', '?', '?', '?', '?', '?']); // Add some placeholder result slots
+
+        // Submit Button
+        const submitBtn = this.add.text(
+            this.sys.game.scale.width / 2,
+            this.sys.game.scale.height - 80,
+            "Submit",
+            {
+                fontSize: "28px",
+                color: "#ffffff",
+                backgroundColor: "#8c7ae6",
+                padding: { left: 12, right: 12, top: 6, bottom: 6 }
+            }
+        )
+        .setOrigin(0.5)
+        .setDepth(1000) // keep on top
+        .setInteractive()
+        .on("pointerdown", () => {
+            console.log("Submit clicked ✅");
+
+            // Collect labels safely
+            const cards = this.resultSlots
+                .map(slot => slot.card?.list?.[2]?.text ?? "")
+                .filter(label => label !== "");
+
+            console.log("Collected Cards:", cards);
+
+            if (cards.length === 0) {
+                console.warn("No cards in result slots!");
+                return;
+            }
+
+            const result = evaluateExpression(cards);
+            console.log("Evaluated Result:", result);
+
+            const isCorrect = checkObjective(result, this.gameManager.getCurrentObjective());
+            console.log("Objective:", this.gameManager.getCurrentObjective(), "=>", isCorrect);
+            
+            if (isCorrect) {
+                this.gameManager.updateScore(10);
+                this.gameManager.getGameState().advanceRound();
+                const newHand = this.gameManager.getGameState().handCards;
+                this.updateHand(newHand);
+                this.setObjective(this.gameManager.getCurrentObjective());
+                // Use current state instead of default text
+                const state = this.gameManager.getGameState();
+                state.maxGames = DIFFICULTY_CONFIG[state.difficulty].maxLevels; 
+                this.setGames(`${state.gamesPlayed} / ${state.maxGames}`);
+
+                // Also listen for changes
+                state.onGameEvent('gamesProgressChanged', ({ current, total }) => {
+                this.setGames(`${current} / ${total}`);
+                });
+            } else {
+                this.gameManager.updateLives(-1);
+            }
+
+        });
 
 
         // UI is now updated via GameManager events - no direct event handling needed
