@@ -34,12 +34,15 @@ function shuffled<T>(arr: T[]): T[] {
 function sample<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 function randInt(min: number, max: number): number { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
-/** Build a random linear (no parentheses) expression tokens */
+/** Build a random linear (no parentheses) expression tokens.
+ * Constraint: must fit in result slots (max 6 tokens => at most 3 numbers, 2 operators)
+ */
+const MAX_RESULT_TOKENS = 6; // matches result slot capacity
 function generateExpressionTokens(difficulty: DifficultyMode): { tokens: string[]; value: number } | null {
   const cfg = DIFFICULTY_CONFIG[difficulty];
-  // Choose number of numeric operands
-  const minNums = difficulty === 'easy' ? 2 : 3;
-  const maxNums = Math.min(5, 5); // keep within reasonable complexity
+  // Choose number of numeric operands (numbers n => tokens = 2n-1)
+  const minNums = difficulty === 'easy' ? 1 : 2; // allow single-number objectives
+  const maxNums = Math.min(3, 3); // enforce <=3 numbers so tokens <=5
   const numCount = randInt(minNums, maxNums);
   const opCount = numCount - 1;
 
@@ -59,6 +62,8 @@ function generateExpressionTokens(difficulty: DifficultyMode): { tokens: string[
     tokens.push(numbers[i]);
     if (i < opCount) tokens.push(operators[i]);
   }
+
+  if (tokens.length > MAX_RESULT_TOKENS) return null; // safety guard
 
   // Evaluate
   const value = evaluateExpression(tokens);
@@ -180,6 +185,45 @@ function buildHandFromExpression(tokens: string[], difficulty: DifficultyMode): 
   return shuffled(hand);
 }
 
+/** Ensure the hand contains at least the multiset of required tokens for the solution expression */
+function verifyTokenMultiset(solutionTokens: string[], hand: string[]): boolean {
+  const need: Record<string, number> = {};
+  solutionTokens.forEach(t => need[t] = (need[t] || 0) + 1);
+  const have: Record<string, number> = {};
+  hand.forEach(t => have[t] = (have[t] || 0) + 1);
+  return Object.keys(need).every(k => (have[k] || 0) >= need[k]);
+}
+
+/** Objective-first fallback: pick an objective pattern then synthesize a matching expression */
+function generateByObjectiveFirst(difficulty: DifficultyMode): { tokens: string[]; value: number; objective: string } | null {
+  // Select a target objective strategy
+  const cfg = DIFFICULTY_CONFIG[difficulty];
+  // Try limited attempts to find a small expression for a randomly chosen style
+  const strategies: Array<() => { tokens: string[]; value: number; objective: string } | null> = [
+    // Equal to target (easy path)
+    () => {
+      const a = randInt(cfg.minNumber, cfg.maxNumber);
+      const b = randInt(cfg.minNumber, cfg.maxNumber);
+      const op = sample(cfg.operators);
+      const tokens = [String(a), op, String(b)];
+      const value = evaluateExpression(tokens);
+      if (!Number.isFinite(value)) return null;
+      return { tokens, value, objective: `Equal to ${value}` };
+    },
+    // Parity target
+    () => {
+      const a = randInt(cfg.minNumber, cfg.maxNumber);
+      return { tokens: [String(a)], value: a, objective: (a % 2 === 0 ? 'Even number' : 'Odd number') };
+    }
+  ];
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const strat = sample(strategies);
+    const r = strat();
+    if (r) return r;
+  }
+  return null;
+}
+
 /** Public API: generate a solvable round (expression-first approach) */
 export function generateSolvableHandAndObjective(difficulty: DifficultyMode, maxAttempts = 50): SolvableRound {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
@@ -188,12 +232,20 @@ export function generateSolvableHandAndObjective(difficulty: DifficultyMode, max
     const objective = deriveObjective(expr.value, difficulty);
     if (!objective) continue; // regenerate
     const hand = buildHandFromExpression(expr.tokens, difficulty);
-    return {
-      hand,
-      objective,
-      solutionExpression: expr.tokens.join(' '),
-      value: expr.value
-    };
+    if (!verifyTokenMultiset(expr.tokens, hand)) continue; // ensure solution tokens all present
+    if (expr.tokens.length > MAX_RESULT_TOKENS) continue; // enforce constraint (redundant guard)
+    return { hand, objective, solutionExpression: expr.tokens.join(' '), value: expr.value };
+  }
+  // Fallback: objective-first synthesis
+  const fallback = generateByObjectiveFirst(difficulty);
+  if (fallback) {
+    const hand = buildHandFromExpression(fallback.tokens, difficulty);
+    if (fallback.tokens.length > MAX_RESULT_TOKENS) {
+      // reduce to single number fallback
+      const single = [String(fallback.value)];
+      return { hand: buildHandFromExpression(single, difficulty), objective: `Equal to ${fallback.value}`, solutionExpression: single.join(' '), value: fallback.value };
+    }
+    return { hand, objective: fallback.objective, solutionExpression: fallback.tokens.join(' '), value: fallback.value };
   }
   // Fallback: trivial easy expression as last resort
   const fallbackValue = 2;

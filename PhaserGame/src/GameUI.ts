@@ -2,7 +2,6 @@ import Phaser from 'phaser';
 import { createCardSlot } from './createCardSlot';
 import { GAME_CONFIG } from './config/GameConstants';
 import { createStyledRect, createLabelBox } from './utils/UIHelpers';
-import { DIFFICULTY_CONFIG } from './config/GameConstants';
 import { LayoutManager } from './ui/LayoutManager';
 import { GameManager } from './game/GameManager';
 import { CardUtils } from './utils/CardUtils';

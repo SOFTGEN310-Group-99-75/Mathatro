@@ -335,20 +335,53 @@ export class GameStateManager {
     }
 
     /** Generate a solvable round whose objective has not yet appeared in this game */
-    private generateUniqueSolvableRound(maxAttempts: number = 150) {
+    private generateUniqueSolvableRound(maxAttempts: number = 200) {
         let lastRound = generateSolvableHandAndObjective(this.difficulty);
+        // Phase 1: normal attempts
         for (let i = 0; i < maxAttempts; i++) {
             const round = i === 0 ? lastRound : generateSolvableHandAndObjective(this.difficulty);
             lastRound = round;
             if (this.usedObjectives.has(round.objective)) continue; // uniqueness check
-            // Validate solvability using brute-force solver (safety net)
-            const solvable = isObjectiveSolvable(round.hand, round.objective, { maxNumbers: 5 });
-            if (solvable.solvable) {
-                return round;
-            }
+            const validation = isObjectiveSolvable(round.hand, round.objective, { maxNumbers: 3 });
+            console.log('[RoundGen][Phase1]', {
+                attempt: i,
+                difficulty: this.difficulty,
+                objective: round.objective,
+                hand: round.hand.join(' '),
+                solutionExpression: round.solutionExpression,
+                solutionValue: round.value,
+                validated: validation.solvable,
+                solverExpression: validation.expression,
+                solverValue: validation.value
+            });
+            if (validation.solvable) return round;
         }
-        // Fallback: return last attempted even if duplicate/unsolved (extremely unlikely)
-        return lastRound;
+        // Phase 2: escalate by forcing uniqueness relaxation but still require solvable
+        for (let j = 0; j < 100; j++) {
+            const round = generateSolvableHandAndObjective(this.difficulty);
+            const validation = isObjectiveSolvable(round.hand, round.objective, { maxNumbers: 3 });
+            console.warn('[RoundGen][Phase2]', {
+                attempt: j,
+                difficulty: this.difficulty,
+                objective: round.objective,
+                hand: round.hand.join(' '),
+                solutionExpression: round.solutionExpression,
+                solutionValue: round.value,
+                validated: validation.solvable,
+                solverExpression: validation.expression,
+                solverValue: validation.value
+            });
+            if (validation.solvable) return round;
+        }
+        // Final emergency fallback: ensure at least trivial solvable condition by forcing Equal to 2 expression
+        const fallback = {
+            hand: ['1', '1', '+', '+', '2', '3', '+', '4'],
+            objective: 'Equal to 2',
+            solutionExpression: '1 + 1',
+            value: 2
+        };
+        console.error('[RoundGen][Fallback]', fallback);
+        return fallback;
     }
 
 
