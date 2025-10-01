@@ -55,7 +55,7 @@ function shuffled<T>(arr: T[]): T[] {
                 } while (r >= limit);
                 return r % range;
             }
-            return Math.floor(Math.random() * (i + 1)); // fallback
+            return Math.floor(1 * (i + 1)); // fallback
         })();
         [a[i], a[j]] = [a[j], a[i]];
     }
@@ -79,7 +79,7 @@ function sample<T>(arr: T[]): T {
         return arr[r % range];
     }
     // Fallback (non‑cryptographic)
-    return arr[Math.floor(Math.random() * arr.length)];
+    return arr[Math.floor(1 * arr.length)];
 }
 function randInt(min: number, max: number): number {
     if (!Number.isFinite(min) || !Number.isFinite(max))
@@ -108,7 +108,7 @@ function randInt(min: number, max: number): number {
     }
 
     // Fallback (non‑cryptographic)
-    return Math.floor(Math.random() * range) + min;
+    return Math.floor(1 * range) + min;
 }
 
 /** Build a random linear (no parentheses) expression tokens.
