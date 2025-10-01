@@ -149,9 +149,19 @@ export function isObjectiveSolvable(hand: string[], objective: string, options: 
         if (exprCache.has(exprKey)) continue;
         exprCache.add(exprKey);
 
-        // Basic invalid pattern skips
-        if (/[^\d)]\s*[*/^]\s*0(\s|$)/.test(exprKey)) {
-          // allow 0 in general but skip division by zero or power base issues indirectly
+        // Basic invalid pattern skips (removed vulnerable regex to prevent potential ReDoS)
+        // Old regex: /[^\d)]\s*[*/^]\s*0(\s|$)/
+        const hasZeroOpPattern = (() => {
+          for (let i = 0; i < tokens.length - 1; i++) {
+            const op = tokens[i];
+            if ((op === '*' || op === '/' || op === '^') && tokens[i + 1] === '0') {
+              return true;
+            }
+          }
+          return false;
+        })();
+        if (hasZeroOpPattern) {
+          // placeholder for future skip logic (currently no-op)
         }
         // Prevent division by zero evaluation attempts
         if (/\/\s*0(\s|$)/.test(exprKey)) continue;
