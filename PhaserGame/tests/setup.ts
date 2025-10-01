@@ -37,13 +37,18 @@ HTMLCanvasElement.prototype.getContext = function (contextId: string) {
 };
 
 // Mock Phaser module
+// NOTE: Math.random() is used here for test mocking purposes only, not for cryptographic operations.
+// This mock simulates Phaser's random utilities for testing game logic (card shuffling, random selection).
+// SonarQube S2245: Safe to use Math.random() in test mocks for non-security-sensitive operations.
 vi.mock('phaser', () => ({
     default: {
         Math: {
+            // NOSONAR: Math.random() is safe for test mocks - not used for cryptographic purposes
             Between: (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min
         },
         Utils: {
             Array: {
+                // NOSONAR: Math.random() is safe for test mocks - not used for cryptographic purposes
                 Shuffle: <T,>(array: T[]) => {
                     const result = [...array];
                     for (let i = result.length - 1; i > 0; i--) {
@@ -52,6 +57,7 @@ vi.mock('phaser', () => ({
                     }
                     return result;
                 },
+                // NOSONAR: Math.random() is safe for test mocks - not used for cryptographic purposes
                 GetRandom: <T,>(array: T[]) => {
                     return array[Math.floor(Math.random() * array.length)];
                 }
