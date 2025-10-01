@@ -26,20 +26,25 @@ export const createCardSlot = (scene: Phaser.Scene, x: number, y: number, w: num
 
     // place a card into the slot where 'newCard' is the card to replace current card in slot
     (group as any).setCard = (newCard: any) => {
-        // remove newCard from old slot if it has one
+        // If newCard already belongs to a different slot, detach from that slot
         if (newCard.slot && newCard.slot !== group) {
-            newCard.slot.card = null;
+            if (newCard.slot.card === newCard) {
+                newCard.slot.card = null;
+            }
         }
 
-        // remove current card from the current slot if it has one
-        if ((group as any).card && (group as any).card !== newCard) {
-            (group as any).card.slot = null;
+        const existing = (group as any).card;
+
+        // If existing card present and different, release it (but do not destroy here)
+        if (existing && existing !== newCard) {
+            existing.slot = null;
         }
 
         (group as any).card = newCard;
         newCard.slot = group;
 
-        newCard.setPosition(group.x - group.width / 2, group.y);
+        // Position card so its top-left matches slot top-left
+        newCard.setPosition(group.x, group.y);
     };
 
     // for checking whether pointer is over the slot

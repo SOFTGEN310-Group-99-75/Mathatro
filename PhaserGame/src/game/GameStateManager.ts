@@ -1,7 +1,8 @@
 import { DIFFICULTY_CONFIG, DifficultyMode, GAME_CONFIG } from '../config/GameConstants';
 import { GenerateObjective } from '../GenerateObjective';
-import { evaluateExpression } from '../utils/ExpressionEvaluator'; 
 import Phaser from 'phaser';
+import { generateSolvableHandAndObjective } from '../utils/SolvableHandGenerator';
+import { isObjectiveSolvable } from '../utils/ExpressionSolver';
 
 
 // Type definitions
@@ -51,6 +52,8 @@ export class GameStateManager {
     public gamesPlayed: number;
     public maxGames: number;
     public difficulty: DifficultyMode = 'easy';
+    // Track objectives seen in current game (for uniqueness)
+    private usedObjectives: Set<string> = new Set();
 
 
     constructor() {
@@ -81,12 +84,11 @@ export class GameStateManager {
      * Initialize the game with starting values
      */
     initializeGame() {
-        // Generate a hand of cards based on difficulty
-        const hand = this.generateHandCards();
-        this.setHandCards(hand);
-
-        // Generate a random objective
-        this.currentObjective = this.generateObjective();
+        this.usedObjectives = new Set();
+        const solvable = this.generateUniqueSolvableRound();
+        this.setHandCards(solvable.hand);
+        this.currentObjective = solvable.objective;
+        this.usedObjectives.add(this.currentObjective);
         this.emitGameEvent('objectiveChanged', this.currentObjective);
 
         this.isGameActive = true;
@@ -98,6 +100,7 @@ export class GameStateManager {
      * Generate a new objective for the current game
      */
     generateObjective(): string {
+        // Keep legacy function for compatibility, though main flow now uses expression-first generation
         return GenerateObjective(this.difficulty);
     }
 
@@ -162,9 +165,9 @@ export class GameStateManager {
 
 
     setDifficulty(mode: DifficultyMode) {
-    this.difficulty = mode;
-    const config = DIFFICULTY_CONFIG[mode];
-    this.maxGames = config.maxLevels;
+        this.difficulty = mode;
+        const config = DIFFICULTY_CONFIG[mode];
+        this.maxGames = config.maxLevels;
     }
 
     /**
@@ -210,27 +213,27 @@ export class GameStateManager {
     }
 
     restartGame(): void {
-    this.lives = GAME_CONFIG.INITIAL_LIVES;
-    this.score = GAME_CONFIG.DEFAULT_SCORE;
-    this.currentLevel = GAME_CONFIG.DEFAULT_LEVEL;
-    this.gamesPlayed = 1; // <-- correct
-    this.maxGames = DIFFICULTY_CONFIG[this.difficulty].maxLevels; 
+        this.lives = GAME_CONFIG.INITIAL_LIVES;
+        this.score = GAME_CONFIG.DEFAULT_SCORE;
+        this.currentLevel = GAME_CONFIG.DEFAULT_LEVEL;
+        this.gamesPlayed = 1;
+        this.maxGames = DIFFICULTY_CONFIG[this.difficulty].maxLevels; 
+        this.usedObjectives = new Set();
 
-    const hand = this.generateHandCards();
-    this.setHandCards(hand);
+        const solvable = this.generateUniqueSolvableRound();
+        this.setHandCards(solvable.hand);
+        this.currentObjective = solvable.objective;
+        this.usedObjectives.add(this.currentObjective);
+        this.emitGameEvent('objectiveChanged', this.currentObjective);
 
-    this.currentObjective = this.generateObjective();
-    this.emitGameEvent('objectiveChanged', this.currentObjective);
+        this.isGameActive = true;
+        this.isGameOver = false;
+        this.isGameWon = false;
 
-    this.isGameActive = true;
-    this.isGameOver = false;
-    this.isGameWon = false;
-
-    // Emit progress update immediately so UI shows 1 / max
-    this.emitGameEvent('gamesProgressChanged', {
-        current: this.gamesPlayed,
-        total: this.maxGames
-    });
+        this.emitGameEvent('gamesProgressChanged', {
+            current: this.gamesPlayed,
+            total: this.maxGames
+        });
     }
 
 
@@ -301,16 +304,12 @@ export class GameStateManager {
     advanceRound() {
         if (this.gamesPlayed < this.maxGames) {
             this.gamesPlayed++;
-
-            // Generate a new random objective
-            this.currentObjective = this.generateObjective();
+            const solvable = this.generateUniqueSolvableRound();
+            this.setHandCards(solvable.hand);
+            this.currentObjective = solvable.objective;
+            this.usedObjectives.add(this.currentObjective);
             this.emitGameEvent('objectiveChanged', this.currentObjective);
 
-            // Generate a new random hand of cards
-            const hand = this.generateHandCards();
-            this.setHandCards(hand);
-
-            // Emit progress
             this.emitGameEvent('gamesProgressChanged', {
                 current: this.gamesPlayed,
                 total: this.maxGames
@@ -333,6 +332,56 @@ export class GameStateManager {
     const ops = shuffledOps.slice(0, 3);
 
     return [...nums, ...ops];
+    }
+
+    /** Generate a solvable round whose objective has not yet appeared in this game */
+    private generateUniqueSolvableRound(maxAttempts: number = 200) {
+        let lastRound = generateSolvableHandAndObjective(this.difficulty);
+        // Phase 1: normal attempts
+        for (let i = 0; i < maxAttempts; i++) {
+            const round = i === 0 ? lastRound : generateSolvableHandAndObjective(this.difficulty);
+            lastRound = round;
+            if (this.usedObjectives.has(round.objective)) continue; // uniqueness check
+            const validation = isObjectiveSolvable(round.hand, round.objective, { maxNumbers: 3 });
+            console.log('[RoundGen][Phase1]', {
+                attempt: i,
+                difficulty: this.difficulty,
+                objective: round.objective,
+                hand: round.hand.join(' '),
+                solutionExpression: round.solutionExpression,
+                solutionValue: round.value,
+                validated: validation.solvable,
+                solverExpression: validation.expression,
+                solverValue: validation.value
+            });
+            if (validation.solvable) return round;
+        }
+        // Phase 2: escalate by forcing uniqueness relaxation but still require solvable
+        for (let j = 0; j < 100; j++) {
+            const round = generateSolvableHandAndObjective(this.difficulty);
+            const validation = isObjectiveSolvable(round.hand, round.objective, { maxNumbers: 3 });
+            console.warn('[RoundGen][Phase2]', {
+                attempt: j,
+                difficulty: this.difficulty,
+                objective: round.objective,
+                hand: round.hand.join(' '),
+                solutionExpression: round.solutionExpression,
+                solutionValue: round.value,
+                validated: validation.solvable,
+                solverExpression: validation.expression,
+                solverValue: validation.value
+            });
+            if (validation.solvable) return round;
+        }
+        // Final emergency fallback: ensure at least trivial solvable condition by forcing Equal to 2 expression
+        const fallback = {
+            hand: ['1', '1', '+', '+', '2', '3', '+', '4'],
+            objective: 'Equal to 2',
+            solutionExpression: '1 + 1',
+            value: 2
+        };
+        console.error('[RoundGen][Fallback]', fallback);
+        return fallback;
     }
 
 

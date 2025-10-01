@@ -67,17 +67,26 @@ export class CardUtils {
     static updateCardsInSlots(scene: Phaser.Scene, slots: any[], items: any[]) {
         for (let i = 0; i < slots.length; i++) {
             const slot = slots[i];
-            const label = (items[i] ?? '').toString();
-            const isPlaceholder = items.length === 0;
+            const raw = items[i];
+            const label = (raw ?? '').toString();
+            const isPlaceholder = label === '' || label === '?';
 
-            const card = this.createStandardCard(scene, 0, 0, label, true);
-
-            if (isPlaceholder) {
-                this.setCardAsPlaceholder(card);
-            } else {
-                this.setCardWithContent(card, label);
+            // Destroy any existing card to avoid stacking when doing a bulk refresh
+            if (slot.card) {
+                slot.card.destroy();
+                slot.card = null;
             }
 
+            const displayLabel = isPlaceholder ? '?' : label;
+            const card = this.createStandardCard(scene, 0, 0, displayLabel, true);
+            if (isPlaceholder) {
+                this.setCardAsPlaceholder(card);
+                (card as any).list[2].setText('?');
+                (card as any).isPlaceholder = true;
+            } else {
+                this.setCardWithContent(card, displayLabel);
+                (card as any).isPlaceholder = false;
+            }
             slot.setCard(card);
         }
     }

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_CONFIG } from './config/GameConstants';
-import { createTitleText, createAnimatedTitle, createVolumeButton } from './utils/UIHelpers';
+import { createTitleText, createVolumeButton } from './utils/UIHelpers';
 import { GameManager } from './game/GameManager';
 
 /**
@@ -15,7 +15,7 @@ import { GameManager } from './game/GameManager';
  */
 export class Play extends Phaser.Scene {
     // Game manager - centralized game coordination
-    private gameManager: GameManager;
+    private gameManager!: GameManager;
 
 
     constructor() {
@@ -35,7 +35,7 @@ export class Play extends Phaser.Scene {
     }
 
 
-    private difficultyButtons: Phaser.GameObjects.Text[] = [];
+    private readonly difficultyButtons: Phaser.GameObjects.Text[] = [];
 
     create() {
         const { width, height } = this.sys.game.scale;
@@ -62,20 +62,14 @@ export class Play extends Phaser.Scene {
                 const state = this.gameManager.getGameState();
 
                 state.setDifficulty(mode);
-
                 state.restartGame();
-
-                state.emitGameEvent("gamesProgressChanged", {
-                    current: state.gamesPlayed,
-                    total: state.maxGames,
-                });
 
                 this.difficultyButtons.forEach(b => b.destroy());
                 if (!this.sound.get("theme-song")) {
                     this.sound.play("theme-song", { loop: true, volume: GAME_CONFIG.AUDIO.THEME_VOLUME });
                 }
-                this.scene.stop("Play");
-                this.scene.start("GameUI");
+                this.scene.stop('Play');
+                this.scene.start('GameUI');
             });
 
 

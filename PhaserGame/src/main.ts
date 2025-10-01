@@ -24,4 +24,10 @@ const config = {
 };
 
 const game = new Phaser.Game(config);
+
+// Expose game instance globally so GameStateManager event system works
+if (typeof window !== 'undefined') {
+    (window as any).game = game;
+}
+
 export default game;
