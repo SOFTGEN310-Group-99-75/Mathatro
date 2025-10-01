@@ -4,16 +4,14 @@
 // SonarQube S2245: Safe to use Math.random() in test mocks for non-security-sensitive operations.
 export default {
     Math: {
-        // NOSONAR: Math.random() is safe for test mocks - not used for cryptographic purposes
-        Between: (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min
+        Between: (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min // NOSONAR
     },
     Utils: {
         Array: {
-            // NOSONAR: Math.random() is safe for test mocks - not used for cryptographic purposes
             Shuffle: <T>(array: T[]) => {
                 const result = [...array];
                 for (let i = result.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
+                    const j = Math.floor(Math.random() * (i + 1)); // NOSONAR
                     [result[i], result[j]] = [result[j], result[i]];
                 }
                 return result;
