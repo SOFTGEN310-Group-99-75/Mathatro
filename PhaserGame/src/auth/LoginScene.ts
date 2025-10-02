@@ -12,6 +12,11 @@ export class LoginScene extends Phaser.Scene {
     private loadingText: Phaser.GameObjects.Text;
     private isSignUpMode: boolean = false;
 
+    // Constants to avoid SonarQube false positives
+    private static readonly PASSWORD_PLACEHOLDER = 'Enter your password';
+    private static readonly USERNAME_PLACEHOLDER = 'Enter your username';
+    private static readonly EMAIL_PLACEHOLDER = 'Enter your email';
+
     constructor() {
         super({ key: 'LoginScene' });
     }
@@ -45,9 +50,9 @@ export class LoginScene extends Phaser.Scene {
         this.createSignupForm();
         
         // Create HTML inputs once and manage them
-        this.emailInput = this.createHTMLInput('text', 'Enter your username', -50);
-        this.passwordInput = this.createHTMLInput('password', 'Enter your password', 10);
-        this.displayNameInput = this.createHTMLInput('text', 'Enter your username', -80);
+        this.emailInput = this.createHTMLInput('text', LoginScene.USERNAME_PLACEHOLDER, -50);
+        this.passwordInput = this.createHTMLInput('password', LoginScene.PASSWORD_PLACEHOLDER, 10);
+        this.displayNameInput = this.createHTMLInput('text', LoginScene.USERNAME_PLACEHOLDER, -80);
         
         // Set initial positions for login mode
         this.updateInputPositions();
@@ -239,11 +244,11 @@ export class LoginScene extends Phaser.Scene {
             }
             if (this.emailInput) {
                 this.emailInput.style.top = `${baseY - 20}px`;
-                this.emailInput.placeholder = 'Enter your email';
+                this.emailInput.placeholder = LoginScene.EMAIL_PLACEHOLDER;
             }
             if (this.passwordInput) {
                 this.passwordInput.style.top = `${baseY + 40}px`;
-                this.passwordInput.placeholder = 'Enter your password';
+                this.passwordInput.placeholder = LoginScene.PASSWORD_PLACEHOLDER;
             }
         } else {
             // Login form positions
@@ -252,11 +257,11 @@ export class LoginScene extends Phaser.Scene {
             }
             if (this.emailInput) {
                 this.emailInput.style.top = `${baseY - 50}px`;
-                this.emailInput.placeholder = 'Enter your username';
+                this.emailInput.placeholder = LoginScene.USERNAME_PLACEHOLDER;
             }
             if (this.passwordInput) {
                 this.passwordInput.style.top = `${baseY + 10}px`;
-                this.passwordInput.placeholder = 'Enter your password';
+                this.passwordInput.placeholder = LoginScene.PASSWORD_PLACEHOLDER;
             }
         }
     }
