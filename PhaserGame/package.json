@@ -16,6 +16,6 @@
   },
   "dependencies": {
     "expr-eval": "^2.0.2",
-    "phaser": "^3.80.1"
+    "phaser": "^3.90.0"
   }
 }
