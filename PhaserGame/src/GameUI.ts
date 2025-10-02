@@ -212,9 +212,9 @@ export class GameUI extends Phaser.Scene {
 
         // UI is now updated via GameManager events - no direct event handling needed
 
-        // Create user profile component
+        // Create user profile component at bottom right
         this.userProfile = new UserProfile(this);
-        this.userProfile.create(W - 120, 40);
+        this.userProfile.create(W - 120, H - 60);
 
         this.createDragEvents();
     }

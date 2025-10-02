@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { GAME_CONFIG } from './config/GameConstants';
 import { createTitleText, createVolumeButton } from './utils/UIHelpers';
 import { GameManager } from './game/GameManager';
+import { UserProfile } from './auth/UserProfile';
 
 /**
  * Maths Card Game
@@ -16,6 +17,7 @@ import { GameManager } from './game/GameManager';
 export class Play extends Phaser.Scene {
     // Game manager - centralized game coordination
     private gameManager!: GameManager;
+    private userProfile: UserProfile;
 
 
     constructor() {
@@ -79,6 +81,10 @@ export class Play extends Phaser.Scene {
         makeButton("Easy", height / 2, "easy");
         makeButton("Medium", height / 2 + 60, "medium");
         makeButton("Hard", height / 2 + 120, "hard");
+
+        // Create user profile component at bottom right
+        this.userProfile = new UserProfile(this);
+        this.userProfile.create(width - 120, height - 60);
     }
 
     restartGame() {
@@ -88,6 +94,13 @@ export class Play extends Phaser.Scene {
 
     createVolumeButton() {
         return createVolumeButton(this);
+    }
+
+    shutdown() {
+        // Clean up user profile when scene shuts down
+        if (this.userProfile) {
+            this.userProfile.destroy();
+        }
     }
 
     startGame() {
