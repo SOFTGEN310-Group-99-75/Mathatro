@@ -69,7 +69,8 @@ export class UserProfile {
     private async handleLogout() {
         try {
             await this.authService.signOut();
-            // The scene should handle the logout by switching back to login
+            // Stop all current scenes and start fresh with LoginScene
+            this.scene.scene.stop();
             this.scene.scene.start('LoginScene');
         } catch (error) {
             console.error('Logout failed:', error);

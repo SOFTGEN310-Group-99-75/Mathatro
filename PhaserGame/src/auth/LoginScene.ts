@@ -21,9 +21,17 @@ export class LoginScene extends Phaser.Scene {
         super({ key: 'LoginScene' });
     }
 
+    init() {
+        // Initialize scene state - this runs before create()
+        this.isSignUpMode = false;
+    }
+
     create() {
         const { width: W, height: H } = this.sys.game.scale;
         this.authService = AuthService.getInstance();
+
+        // Clean up any existing HTML inputs from previous sessions
+        this.removeHTMLInputs();
 
         // Background - match main game background
         this.add.rectangle(W / 2, H / 2, W, H, 0xf8f9fa);
@@ -69,6 +77,12 @@ export class LoginScene extends Phaser.Scene {
             color: '#007bff',
             align: 'center'
         }).setOrigin(0.5);
+
+        // Reset form state
+        this.isSignUpMode = false;
+        this.clearError();
+        this.hideLoading();
+        this.clearInputValues();
 
         // Check if user is already authenticated
         if (this.authService.isAuthenticated()) {
@@ -217,6 +231,9 @@ export class LoginScene extends Phaser.Scene {
         this.loginContainer.setVisible(false);
         this.signupContainer.setVisible(true);
         
+        // Clear input values when switching modes
+        this.clearInputValues();
+        
         // Update input positions for signup form
         this.updateInputPositions();
         this.clearError();
@@ -226,6 +243,9 @@ export class LoginScene extends Phaser.Scene {
         this.isSignUpMode = false;
         this.loginContainer.setVisible(true);
         this.signupContainer.setVisible(false);
+        
+        // Clear input values when switching modes
+        this.clearInputValues();
         
         // Update input positions for login form
         this.updateInputPositions();
@@ -323,10 +343,12 @@ export class LoginScene extends Phaser.Scene {
     }
 
     private removeHTMLInputs() {
+        // Safely remove HTML inputs if they exist
         this.emailInput?.parentNode?.removeChild(this.emailInput);
         this.passwordInput?.parentNode?.removeChild(this.passwordInput);
         this.displayNameInput?.parentNode?.removeChild(this.displayNameInput);
         
+        // Clear references
         this.emailInput = null;
         this.passwordInput = null;
         this.displayNameInput = null;
@@ -338,6 +360,18 @@ export class LoginScene extends Phaser.Scene {
 
     private clearError() {
         this.errorText.setText('');
+    }
+
+    private clearInputValues() {
+        if (this.emailInput) {
+            this.emailInput.value = '';
+        }
+        if (this.passwordInput) {
+            this.passwordInput.value = '';
+        }
+        if (this.displayNameInput) {
+            this.displayNameInput.value = '';
+        }
     }
 
     private showLoading(message: string) {
@@ -372,6 +406,14 @@ export class LoginScene extends Phaser.Scene {
     }
 
     shutdown() {
+        // Clean up HTML inputs
         this.removeHTMLInputs();
+        
+        // Clear any error or loading messages
+        this.errorText?.setText('');
+        this.loadingText?.setText('');
+        
+        // Reset form state
+        this.isSignUpMode = false;
     }
 }
