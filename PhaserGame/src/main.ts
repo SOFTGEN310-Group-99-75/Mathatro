@@ -1,6 +1,7 @@
 import { Preloader } from './Preloader';
 import { Play } from './Play';
 import { GameUI } from './GameUI';
+import { LoginScene } from './auth/LoginScene';
 import { GAME_CONFIG } from './config/GameConstants';
 import Phaser from 'phaser';
 
@@ -17,6 +18,7 @@ const config = {
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
     scene: [
+        LoginScene,
         Preloader,
         Play,
         GameUI
