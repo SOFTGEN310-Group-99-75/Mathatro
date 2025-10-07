@@ -8,12 +8,26 @@ export function evaluateExpression(cards: string[]): number {
   while (i < cards.length) {
     if (/^\d+$/.test(cards[i])) {
       let numStr = cards[i];
-      // Concatenate all subsequent adjacent numbers
-      while (i + 1 < cards.length && /^\d+$/.test(cards[i + 1])) {
-        numStr += cards[i + 1];
-        i++;
+      // Concatenate subsequent numbers, skipping over any '?' placeholders between digits
+      let j = i + 1;
+      let lastDigitIndex = i;
+      while (j < cards.length) {
+        const token = cards[j];
+        if (token === "?") {
+          j++;
+          continue; // ignore placeholders between digits
+        }
+        if (/^\d+$/.test(token)) {
+          numStr += token;
+          lastDigitIndex = j;
+          j++;
+          continue;
+        }
+        break; // stop when encountering a non-digit, non-placeholder token
       }
       processed.push(numStr);
+      // Advance i to the last digit we consumed (could have skipped over '?'s)
+      i = lastDigitIndex;
     } else if (cards[i] === "x") {
       processed.push("*");
     } else if (cards[i] === "÷") {
