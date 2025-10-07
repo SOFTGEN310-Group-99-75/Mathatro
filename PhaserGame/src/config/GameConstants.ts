@@ -224,13 +224,13 @@ export const DIFFICULTY_CONFIG: Record<DifficultyMode, DifficultyConfig> = {
   medium: {
     operators: ['+', '-', '*', '/'],
     minNumber: 1,
-    maxNumber: 20,
+    maxNumber: 9,
     maxLevels: 7
   },
   hard: {
     operators: ['+', '-', '*', '/', '^'],
     minNumber: 1,
-    maxNumber: 50,
+    maxNumber: 9,
     maxLevels: 10
   }
 };
