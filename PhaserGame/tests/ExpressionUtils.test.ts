@@ -55,8 +55,29 @@ describe('ExpressionEvaluator', () => {
         });
 
         it('should handle single number', () => {
-            const result = evaluateExpression(['42']);
-            expect(result).toBe(42);
+            const result = evaluateExpression(['4']);
+            expect(result).toBe(4);
+        });
+
+
+        it("should concatenate digits separated by placeholder into a single number", () => {
+            const result = evaluateExpression(["1", "?", "2"]);
+            expect(result).toBe(12);
+        });
+
+        it("should concatenate multiple digits with multiple placeholders", () => {
+            const result = evaluateExpression(["1", "?", "?", "2", "?", "3"]);
+            expect(result).toBe(123);
+        });
+
+        it("should ignore placeholders between numbers around operators", () => {
+            const result = evaluateExpression(["1", "?", "2", "+", "3", "?"]);
+            expect(result).toBe(15);
+        });
+
+        it("should ignore placeholders between numbers around operators", () => {
+            const result = evaluateExpression(["?", "2", "?","+", "?","3"]);
+            expect(result).toBe(5);
         });
 
         it('should evaluate expressions with negative results', () => {
