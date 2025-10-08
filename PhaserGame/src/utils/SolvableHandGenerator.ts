@@ -43,20 +43,20 @@ function shuffled<T>(arr: T[]): T[] {
     const a = [...arr];
     for (let i = a.length - 1; i > 0; i--) {
         const j = ((): number => {
-            if (typeof crypto !== "undefined" && crypto.getRandomValues) {
-                const range = i + 1;
-                const max = 0xffffffff;
-                const limit = Math.floor(max / range) * range; // rejection limit to remove bias
-                const buf = new Uint32Array(1);
-                let r: number;
-                do {
-                    crypto.getRandomValues(buf);
-                    r = buf[0];
-                } while (r >= limit);
-                return r % range;
+            // Always use CSPRNG with rejection sampling to avoid modulo bias
+            if (typeof crypto === "undefined" || typeof crypto.getRandomValues !== "function") {
+                throw new Error("CSPRNG unavailable: crypto.getRandomValues is required");
             }
-            // Fallback (non‑cryptographic)
-            return Math.floor(Math.random() * (i + 1));
+            const range = i + 1;
+            const max = 0xffffffff;
+            const limit = Math.floor(max / range) * range; // rejection limit to remove bias
+            const buf = new Uint32Array(1);
+            let r: number;
+            do {
+                crypto.getRandomValues(buf);
+                r = buf[0];
+            } while (r >= limit);
+            return r % range;
         })();
         [a[i], a[j]] = [a[j], a[i]];
     }
@@ -79,8 +79,7 @@ function sample<T>(arr: T[]): T {
         } while (r >= limit);
         return arr[r % range];
     }
-    // Fallback (non‑cryptographic)
-    return arr[Math.floor(Math.random() * arr.length)];
+    throw new Error("CSPRNG unavailable: crypto.getRandomValues is required");
 }
 function randInt(min: number, max: number): number {
     if (!Number.isFinite(min) || !Number.isFinite(max))
@@ -107,9 +106,7 @@ function randInt(min: number, max: number): number {
         } while (r >= limit);
         return min + (r % range);
     }
-
-    // Fallback (non‑cryptographic)
-    return Math.floor(Math.random() * range) + min;
+    throw new Error("CSPRNG unavailable: crypto.getRandomValues is required");
 }
 
 /** Build a random linear (no parentheses) expression tokens.
@@ -138,7 +135,15 @@ function generateExpressionWithConcatenation(
     difficulty: DifficultyMode
 ): { tokens: string[]; value: number } | null {
     // Choose between regular expression or one with concatenation
-    const useConcatenation = Math.random() < 0.3; // 30% chance for concatenation
+    const useConcatenation = ((): boolean => {
+        if (typeof crypto === "undefined" || typeof crypto.getRandomValues !== "function") {
+            throw new Error("CSPRNG unavailable: crypto.getRandomValues is required");
+        }
+        const buf = new Uint32Array(1);
+        crypto.getRandomValues(buf);
+        const u = buf[0] / 0x100000000; // [0,1)
+        return u < 0.3;
+    })(); // 30% chance for concatenation
     
     if (useConcatenation) {
         return generateConcatenatedExpression(cfg, difficulty);
@@ -166,7 +171,15 @@ function generateConcatenatedExpression(
     
     while (i < digits.length) {
         // Decide if we should concatenate with next digit(s)
-        const shouldConcatenate = i < digits.length - 1 && Math.random() < 0.4;
+        const shouldConcatenate = ((): boolean => {
+            if (typeof crypto === "undefined" || typeof crypto.getRandomValues !== "function") {
+                throw new Error("CSPRNG unavailable: crypto.getRandomValues is required");
+            }
+            const buf = new Uint32Array(1);
+            crypto.getRandomValues(buf);
+            const u = buf[0] / 0x100000000; // [0,1)
+            return i < digits.length - 1 && u < 0.4;
+        })();
         
         if (shouldConcatenate && i < digits.length - 1) {
             // Concatenate 2 digits to form a number
@@ -379,7 +392,15 @@ function buildHandFromExpression(
         const currentOperators = hand.filter((t) => /^[+\-*/^]$/.test(t)).length;
         
         // Maintain a good balance of numbers vs operators
-        if (currentNumbers < 5 && (currentOperators >= 3 || Math.random() < 0.6)) {
+        if (currentNumbers < 5 && (currentOperators >= 3 || ((): boolean => {
+            if (typeof crypto === "undefined" || typeof crypto.getRandomValues !== "function") {
+                throw new Error("CSPRNG unavailable: crypto.getRandomValues is required");
+            }
+            const buf = new Uint32Array(1);
+            crypto.getRandomValues(buf);
+            const u = buf[0] / 0x100000000; // [0,1)
+            return u < 0.6;
+        })())) {
             // Add individual digits (1-9) to support concatenation
             hand.push(randInt(1, 9).toString());
         } else {
@@ -396,7 +417,19 @@ function buildHandFromExpression(
             .filter(({ t }) => /^\d+$/.test(t))
             .map(({ idx }) => idx);
         if (digitIndices.length > 0) {
-            const replaceIdx = digitIndices[Math.floor(Math.random() * digitIndices.length)];
+            if (typeof crypto === "undefined" || typeof crypto.getRandomValues !== "function") {
+                throw new Error("CSPRNG unavailable: crypto.getRandomValues is required");
+            }
+            const range = digitIndices.length;
+            const max = 0xffffffff;
+            const limit = Math.floor(max / range) * range;
+            const buf = new Uint32Array(1);
+            let r: number;
+            do {
+                crypto.getRandomValues(buf);
+                r = buf[0];
+            } while (r >= limit);
+            const replaceIdx = digitIndices[r % range];
             hand[replaceIdx] = sample(cfg.operators);
         } else {
             // As a fallback, append an operator and drop the last item to keep size
