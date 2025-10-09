@@ -17,6 +17,6 @@
   "dependencies": {
     "expr-eval": "^2.0.2",
     "firebase": "^12.3.0",
-    "phaser": "^3.80.1"
+    "phaser": "^3.90.0"
   }
 }
