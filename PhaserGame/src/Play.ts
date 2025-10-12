@@ -50,37 +50,73 @@ export class Play extends Phaser.Scene {
         }).setOrigin(0.5);
 
         const makeButton = (label: string, y: number, mode: 'easy' | 'medium' | 'hard') => {
+            const buttonWidth = 200;
+            const buttonHeight = 60;
+            const borderRadius = 15;
+
+            // Create rounded rectangle background
+            const bg = this.add.graphics();
+            bg.fillStyle(0x8c7ae6, 1);
+            bg.fillRoundedRect(width / 2 - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
+
+            // Create text on top
             const btn = this.add.text(width / 2, y, label, {
                 fontSize: "32px",
-                backgroundColor: "#8c7ae6",
                 color: "#ffffff",
-                padding: { left: 12, right: 12, top: 6, bottom: 6 }
+                align: 'center'
             })
-            .setOrigin(0.5)
-            .setInteractive({ useHandCursor: true })
-            .on("pointerover", () => btn.setStyle({ backgroundColor: "#9c88ff" }))
-            .on("pointerout", () => btn.setStyle({ backgroundColor: "#8c7ae6" }))
-            .on("pointerdown", () => {
-                const state = this.gameManager.getGameState();
+                .setOrigin(0.5);
 
-                state.setDifficulty(mode);
-                state.restartGame();
+            // Make both interactive
+            const hitArea = new Phaser.Geom.Rectangle(
+                width / 2 - buttonWidth / 2,
+                y - buttonHeight / 2,
+                buttonWidth,
+                buttonHeight
+            );
 
-                this.difficultyButtons.forEach(b => b.destroy());
-                if (!this.sound.get("theme-song")) {
-                    this.sound.play("theme-song", { loop: true, volume: GAME_CONFIG.AUDIO.THEME_VOLUME });
-                }
-                this.scene.stop('Play');
-                this.scene.start('GameUI');
-            });
+            bg.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains)
+                .setData('bg', true)
+                .setData('color', 0x8c7ae6);
 
+            bg.on("pointerover", () => {
+                bg.clear();
+                bg.fillStyle(0x9c88ff, 1);
+                bg.fillRoundedRect(width / 2 - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
+            })
+                .on("pointerout", () => {
+                    bg.clear();
+                    bg.fillStyle(0x8c7ae6, 1);
+                    bg.fillRoundedRect(width / 2 - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
+                })
+                .on("pointerdown", () => {
+                    const state = this.gameManager.getGameState();
 
+                    state.setDifficulty(mode);
+                    state.restartGame();
+
+                    this.difficultyButtons.forEach(b => {
+                        b.destroy();
+                        // Also destroy the background graphics
+                        const bgGraphics = this.children.getChildren().find(c =>
+                            c.type === 'Graphics' && (c as any).getData('bg')
+                        );
+                        if (bgGraphics) bgGraphics.destroy();
+                    });
+                    if (!this.sound.get("theme-song")) {
+                        this.sound.play("theme-song", { loop: true, volume: GAME_CONFIG.AUDIO.THEME_VOLUME });
+                    }
+                    this.scene.stop('Play');
+                    this.scene.start('GameUI');
+                });
+
+            bg.input!.cursor = 'pointer';
             this.difficultyButtons.push(btn);
         };
 
         makeButton("Easy", height / 2, "easy");
-        makeButton("Medium", height / 2 + 60, "medium");
-        makeButton("Hard", height / 2 + 120, "hard");
+        makeButton("Medium", height / 2 + 80, "medium");
+        makeButton("Hard", height / 2 + 160, "hard");
 
         // Create user profile component at bottom right
         this.userProfile = new UserProfile(this);
@@ -106,7 +142,7 @@ export class Play extends Phaser.Scene {
     startGame() {
         // Launch the UI layout when the game starts
         this.scene.stop('Play');
-        this.scene.start('GameUI'); 
+        this.scene.start('GameUI');
 
         // WinnerText and GameOverText
         createTitleText(
