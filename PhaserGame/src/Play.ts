@@ -44,7 +44,7 @@ export class Play extends Phaser.Scene {
 
         createTitleText(this, width / 2, height / 4, "Mathatro", { fontSize: 48 });
 
-        this.add.text(width / 2, height / 3, "Select Difficulty", {
+        this.add.text(width / 2, height / 3 + 20, "Select Difficulty", {
             fontSize: "24px",
             color: "#000000"
         }).setOrigin(0.5);

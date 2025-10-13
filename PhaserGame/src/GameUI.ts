@@ -145,7 +145,7 @@ export class GameUI extends Phaser.Scene {
 
         // Result slots - using LayoutManager
         this.resultBar = this.rect(resultBar.x, resultBar.y, resultBar.width, resultBar.height, { fill: GAME_CONFIG.COLORS.BLACK, alpha: GAME_CONFIG.ALPHA.RESULT_BAR });
-        this.equalsText = this.add.text(resultBar.equalsX, resultBar.equalsY, '=  ?', { fontSize: GAME_CONFIG.LAYOUT.RESULT_EQUALS_FONT_SIZE, color: GAME_CONFIG.COLORS.BLACK });
+        this.equalsText = this.add.text(resultBar.equalsX, resultBar.equalsY, '= ', { fontSize: GAME_CONFIG.LAYOUT.RESULT_EQUALS_FONT_SIZE, color: GAME_CONFIG.COLORS.BLACK });
 
         // Hand bar - using LayoutManager
         this.handBar = this.rect(handBar.x, handBar.y, handBar.width, handBar.height, { fill: GAME_CONFIG.COLORS.BLACK, alpha: GAME_CONFIG.ALPHA.HAND_BAR });
@@ -403,6 +403,31 @@ export class GameUI extends Phaser.Scene {
                 this.attachCardPointerListeners(slot.card);
             }
         });
+
+        // Update the result display
+        this.updateResultDisplay();
+    }
+
+    // Update the equals text to show calculated result
+    updateResultDisplay() {
+        // Collect cards from result slots
+        const cards = this.resultSlots
+            .map(slot => slot.card?.list?.[2]?.text ?? "")
+            .filter(label => label !== "" && label !== "?");
+
+        if (cards.length === 0) {
+            this.equalsText.setText('= ');
+            return;
+        }
+
+        try {
+            const result = evaluateExpression(cards);
+            if (result !== null && !isNaN(result)) {
+                this.equalsText.setText(`= ${result}`);
+            }
+        } catch (error) {
+            // Keep previous display if expression is invalid
+        }
     }
 
     // Create drag events to allow card movement
@@ -461,6 +486,9 @@ export class GameUI extends Phaser.Scene {
                 // if hovering over original slot, snap it back or move to empty slot
                 hoveredSlot.setCard(gameObject)
             }
+
+            // Update result display after card movement
+            this.updateResultDisplay();
         });
     }
 
@@ -477,10 +505,16 @@ export class GameUI extends Phaser.Scene {
                 const scene: any = this.scene;
                 if (scene.handSlots?.includes(this.slot)) {
                     const emptyResultSlot = scene.resultSlots?.find((s: any) => !s.card);
-                    if (emptyResultSlot) emptyResultSlot.setCard(this);
+                    if (emptyResultSlot) {
+                        emptyResultSlot.setCard(this);
+                        scene.updateResultDisplay();
+                    }
                 } else if (scene.resultSlots?.includes(this.slot)) {
                     const emptyHandSlot = scene.handSlots?.find((s: any) => !s.card);
-                    if (emptyHandSlot) emptyHandSlot.setCard(this);
+                    if (emptyHandSlot) {
+                        emptyHandSlot.setCard(this);
+                        scene.updateResultDisplay();
+                    }
                 }
             }
         });
