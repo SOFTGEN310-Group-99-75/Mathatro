@@ -232,7 +232,7 @@ export const createTitleText = (
     text: string,
     options: Partial<LabelBoxOptions> = {}
 ) => {
-    const titleText = scene.add.text(x, y, text, StyleHelpers.createTitleTextStyle(options.fontSize)).setOrigin(0.5);
+    const titleText = scene.add.text(x, y, text, StyleHelpers.createTitleTextStyle(options.fontSize ? `${options.fontSize}px` : undefined)).setOrigin(0.5);
     StyleHelpers.applyTitleStyle(titleText);
     return titleText;
 };
@@ -328,7 +328,7 @@ export const createStyledText = (
     options: Partial<LabelBoxOptions> = {}
 ) => {
     return scene.add.text(x, y, text, StyleHelpers.createTextStyle({
-        fontSize: options.fontSize ?? GAME_CONFIG.FONT.SCORE_SIZE,
+        fontSize: options.fontSize ? `${options.fontSize}px` : `${GAME_CONFIG.FONT.SCORE_SIZE}px`,
         color: options.color ?? GAME_CONFIG.COLORS.BLACK,
         fontStyle: options.fontStyle ?? '500',
         fontFamily: GAME_CONFIG.FONT.FAMILY
