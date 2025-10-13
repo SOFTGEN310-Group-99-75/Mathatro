@@ -8,6 +8,7 @@ import { CardUtils } from './utils/CardUtils';
 import { evaluateExpression } from './utils/ExpressionEvaluator';
 import { checkObjective } from './utils/ObjectiveChecker';
 import { UserProfile } from './auth/UserProfile';
+import { FeedbackAnimations } from './utils/FeedbackAnimations';
 
 
 /**
@@ -46,6 +47,7 @@ export class GameUI extends Phaser.Scene {
     private gameWonHandler?: () => void;
     private objectiveChangedHandler?: (objective: string) => void;
     private userProfile: UserProfile;
+    private feedbackAnimations: FeedbackAnimations;
 
     constructor() {
         super({ key: 'GameUI' });
@@ -81,25 +83,26 @@ export class GameUI extends Phaser.Scene {
         this.sidebar = this.rect(sidebar.x, sidebar.y, sidebar.width, sidebar.height, { fill: GAME_CONFIG.COLORS.BLACK, alpha: GAME_CONFIG.ALPHA.SIDEBAR });
         this.scoreTitle = this.add.text(sidebar.scoreTitleX, sidebar.scoreTitleY, 'Score Board', { fontSize: GAME_CONFIG.FONT.SCORE_SIZE + 2, color: GAME_CONFIG.COLORS.BLACK }).setOrigin(0.5);
         this.currentScore = this.labelBox(sidebar.currentScoreX, sidebar.currentScoreY, sidebar.currentScoreWidth, sidebar.currentScoreHeight, 'current game score');
-        this.calcText = this.add.text(sidebar.calcTextX, sidebar.calcTextY, 'calculations?\nmayber multipliers or smth else', { fontSize: GAME_CONFIG.FONT.CAPTION_SIZE, color: GAME_CONFIG.COLORS.DARK_GRAY, wordWrap: { width: sidebar.width - GAME_CONFIG.LAYOUT.CALC_TEXT_WIDTH_OFFSET } });
+        //this.calcText = this.add.text(sidebar.calcTextX, sidebar.calcTextY, 'calculations?\nmayber multipliers or smth else', { fontSize: GAME_CONFIG.FONT.CAPTION_SIZE, color: GAME_CONFIG.COLORS.DARK_GRAY, wordWrap: { width: sidebar.width - GAME_CONFIG.LAYOUT.CALC_TEXT_WIDTH_OFFSET } });
         this.cumulated = this.labelBox(sidebar.cumulatedX, sidebar.cumulatedY, sidebar.cumulatedWidth, sidebar.cumulatedHeight, 'Cumulated score (previous game)\nvs\nScore needed to pass the level', { fontSize: GAME_CONFIG.FONT.CAPTION_SIZE });
 
         // Health bar + Games counter - using LayoutManager
+        this.add.text(healthBar.backgroundX, healthBar.backgroundY - 25, 'Health bar', { fontSize: '18px', color: '#000000', fontStyle: 'bold' }).setOrigin(0, 0);
         this.healthBarBg = this.rect(healthBar.backgroundX, healthBar.backgroundY, healthBar.backgroundWidth, healthBar.backgroundHeight, { fill: GAME_CONFIG.COLORS.RED, alpha: GAME_CONFIG.ALPHA.HEALTH_BG });
         this.healthBarFill = this.add.rectangle(healthBar.fillX, healthBar.fillY, healthBar.fillWidth, healthBar.fillHeight, GAME_CONFIG.COLORS.GREEN, GAME_CONFIG.ALPHA.HEALTH_FILL).setOrigin(0, 0);
-        this.healthHint = this.add.text(this.healthBarBg.x, this.healthBarBg.y - GAME_CONFIG.LAYOUT.HEALTH_HINT_Y_OFFSET, 'Health bar\n(deduct health if objective is impossible for current hand)', { fontSize: GAME_CONFIG.FONT.HINT_SIZE, color: GAME_CONFIG.COLORS.MEDIUM_GRAY }).setOrigin(0, 1);
         const state = this.gameManager.getGameState();
         // Register event listeners with stored references for cleanup
         this.handCardsHandler = (hand: string[]) => this.updateHand(hand);
         state.onGameEvent('handCardsChanged', this.handCardsHandler);
-        this.gamesProgressHandler = ({ current, total }) => this.setGames(`${current} / ${total}`);
+        this.gamesProgressHandler = ({ current, total }) => this.setGames(`Round: ${current} / ${total}`);
         state.onGameEvent('gamesProgressChanged', this.gamesProgressHandler);
         this.gameWonHandler = () => this.showWinOverlay();
         state.onGameEvent('gameWon', this.gameWonHandler);
         this.gamesCounter = this.labelBox(
             gamesCounter.x, gamesCounter.y,
             gamesCounter.width, gamesCounter.height,
-            `${state.gamesPlayed} / ${state.maxGames}`
+            `Round: ${state.gamesPlayed} / ${state.maxGames}`,
+            { radius: 12 }
         );
         // Listen for objective changes (so we don't rely on manual set after submit)
         this.objectiveChangedHandler = (objective: string) => this.setObjective(objective);
@@ -271,6 +274,9 @@ export class GameUI extends Phaser.Scene {
             console.log("Objective:", this.gameManager.getCurrentObjective(), "=>", isCorrect);
 
             if (isCorrect) {
+                // Show success feedback
+                this.feedbackAnimations.showCorrectFeedback();
+
                 this.gameManager.updateScore(10);
                 const stateBefore = this.gameManager.getGameState();
                 stateBefore.advanceRound();
@@ -280,6 +286,9 @@ export class GameUI extends Phaser.Scene {
                 this.resetResultSlots();
                 // Games counter will update via existing gamesProgressChanged listener
             } else {
+                // Show failure feedback
+                this.feedbackAnimations.showIncorrectFeedback();
+
                 this.gameManager.updateLives(-1);
             }
 
@@ -291,6 +300,9 @@ export class GameUI extends Phaser.Scene {
         // Create user profile component at bottom right
         this.userProfile = new UserProfile(this);
         this.userProfile.create(W - 120, H - 60);
+
+        // Initialize feedback animations
+        this.feedbackAnimations = new FeedbackAnimations(this);
 
         this.createDragEvents();
     }
