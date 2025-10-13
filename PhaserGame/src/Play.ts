@@ -240,7 +240,7 @@ export class Play extends Phaser.Scene {
 
             // Instructions text
             const instructions = [
-                '🎯 Goal: Match the target number',
+                '🎯 Goal: Create a math expression/number to match the criteria',
                 '',
                 '📋 Rules:',
                 '  • Use cards from your hand',

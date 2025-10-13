@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { AuthService, AuthUser } from './AuthService';
 import { GAME_CONFIG } from '../config/GameConstants';
 import { createTitleText } from '../utils/UIHelpers';
+import { StyleHelpers } from '../utils/StyleHelpers';
 
 export class LoginScene extends Phaser.Scene {
     private authService: AuthService;
@@ -46,12 +47,11 @@ export class LoginScene extends Phaser.Scene {
         // Title with consistent game styling
         createTitleText(this, W / 2, H * 0.15, 'Mathatro', { fontSize: 52 });
 
-        const subtitle = this.add.text(W / 2, H * 0.23, 'It\'s a piece of π!', {
+        const subtitle = this.add.text(W / 2, H * 0.23, 'It\'s a piece of π!', StyleHelpers.createTextStyle({
             fontSize: '22px',
             color: '#ffffff',
-            fontStyle: '500',
-            fontFamily: GAME_CONFIG.FONT.FAMILY
-        }).setOrigin(0.5);
+            fontStyle: '500'
+        })).setOrigin(0.5);
 
         // Create containers for login and signup forms
         // Position forms lower to avoid overlap with title
@@ -76,21 +76,17 @@ export class LoginScene extends Phaser.Scene {
         this.updateInputPositions();
 
         // Error and loading text - match main game styling
-        this.errorText = this.add.text(W / 2, H * 0.85, '', {
+        this.errorText = this.add.text(W / 2, H * 0.85, '', StyleHelpers.createTextStyle({
             fontSize: '16px',
             color: '#e53e3e',
-            fontFamily: GAME_CONFIG.FONT.FAMILY,
-            fontStyle: '500',
-            align: 'center'
-        }).setOrigin(0.5);
+            fontStyle: '500'
+        })).setOrigin(0.5);
 
-        this.loadingText = this.add.text(W / 2, H * 0.9, '', {
+        this.loadingText = this.add.text(W / 2, H * 0.9, '', StyleHelpers.createTextStyle({
             fontSize: '16px',
             color: '#3182ce',
-            fontFamily: GAME_CONFIG.FONT.FAMILY,
-            fontStyle: '500',
-            align: 'center'
-        }).setOrigin(0.5);
+            fontStyle: '500'
+        })).setOrigin(0.5);
 
         // Reset form state
         this.isSignUpMode = false;

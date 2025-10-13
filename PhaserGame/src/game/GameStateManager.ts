@@ -96,9 +96,9 @@ export class GameStateManager {
         this.isGameOver = false;
     }
 
-/**
-     * Generate a new objective for the current game
-     */
+    /**
+         * Generate a new objective for the current game
+         */
     generateObjective(): string {
         // Keep legacy function for compatibility, though main flow now uses expression-first generation
         return GenerateObjective(this.difficulty);
@@ -108,7 +108,7 @@ export class GameStateManager {
      * Update the current objective
      */
     setObjective(objective: string): void {
-        this.currentObjective = objective; 
+        this.currentObjective = objective;
         this.emitGameEvent('objectiveChanged', objective);
     }
 
@@ -217,7 +217,7 @@ export class GameStateManager {
         this.score = GAME_CONFIG.DEFAULT_SCORE;
         this.currentLevel = GAME_CONFIG.DEFAULT_LEVEL;
         this.gamesPlayed = 1;
-        this.maxGames = DIFFICULTY_CONFIG[this.difficulty].maxLevels; 
+        this.maxGames = DIFFICULTY_CONFIG[this.difficulty].maxLevels;
         this.usedObjectives = new Set();
 
         const solvable = this.generateUniqueSolvableRound();
@@ -321,17 +321,17 @@ export class GameStateManager {
 
 
     generateHandCards(): string[] {
-    const config = DIFFICULTY_CONFIG[this.difficulty];
+        const config = DIFFICULTY_CONFIG[this.difficulty];
 
-    const nums = Array.from({ length: 5 }, () =>
-        Phaser.Math.Between(config.minNumber, config.maxNumber).toString()
-    );
+        const nums = Array.from({ length: 5 }, () =>
+            Phaser.Math.Between(config.minNumber, config.maxNumber).toString()
+        );
 
-    // Shuffle operator pool and take up to 3 unique ones
-    const shuffledOps = Phaser.Utils.Array.Shuffle([...config.operators]);
-    const ops = shuffledOps.slice(0, 3);
+        // Shuffle operator pool and take up to 3 unique ones
+        const shuffledOps = Phaser.Utils.Array.Shuffle([...config.operators]);
+        const ops = shuffledOps.slice(0, 3);
 
-    return [...nums, ...ops];
+        return [...nums, ...ops];
     }
 
     /** Generate a solvable round whose objective has not yet appeared in this game */
@@ -343,34 +343,16 @@ export class GameStateManager {
             lastRound = round;
             if (this.usedObjectives.has(round.objective)) continue; // uniqueness check
             const validation = isObjectiveSolvable(round.hand, round.objective, { maxNumbers: 3 });
-            console.log('[RoundGen][Phase1]', {
-                attempt: i,
-                difficulty: this.difficulty,
-                objective: round.objective,
-                hand: round.hand.join(' '),
-                solutionExpression: round.solutionExpression,
-                solutionValue: round.value,
-                validated: validation.solvable,
-                solverExpression: validation.expression,
-                solverValue: validation.value
-            });
+            // Debug logging removed for security - no sensitive game state exposure
+            console.debug('[RoundGen][Phase1]', { attempt: i, validated: validation.solvable });
             if (validation.solvable) return round;
         }
         // Phase 2: escalate by forcing uniqueness relaxation but still require solvable
         for (let j = 0; j < 100; j++) {
             const round = generateSolvableHandAndObjective(this.difficulty);
             const validation = isObjectiveSolvable(round.hand, round.objective, { maxNumbers: 3 });
-            console.warn('[RoundGen][Phase2]', {
-                attempt: j,
-                difficulty: this.difficulty,
-                objective: round.objective,
-                hand: round.hand.join(' '),
-                solutionExpression: round.solutionExpression,
-                solutionValue: round.value,
-                validated: validation.solvable,
-                solverExpression: validation.expression,
-                solverValue: validation.value
-            });
+            // Debug logging removed for security - no sensitive game state exposure
+            console.warn('[RoundGen][Phase2]', { attempt: j, validated: validation.solvable });
             if (validation.solvable) return round;
         }
         // Final emergency fallback: ensure at least trivial solvable condition by forcing Equal to 2 expression

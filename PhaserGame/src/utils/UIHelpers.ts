@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_CONFIG } from '../config/GameConstants';
+import { StyleHelpers } from './StyleHelpers';
 
 /**
  * UI Helper utilities to reduce code duplication across scenes
@@ -231,17 +232,8 @@ export const createTitleText = (
     text: string,
     options: Partial<LabelBoxOptions> = {}
 ) => {
-    const titleText = scene.add.text(x, y, text, {
-        align: "center",
-        fontSize: options.fontSize ?? GAME_CONFIG.FONT.TITLE_SIZE,
-        fontStyle: "800",
-        fontFamily: GAME_CONFIG.FONT.FAMILY,
-        color: options.color ?? '#7c3aed'
-    }).setOrigin(0.5);
-
-    titleText.setStroke('#ffffff', 3);
-    titleText.setShadow(4, 4, '#ffffff', 0.5);
-
+    const titleText = scene.add.text(x, y, text, StyleHelpers.createTitleTextStyle(options.fontSize)).setOrigin(0.5);
+    StyleHelpers.applyTitleStyle(titleText);
     return titleText;
 };
 
@@ -335,22 +327,12 @@ export const createStyledText = (
     text: string,
     options: Partial<LabelBoxOptions> = {}
 ) => {
-    return scene.add.text(x, y, text, {
+    return scene.add.text(x, y, text, StyleHelpers.createTextStyle({
         fontSize: options.fontSize ?? GAME_CONFIG.FONT.SCORE_SIZE,
         color: options.color ?? GAME_CONFIG.COLORS.BLACK,
         fontStyle: options.fontStyle ?? '500',
-        fontFamily: GAME_CONFIG.FONT.FAMILY,
-        align: options.align ?? 'center',
-        stroke: GAME_CONFIG.FONT.STROKE_COLOR,
-        strokeThickness: 2,
-        shadow: {
-            offsetX: GAME_CONFIG.FONT.SHADOW_OFFSET_X,
-            offsetY: GAME_CONFIG.FONT.SHADOW_OFFSET_Y,
-            color: GAME_CONFIG.COLORS.BLACK,
-            blur: GAME_CONFIG.FONT.SHADOW_BLUR,
-            fill: true
-        }
-    }).setOrigin(0.5);
+        fontFamily: GAME_CONFIG.FONT.FAMILY
+    })).setOrigin(0.5);
 };
 
 /**
