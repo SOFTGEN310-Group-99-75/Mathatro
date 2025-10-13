@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { AuthService, AuthUser } from './AuthService';
 import { GAME_CONFIG } from '../config/GameConstants';
+import { createTitleText } from '../utils/UIHelpers';
 
 export class LoginScene extends Phaser.Scene {
     private authService: AuthService;
@@ -42,15 +43,8 @@ export class LoginScene extends Phaser.Scene {
         bg.fillGradientStyle(0x4facfe, 0x4facfe, 0x00f2fe, 0x00f2fe, 1);
         bg.fillRect(0, 0, W, H);
 
-        // Title with modern game theme styling - Purple Mathatro
-        const title = this.add.text(W / 2, H * 0.15, 'Mathatro', {
-            fontSize: '52px',
-            color: '#7c3aed',
-            fontStyle: '800',
-            fontFamily: GAME_CONFIG.FONT.FAMILY
-        }).setOrigin(0.5);
-        title.setStroke('#ffffff', 3);
-        title.setShadow(4, 4, '#000000', 0.5);
+        // Title with consistent game styling
+        createTitleText(this, W / 2, H * 0.15, 'Mathatro', { fontSize: 52 });
 
         const subtitle = this.add.text(W / 2, H * 0.23, 'It\'s a piece of π!', {
             fontSize: '22px',

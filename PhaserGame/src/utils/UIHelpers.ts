@@ -166,13 +166,18 @@ export const createTitleText = (
     text: string,
     options: Partial<LabelBoxOptions> = {}
 ) => {
-    return scene.add.text(x, y, text, {
+    const titleText = scene.add.text(x, y, text, {
         align: "center",
-        strokeThickness: GAME_CONFIG.FONT.STROKE_THICKNESS,
         fontSize: options.fontSize ?? GAME_CONFIG.FONT.TITLE_SIZE,
-        fontStyle: "bold",
-        color: options.color ?? GAME_CONFIG.COLORS.PURPLE
+        fontStyle: "800",
+        fontFamily: GAME_CONFIG.FONT.FAMILY,
+        color: options.color ?? '#7c3aed'
     }).setOrigin(0.5);
+
+    titleText.setStroke('#ffffff', 3);
+    titleText.setShadow(4, 4, '#ffffff', 0.5);
+
+    return titleText;
 };
 
 /**
