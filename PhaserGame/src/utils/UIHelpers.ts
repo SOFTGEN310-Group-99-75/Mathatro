@@ -13,6 +13,7 @@ export interface LabelBoxOptions {
     fontStyle?: string;
     align?: string;
     bg?: string;
+    radius?: number;
 }
 
 export interface CardOptions extends LabelBoxOptions {
@@ -24,6 +25,7 @@ export interface RectOptions {
     alpha?: number;
     strokeColor?: number;
     strokeWidth?: number;
+    radius?: number;
 }
 
 /**
@@ -37,6 +39,24 @@ export const createStyledRect = (
     h: number,
     options: RectOptions = {}
 ) => {
+    // If radius is specified, use Graphics for rounded corners
+    if (options.radius && options.radius > 0) {
+        const graphics = scene.add.graphics();
+        graphics.fillStyle(
+            options.fill ?? GAME_CONFIG.COLORS.GREEN_FELT,
+            options.alpha ?? GAME_CONFIG.ALPHA.FELT
+        );
+        graphics.lineStyle(
+            options.strokeWidth ?? 2,
+            options.strokeColor ?? 0xffffff,
+            0.7
+        );
+        graphics.fillRoundedRect(x, y, w, h, options.radius);
+        graphics.strokeRoundedRect(x, y, w, h, options.radius);
+        return graphics;
+    }
+
+    // Otherwise use regular rectangle
     const rect = scene.add.rectangle(
         x, y, w, h,
         options.fill ?? GAME_CONFIG.COLORS.GREEN_FELT,
@@ -67,7 +87,8 @@ export const createLabelBox = (
     const group = scene.add.container(x, y);
     const box = createStyledRect(scene, 0, 0, w, h, {
         fill: options.fill ?? GAME_CONFIG.COLORS.GREEN_FELT,
-        alpha: options.alpha ?? GAME_CONFIG.ALPHA.FELT
+        alpha: options.alpha ?? GAME_CONFIG.ALPHA.FELT,
+        radius: options.radius
     });
 
     const textObj = scene.add.text(w / 2, h / 2, text, {
@@ -84,7 +105,8 @@ export const createLabelBox = (
             color: GAME_CONFIG.COLORS.BLACK,
             blur: GAME_CONFIG.FONT.SHADOW_BLUR,
             fill: true
-        }
+        },
+        wordWrap: { width: w - 10, useAdvancedWrap: true }
     }).setOrigin(0.5);
 
     group.add([box, textObj]);

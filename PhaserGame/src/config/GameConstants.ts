@@ -125,15 +125,15 @@ export const GAME_CONFIG = {
 
         // Objective positioning
         OBJECTIVE_Y_OFFSET: 70,
-        OBJECTIVE_WIDTH: 120,
-        OBJECTIVE_HEIGHT: 36,
+        OBJECTIVE_WIDTH: 200,
+        OBJECTIVE_HEIGHT: 50,
         OBJECTIVE_CAPTION_Y_OFFSET: 6,
 
         // Bar positioning
         RESULT_BAR_X_OFFSET: 40,
         RESULT_BAR_WIDTH_OFFSET: 80,
         RESULT_BAR_HEIGHT: 110,
-        RESULT_BAR_Y_OFFSET: 50,
+        RESULT_BAR_Y_OFFSET: 70,
         HAND_BAR_X_OFFSET: 20,
         HAND_BAR_WIDTH_OFFSET: 40,
         HAND_BAR_HEIGHT: 110,
@@ -209,30 +209,30 @@ export const CARD_NAMES = [
 export type DifficultyMode = 'easy' | 'medium' | 'hard';
 
 export interface DifficultyConfig {
-  operators: string[];
-  minNumber: number;
-  maxNumber: number;
-  maxLevels: number;
+    operators: string[];
+    minNumber: number;
+    maxNumber: number;
+    maxLevels: number;
 }
 export const DIFFICULTY_CONFIG: Record<DifficultyMode, DifficultyConfig> = {
-  easy: {
-    operators: ['+', '-'],
-    minNumber: 1,
-    maxNumber: 9,
-    maxLevels: 5
-  },
-  medium: {
-    operators: ['+', '-', '*', '/'],
-    minNumber: 1,
-    maxNumber: 9,
-    maxLevels: 7
-  },
-  hard: {
-    operators: ['+', '-', '*', '/', '^'],
-    minNumber: 1,
-    maxNumber: 9,
-    maxLevels: 10
-  }
+    easy: {
+        operators: ['+', '-'],
+        minNumber: 1,
+        maxNumber: 9,
+        maxLevels: 5
+    },
+    medium: {
+        operators: ['+', '-', '*', '/'],
+        minNumber: 1,
+        maxNumber: 9,
+        maxLevels: 7
+    },
+    hard: {
+        operators: ['+', '-', '*', '/', '^'],
+        minNumber: 1,
+        maxNumber: 9,
+        maxLevels: 10
+    }
 };
 
 

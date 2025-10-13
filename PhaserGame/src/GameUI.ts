@@ -113,8 +113,8 @@ export class GameUI extends Phaser.Scene {
             if (this.objectiveChangedHandler) stateRef.offGameEvent('objectiveChanged', this.objectiveChangedHandler);
         });
         // Objective label - using LayoutManager
-        this.objective = this.labelBox(objective.x, objective.y, objective.width, objective.height, GAME_CONFIG.LAYOUT.DEFAULT_OBJECTIVE_TEXT, { fontSize: GAME_CONFIG.FONT.OBJECTIVE_SIZE, fontStyle: 'bold' });
-        this.objectiveCaption = this.add.text(objective.captionX, objective.captionY, 'Objective', { fontSize: GAME_CONFIG.FONT.HINT_SIZE, color: GAME_CONFIG.COLORS.MEDIUM_GRAY }).setOrigin(0.5, 1);
+        this.objective = this.labelBox(objective.x, objective.y, objective.width, objective.height, GAME_CONFIG.LAYOUT.DEFAULT_OBJECTIVE_TEXT, { fontSize: GAME_CONFIG.FONT.OBJECTIVE_SIZE, fontStyle: 'bold', radius: 12 });
+        this.objectiveCaption = this.add.text(objective.captionX, objective.captionY, 'Objective', { fontSize: '20px', color: '#000000', fontStyle: 'bold' }).setOrigin(0.5, 1);
 
 
         // -------------- Test Section remove any time - using LayoutManager
@@ -138,7 +138,7 @@ export class GameUI extends Phaser.Scene {
 
         // Hand bar - using LayoutManager
         this.handBar = this.rect(handBar.x, handBar.y, handBar.width, handBar.height, { fill: GAME_CONFIG.COLORS.BLACK, alpha: GAME_CONFIG.ALPHA.HAND_BAR });
-        this.handCaption = this.add.text(handBar.captionX, handBar.captionY, 'Cards, either operator(+,-,*,/) or number (0–9)', { fontSize: GAME_CONFIG.FONT.CAPTION_SIZE, color: GAME_CONFIG.COLORS.MEDIUM_GRAY }).setOrigin(0.5, 0);
+        this.handCaption = this.add.text(handBar.captionX, handBar.captionY, 'Cards, either operator(+,-,*,/) or number (0–9)', { fontSize: GAME_CONFIG.FONT.CAPTION_SIZE, color: '#000000', fontStyle: 'bold' }).setOrigin(0.5, 0);
 
 
         // Containers for dynamic visuals
