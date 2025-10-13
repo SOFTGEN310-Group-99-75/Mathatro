@@ -120,7 +120,7 @@ export const GAME_CONFIG = {
         HEALTH_BAR_HEIGHT: 22,
         HEALTH_BAR_GAMES_COUNTER_WIDTH: 110,
         HEALTH_HINT_Y_OFFSET: 12,
-        GAMES_COUNTER_WIDTH: 130,
+        GAMES_COUNTER_WIDTH: 150,
         GAMES_COUNTER_HEIGHT: 35,
 
         // Objective positioning

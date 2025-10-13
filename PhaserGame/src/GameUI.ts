@@ -80,7 +80,7 @@ export class GameUI extends Phaser.Scene {
         };
 
         // Score Board panel - using LayoutManager
-        this.sidebar = this.rect(sidebar.x, sidebar.y, sidebar.width, sidebar.height, { fill: GAME_CONFIG.COLORS.BLACK, alpha: GAME_CONFIG.ALPHA.SIDEBAR });
+        this.sidebar = this.rect(sidebar.x, sidebar.y, sidebar.width, sidebar.height, { fill: GAME_CONFIG.COLORS.BLACK, alpha: GAME_CONFIG.ALPHA.SIDEBAR, radius: 12 });
         this.scoreTitle = this.add.text(sidebar.scoreTitleX, sidebar.scoreTitleY, 'Score Board', { fontSize: GAME_CONFIG.FONT.SCORE_SIZE + 2, color: GAME_CONFIG.COLORS.BLACK }).setOrigin(0.5);
         this.currentScore = this.labelBox(sidebar.currentScoreX, sidebar.currentScoreY, sidebar.currentScoreWidth, sidebar.currentScoreHeight, 'current game score');
         //this.calcText = this.add.text(sidebar.calcTextX, sidebar.calcTextY, 'calculations?\nmayber multipliers or smth else', { fontSize: GAME_CONFIG.FONT.CAPTION_SIZE, color: GAME_CONFIG.COLORS.DARK_GRAY, wordWrap: { width: sidebar.width - GAME_CONFIG.LAYOUT.CALC_TEXT_WIDTH_OFFSET } });
@@ -88,8 +88,16 @@ export class GameUI extends Phaser.Scene {
 
         // Health bar + Games counter - using LayoutManager
         this.add.text(healthBar.backgroundX, healthBar.backgroundY - 25, 'Health bar', { fontSize: '18px', color: '#000000', fontStyle: 'bold' }).setOrigin(0, 0);
-        this.healthBarBg = this.rect(healthBar.backgroundX, healthBar.backgroundY, healthBar.backgroundWidth, healthBar.backgroundHeight, { fill: GAME_CONFIG.COLORS.RED, alpha: GAME_CONFIG.ALPHA.HEALTH_BG });
-        this.healthBarFill = this.add.rectangle(healthBar.fillX, healthBar.fillY, healthBar.fillWidth, healthBar.fillHeight, GAME_CONFIG.COLORS.GREEN, GAME_CONFIG.ALPHA.HEALTH_FILL).setOrigin(0, 0);
+        this.healthBarBg = this.rect(healthBar.backgroundX, healthBar.backgroundY, healthBar.backgroundWidth, healthBar.backgroundHeight, { fill: GAME_CONFIG.COLORS.RED, alpha: GAME_CONFIG.ALPHA.HEALTH_BG, radius: 8 });
+
+        // Create rounded health bar fill using graphics
+        this.healthBarFill = this.add.graphics();
+        this.healthBarFill.fillStyle(GAME_CONFIG.COLORS.GREEN, GAME_CONFIG.ALPHA.HEALTH_FILL);
+        this.healthBarFill.fillRoundedRect(healthBar.fillX, healthBar.fillY, healthBar.fillWidth, healthBar.fillHeight, 7);
+        this.healthBarFill.setData('maxWidth', healthBar.fillWidth);
+        this.healthBarFill.setData('x', healthBar.fillX);
+        this.healthBarFill.setData('y', healthBar.fillY);
+        this.healthBarFill.setData('height', healthBar.fillHeight);
         const state = this.gameManager.getGameState();
         // Register event listeners with stored references for cleanup
         this.handCardsHandler = (hand: string[]) => this.updateHand(hand);
@@ -304,13 +312,17 @@ export class GameUI extends Phaser.Scene {
         // Initialize feedback animations
         this.feedbackAnimations = new FeedbackAnimations(this);
 
+        // Switch Difficulty button
+        this.createSwitchDifficultyButton(W, H);
+
         this.createDragEvents();
     }
 
     setHealth(ratio: number) {
         const r = Phaser.Math.Clamp(ratio, 0, 1);
-        const fullWidth = (this.healthBarBg.width - GAME_CONFIG.LAYOUT.HEALTH_BAR_CALC_OFFSET);
-        this.healthBarFill.width = Math.max(0, fullWidth * r);
+        const maxWidth = this.healthBarFill.getData('maxWidth');
+        const currentWidth = Math.max(0, maxWidth * r);
+
         // Determine health bar color based on ratio
         let healthColor = 0xf1c40f; // Yellow
         if (r > GAME_CONFIG.HEALTH_WARNING) {
@@ -319,7 +331,17 @@ export class GameUI extends Phaser.Scene {
         if (r <= GAME_CONFIG.HEALTH_CRITICAL) {
             healthColor = 0xe74c3c; // Red
         }
-        this.healthBarFill.fillColor = healthColor;
+
+        // Redraw the health bar fill with rounded corners
+        this.healthBarFill.clear();
+        this.healthBarFill.fillStyle(healthColor, GAME_CONFIG.ALPHA.HEALTH_FILL);
+        this.healthBarFill.fillRoundedRect(
+            this.healthBarFill.getData('x'),
+            this.healthBarFill.getData('y'),
+            currentWidth,
+            this.healthBarFill.getData('height'),
+            7
+        );
     }
     setGames(txt: string) {
         if (this.gamesCounter && this.gamesCounter.text && this.gamesCounter.text.setText) {
@@ -468,6 +490,100 @@ export class GameUI extends Phaser.Scene {
     resetResultSlots() {
         const placeholders = Array(GAME_CONFIG.RESULT_SLOTS).fill('?');
         this.updateResultSlots(placeholders);
+    }
+
+    // Create Switch Difficulty button
+    createSwitchDifficultyButton(gameWidth: number, gameHeight: number) {
+        const btnWidth = 180;
+        const btnHeight = 45;
+        const btnRadius = 10;
+        const btnX = gameWidth / 2;
+        const btnY = gameHeight - 80;
+
+        const btnBg = this.add.graphics();
+        btnBg.fillStyle(0x3498db, 1);
+        btnBg.fillRoundedRect(
+            btnX - btnWidth / 2,
+            btnY - btnHeight / 2,
+            btnWidth,
+            btnHeight,
+            btnRadius
+        );
+        btnBg.setDepth(999);
+
+        const btnText = this.add.text(btnX, btnY, 'Switch Difficulty', {
+            fontSize: '16px',
+            color: '#ffffff',
+            fontStyle: 'bold'
+        })
+            .setOrigin(0.5)
+            .setDepth(1000);
+
+        const hitArea = new Phaser.Geom.Rectangle(
+            btnX - btnWidth / 2,
+            btnY - btnHeight / 2,
+            btnWidth,
+            btnHeight
+        );
+
+        btnBg.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
+        btnBg.input!.cursor = 'pointer';
+
+        btnBg.on('pointerover', () => {
+            btnBg.clear();
+            btnBg.fillStyle(0x5dade2, 1);
+            btnBg.fillRoundedRect(
+                btnX - btnWidth / 2,
+                btnY - btnHeight / 2,
+                btnWidth,
+                btnHeight,
+                btnRadius
+            );
+            btnText.setScale(1.05);
+        });
+
+        btnBg.on('pointerout', () => {
+            btnBg.clear();
+            btnBg.fillStyle(0x3498db, 1);
+            btnBg.fillRoundedRect(
+                btnX - btnWidth / 2,
+                btnY - btnHeight / 2,
+                btnWidth,
+                btnHeight,
+                btnRadius
+            );
+            btnText.setScale(1);
+        });
+
+        btnBg.on('pointerdown', () => {
+            btnBg.clear();
+            btnBg.fillStyle(0x2980b9, 1);
+            btnBg.fillRoundedRect(
+                btnX - btnWidth / 2,
+                btnY - btnHeight / 2,
+                btnWidth,
+                btnHeight,
+                btnRadius
+            );
+            btnText.setScale(0.95);
+        });
+
+        btnBg.on('pointerup', () => {
+            btnBg.clear();
+            btnBg.fillStyle(0x5dade2, 1);
+            btnBg.fillRoundedRect(
+                btnX - btnWidth / 2,
+                btnY - btnHeight / 2,
+                btnWidth,
+                btnHeight,
+                btnRadius
+            );
+            btnText.setScale(1.05);
+
+            // Return to difficulty selection (Play scene)
+            this.scene.stop('GameUI');
+            this.scene.start('Play');
+        });
     }
 
     // Display a win overlay with a button to go back to home (Play) scene
