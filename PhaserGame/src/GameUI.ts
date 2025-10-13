@@ -158,22 +158,98 @@ export class GameUI extends Phaser.Scene {
         this.createResultSlots(GAME_CONFIG.RESULT_SLOTS);
         this.updateResultSlots(['?', '?', '?', '?', '?', '?']); // Add some placeholder result slots
 
-        // Submit Button
-        const submitBtn = this.add.text(
-            this.sys.game.scale.width / 2,
-            this.sys.game.scale.height - 80,
-            "Submit",
-            {
-                fontSize: "28px",
-                color: "#ffffff",
-                backgroundColor: "#8c7ae6",
-                padding: { left: 12, right: 12, top: 6, bottom: 6 }
-            }
-        )
-        .setOrigin(0.5)
-        .setDepth(1000) // keep on top
-        .setInteractive()
-        .on("pointerdown", () => {
+        // Submit Button with rounded corners
+        const submitBtnWidth = 160;
+        const submitBtnHeight = 50;
+        const submitBtnRadius = 12;
+        const submitBtnX = this.sys.game.scale.width / 2;
+        const submitBtnY = this.sys.game.scale.height - 160;
+
+        const submitBtnBg = this.add.graphics();
+        submitBtnBg.fillStyle(0x8c7ae6, 1);
+        submitBtnBg.fillRoundedRect(
+            submitBtnX - submitBtnWidth / 2,
+            submitBtnY - submitBtnHeight / 2,
+            submitBtnWidth,
+            submitBtnHeight,
+            submitBtnRadius
+        );
+        submitBtnBg.setDepth(1000);
+
+        const submitBtnText = this.add.text(submitBtnX, submitBtnY, "Submit", {
+            fontSize: "28px",
+            color: "#ffffff",
+            fontStyle: 'bold'
+        })
+            .setOrigin(0.5)
+            .setDepth(1001);
+
+        const submitHitArea = new Phaser.Geom.Rectangle(
+            submitBtnX - submitBtnWidth / 2,
+            submitBtnY - submitBtnHeight / 2,
+            submitBtnWidth,
+            submitBtnHeight
+        );
+
+        submitBtnBg.setInteractive(submitHitArea, Phaser.Geom.Rectangle.Contains);
+        submitBtnBg.input!.cursor = 'pointer';
+
+        submitBtnBg.on('pointerover', () => {
+            submitBtnBg.clear();
+            submitBtnBg.fillStyle(0x9c88ff, 1);
+            submitBtnBg.fillRoundedRect(
+                submitBtnX - submitBtnWidth / 2,
+                submitBtnY - submitBtnHeight / 2,
+                submitBtnWidth,
+                submitBtnHeight,
+                submitBtnRadius
+            );
+            // Scale up slightly on hover
+            submitBtnText.setScale(1.05);
+        });
+
+        submitBtnBg.on('pointerout', () => {
+            submitBtnBg.clear();
+            submitBtnBg.fillStyle(0x8c7ae6, 1);
+            submitBtnBg.fillRoundedRect(
+                submitBtnX - submitBtnWidth / 2,
+                submitBtnY - submitBtnHeight / 2,
+                submitBtnWidth,
+                submitBtnHeight,
+                submitBtnRadius
+            );
+            // Reset scale
+            submitBtnText.setScale(1);
+        });
+
+        submitBtnBg.on("pointerdown", () => {
+            // Press effect - darker color and scale down
+            submitBtnBg.clear();
+            submitBtnBg.fillStyle(0x7c6ad6, 1);
+            submitBtnBg.fillRoundedRect(
+                submitBtnX - submitBtnWidth / 2,
+                submitBtnY - submitBtnHeight / 2,
+                submitBtnWidth,
+                submitBtnHeight,
+                submitBtnRadius
+            );
+            submitBtnText.setScale(0.95);
+        });
+
+        submitBtnBg.on("pointerup", () => {
+            // Reset to hover state
+            submitBtnBg.clear();
+            submitBtnBg.fillStyle(0x9c88ff, 1);
+            submitBtnBg.fillRoundedRect(
+                submitBtnX - submitBtnWidth / 2,
+                submitBtnY - submitBtnHeight / 2,
+                submitBtnWidth,
+                submitBtnHeight,
+                submitBtnRadius
+            );
+            submitBtnText.setScale(1.05);
+
+            // Execute submit logic
             console.log("Submit clicked ✅");
 
             // Collect labels safely
@@ -193,7 +269,7 @@ export class GameUI extends Phaser.Scene {
 
             const isCorrect = checkObjective(result, this.gameManager.getCurrentObjective());
             console.log("Objective:", this.gameManager.getCurrentObjective(), "=>", isCorrect);
-            
+
             if (isCorrect) {
                 this.gameManager.updateScore(10);
                 const stateBefore = this.gameManager.getGameState();
@@ -415,11 +491,11 @@ export class GameUI extends Phaser.Scene {
 
         const summary = this.add.text(panelX + panelWidth / 2, panelY + 120,
             'Great job completing all rounds!', {
-                fontSize: '20px',
-                color: '#333',
-                align: 'center',
-                wordWrap: { width: panelWidth - 60 }
-            }).setOrigin(0.5);
+            fontSize: '20px',
+            color: '#333',
+            align: 'center',
+            wordWrap: { width: panelWidth - 60 }
+        }).setOrigin(0.5);
         overlay.add(summary);
 
         const homeBtn = this.add.text(panelX + panelWidth / 2, panelY + panelHeight - 60, 'Return Home', {
