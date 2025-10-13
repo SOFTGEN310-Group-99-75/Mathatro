@@ -156,12 +156,20 @@ export class LoginScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         loginBtn.setInteractive(new Phaser.Geom.Rectangle(-120, 55, 240, 50), Phaser.Geom.Rectangle.Contains);
+        loginBtn.input!.cursor = 'pointer';
+
         loginBtn.on('pointerover', () => {
             loginBtn.clear();
             loginBtn.fillStyle(GAME_CONFIG.COLORS.DARK_BLUE, 1);
             loginBtn.fillRoundedRect(-120, 55, 240, 50, 12);
             loginBtn.lineStyle(2, 0xffffff, 0.8);
             loginBtn.strokeRoundedRect(-120, 55, 240, 50, 12);
+            this.tweens.add({
+                targets: loginBtnText,
+                scale: 1.05,
+                duration: 200,
+                ease: 'Power2'
+            });
         });
         loginBtn.on('pointerout', () => {
             loginBtn.clear();
@@ -169,8 +177,23 @@ export class LoginScene extends Phaser.Scene {
             loginBtn.fillRoundedRect(-120, 55, 240, 50, 12);
             loginBtn.lineStyle(2, 0xffffff, 0.8);
             loginBtn.strokeRoundedRect(-120, 55, 240, 50, 12);
+            this.tweens.add({
+                targets: loginBtnText,
+                scale: 1,
+                duration: 200,
+                ease: 'Power2'
+            });
         });
-        loginBtn.on('pointerdown', () => this.handleLogin());
+        loginBtn.on('pointerdown', () => {
+            this.tweens.add({
+                targets: loginBtnText,
+                scale: 0.95,
+                duration: 100,
+                yoyo: true,
+                ease: 'Power2'
+            });
+            this.handleLogin();
+        });
         container.add([loginBtn, loginBtnText]);
 
         // Switch to signup link with modern styling
@@ -181,13 +204,36 @@ export class LoginScene extends Phaser.Scene {
             fontStyle: '500'
         }).setOrigin(0.5);
         switchText.setInteractive();
+        switchText.input!.cursor = 'pointer';
+
         switchText.on('pointerover', () => {
             switchText.setColor('#2c5282');
+            this.tweens.add({
+                targets: switchText,
+                scale: 1.05,
+                duration: 200,
+                ease: 'Power2'
+            });
         });
         switchText.on('pointerout', () => {
             switchText.setColor('#3182ce');
+            this.tweens.add({
+                targets: switchText,
+                scale: 1,
+                duration: 200,
+                ease: 'Power2'
+            });
         });
-        switchText.on('pointerdown', () => this.switchToSignup());
+        switchText.on('pointerdown', () => {
+            this.tweens.add({
+                targets: switchText,
+                scale: 0.95,
+                duration: 100,
+                yoyo: true,
+                ease: 'Power2'
+            });
+            this.switchToSignup();
+        });
         container.add(switchText);
     }
 
@@ -253,12 +299,20 @@ export class LoginScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         signupBtn.setInteractive(new Phaser.Geom.Rectangle(-120, 95, 240, 50), Phaser.Geom.Rectangle.Contains);
+        signupBtn.input!.cursor = 'pointer';
+
         signupBtn.on('pointerover', () => {
             signupBtn.clear();
             signupBtn.fillStyle(GAME_CONFIG.COLORS.DARK_GREEN, 1);
             signupBtn.fillRoundedRect(-120, 95, 240, 50, 12);
             signupBtn.lineStyle(2, 0xffffff, 0.8);
             signupBtn.strokeRoundedRect(-120, 95, 240, 50, 12);
+            this.tweens.add({
+                targets: signupBtnText,
+                scale: 1.05,
+                duration: 200,
+                ease: 'Power2'
+            });
         });
         signupBtn.on('pointerout', () => {
             signupBtn.clear();
@@ -266,8 +320,23 @@ export class LoginScene extends Phaser.Scene {
             signupBtn.fillRoundedRect(-120, 95, 240, 50, 12);
             signupBtn.lineStyle(2, 0xffffff, 0.8);
             signupBtn.strokeRoundedRect(-120, 95, 240, 50, 12);
+            this.tweens.add({
+                targets: signupBtnText,
+                scale: 1,
+                duration: 200,
+                ease: 'Power2'
+            });
         });
-        signupBtn.on('pointerdown', () => this.handleSignup());
+        signupBtn.on('pointerdown', () => {
+            this.tweens.add({
+                targets: signupBtnText,
+                scale: 0.95,
+                duration: 100,
+                yoyo: true,
+                ease: 'Power2'
+            });
+            this.handleSignup();
+        });
         container.add([signupBtn, signupBtnText]);
 
         // Switch to login with modern styling
@@ -278,13 +347,36 @@ export class LoginScene extends Phaser.Scene {
             fontStyle: '500'
         }).setOrigin(0.5);
         switchText.setInteractive();
+        switchText.input!.cursor = 'pointer';
+
         switchText.on('pointerover', () => {
             switchText.setColor('#2c5282');
+            this.tweens.add({
+                targets: switchText,
+                scale: 1.05,
+                duration: 200,
+                ease: 'Power2'
+            });
         });
         switchText.on('pointerout', () => {
             switchText.setColor('#3182ce');
+            this.tweens.add({
+                targets: switchText,
+                scale: 1,
+                duration: 200,
+                ease: 'Power2'
+            });
         });
-        switchText.on('pointerdown', () => this.switchToLogin());
+        switchText.on('pointerdown', () => {
+            this.tweens.add({
+                targets: switchText,
+                scale: 0.95,
+                duration: 100,
+                yoyo: true,
+                ease: 'Power2'
+            });
+            this.switchToLogin();
+        });
         container.add(switchText);
     }
 

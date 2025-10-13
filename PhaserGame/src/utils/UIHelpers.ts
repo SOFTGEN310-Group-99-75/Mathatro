@@ -36,6 +36,89 @@ export interface RectOptions {
 /**
  * Creates a styled rectangle with consistent styling
  */
+interface GraphicsFillParams {
+    graphics: Phaser.GameObjects.Graphics;
+    bounds: { x: number; y: number; w: number; h: number };
+    gradient?: { from: number; to: number };
+    fill?: number;
+    alpha: number;
+    radius?: number;
+}
+
+interface GraphicsStrokeParams {
+    graphics: Phaser.GameObjects.Graphics;
+    bounds: { x: number; y: number; w: number; h: number };
+    strokeWidth: number;
+    strokeColor: number;
+    radius?: number;
+}
+
+/**
+ * Helper function to apply gradient fill to graphics
+ */
+const applyGradientFill = (params: GraphicsFillParams) => {
+    if (!params.gradient) return;
+
+    const { graphics, bounds, gradient, alpha, radius } = params;
+    const { x, y, w, h } = bounds;
+    const gradientSteps = 5;
+    const stepHeight = h / gradientSteps;
+
+    for (let i = 0; i < gradientSteps; i++) {
+        const stepY = y + (i * stepHeight);
+        const stepAlpha = alpha * (1 - (i * 0.1));
+        const color = Phaser.Display.Color.Interpolate.ColorWithColor(
+            Phaser.Display.Color.IntegerToColor(gradient.from),
+            Phaser.Display.Color.IntegerToColor(gradient.to),
+            gradientSteps,
+            i
+        );
+        const stepColor = Phaser.Display.Color.GetColor(color.r, color.g, color.b);
+
+        graphics.fillStyle(stepColor, stepAlpha);
+        if (radius) {
+            graphics.fillRoundedRect(x, stepY, w, stepHeight + 1, radius);
+        } else {
+            graphics.fillRect(x, stepY, w, stepHeight + 1);
+        }
+    }
+};
+
+/**
+ * Helper function to apply solid fill to graphics
+ */
+const applySolidFill = (params: GraphicsFillParams) => {
+    const { graphics, bounds, fill, alpha, radius } = params;
+    const { x, y, w, h } = bounds;
+
+    if (!fill) return;
+
+    graphics.fillStyle(fill, alpha);
+    if (radius) {
+        graphics.fillRoundedRect(x, y, w, h, radius);
+    } else {
+        graphics.fillRect(x, y, w, h);
+    }
+};
+
+/**
+ * Helper function to apply stroke to graphics
+ */
+const applyStroke = (params: GraphicsStrokeParams) => {
+    const { graphics, bounds, strokeWidth, strokeColor, radius } = params;
+    const { x, y, w, h } = bounds;
+
+    graphics.lineStyle(strokeWidth, strokeColor, 0.7);
+    if (radius) {
+        graphics.strokeRoundedRect(x, y, w, h, radius);
+    } else {
+        graphics.strokeRect(x, y, w, h);
+    }
+};
+
+/**
+ * Creates a styled rectangle with optional rounded corners and gradients
+ */
 export const createStyledRect = (
     scene: Phaser.Scene,
     x: number,
@@ -44,62 +127,44 @@ export const createStyledRect = (
     h: number,
     options: RectOptions = {}
 ) => {
-    // If radius or gradient is specified, use Graphics for advanced styling
-    if ((options.radius && options.radius > 0) || options.gradient) {
+    const needsGraphics = (options.radius && options.radius > 0) || options.gradient;
+
+    if (needsGraphics) {
         const graphics = scene.add.graphics();
+        const alpha = options.alpha ?? GAME_CONFIG.ALPHA.FELT;
+        const fill = options.fill ?? GAME_CONFIG.COLORS.GREEN_FELT;
+        const bounds = { x, y, w, h };
 
         if (options.gradient) {
-            // Create gradient effect using multiple overlapping rectangles
-            const gradientSteps = 5;
-            const stepHeight = h / gradientSteps;
-
-            for (let i = 0; i < gradientSteps; i++) {
-                const stepY = y + (i * stepHeight);
-                const stepAlpha = (options.alpha ?? GAME_CONFIG.ALPHA.FELT) * (1 - (i * 0.1));
-                const color = Phaser.Display.Color.Interpolate.ColorWithColor(
-                    Phaser.Display.Color.IntegerToColor(options.gradient.from),
-                    Phaser.Display.Color.IntegerToColor(options.gradient.to),
-                    gradientSteps,
-                    i
-                );
-                const stepColor = Phaser.Display.Color.GetColor(color.r, color.g, color.b);
-
-                graphics.fillStyle(stepColor, stepAlpha);
-                if (options.radius) {
-                    graphics.fillRoundedRect(x, stepY, w, stepHeight + 1, options.radius);
-                } else {
-                    graphics.fillRect(x, stepY, w, stepHeight + 1);
-                }
-            }
+            applyGradientFill({
+                graphics,
+                bounds,
+                gradient: options.gradient,
+                alpha,
+                radius: options.radius
+            });
         } else {
-            graphics.fillStyle(
-                options.fill ?? GAME_CONFIG.COLORS.GREEN_FELT,
-                options.alpha ?? GAME_CONFIG.ALPHA.FELT
-            );
-
-            if (options.radius) {
-                graphics.fillRoundedRect(x, y, w, h, options.radius);
-            } else {
-                graphics.fillRect(x, y, w, h);
-            }
+            applySolidFill({
+                graphics,
+                bounds,
+                fill,
+                alpha,
+                radius: options.radius
+            });
         }
 
-        graphics.lineStyle(
-            options.strokeWidth ?? 2,
-            options.strokeColor ?? 0xffffff,
-            0.7
-        );
-
-        if (options.radius) {
-            graphics.strokeRoundedRect(x, y, w, h, options.radius);
-        } else {
-            graphics.strokeRect(x, y, w, h);
-        }
+        applyStroke({
+            graphics,
+            bounds,
+            strokeWidth: options.strokeWidth ?? 2,
+            strokeColor: options.strokeColor ?? 0xffffff,
+            radius: options.radius
+        });
 
         return graphics;
     }
 
-    // Otherwise use regular rectangle
+    // Use regular rectangle for simple cases
     const rect = scene.add.rectangle(
         x, y, w, h,
         options.fill ?? GAME_CONFIG.COLORS.GREEN_FELT,
