@@ -143,7 +143,7 @@ export class LoginScene extends Phaser.Scene {
 
         // Login button with modern game theme
         const loginBtn = this.add.graphics();
-        loginBtn.fillStyle(GAME_CONFIG.COLORS.VIBRANT_BLUE, 1);
+        loginBtn.fillStyle(GAME_CONFIG.COLORS.FRESH_GREEN, 1);
         loginBtn.fillRoundedRect(-120, 55, 240, 50, 12);
         loginBtn.lineStyle(2, 0xffffff, 0.8);
         loginBtn.strokeRoundedRect(-120, 55, 240, 50, 12);
@@ -160,7 +160,7 @@ export class LoginScene extends Phaser.Scene {
 
         loginBtn.on('pointerover', () => {
             loginBtn.clear();
-            loginBtn.fillStyle(GAME_CONFIG.COLORS.DARK_BLUE, 1);
+            loginBtn.fillStyle(GAME_CONFIG.COLORS.DARK_GREEN, 1);
             loginBtn.fillRoundedRect(-120, 55, 240, 50, 12);
             loginBtn.lineStyle(2, 0xffffff, 0.8);
             loginBtn.strokeRoundedRect(-120, 55, 240, 50, 12);
@@ -173,7 +173,7 @@ export class LoginScene extends Phaser.Scene {
         });
         loginBtn.on('pointerout', () => {
             loginBtn.clear();
-            loginBtn.fillStyle(GAME_CONFIG.COLORS.VIBRANT_BLUE, 1);
+            loginBtn.fillStyle(GAME_CONFIG.COLORS.FRESH_GREEN, 1);
             loginBtn.fillRoundedRect(-120, 55, 240, 50, 12);
             loginBtn.lineStyle(2, 0xffffff, 0.8);
             loginBtn.strokeRoundedRect(-120, 55, 240, 50, 12);

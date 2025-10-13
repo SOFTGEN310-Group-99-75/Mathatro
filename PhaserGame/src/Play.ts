@@ -4,6 +4,8 @@ import { createTitleText, createVolumeButton } from './utils/UIHelpers';
 import { GameManager } from './game/GameManager';
 import { UserProfile } from './auth/UserProfile';
 
+type DifficultyMode = 'easy' | 'medium' | 'hard';
+
 /**
  * Maths Card Game
  * -----------------------------------------------
@@ -51,76 +53,9 @@ export class Play extends Phaser.Scene {
             fontStyle: '600'
         }).setOrigin(0.5);
 
-        const makeButton = (label: string, y: number, mode: 'easy' | 'medium' | 'hard') => {
-            const buttonWidth = 200;
-            const buttonHeight = 60;
-            const borderRadius = 15;
-
-            // Create rounded rectangle background
-            const bg = this.add.graphics();
-            bg.fillStyle(GAME_CONFIG.COLORS.VIBRANT_BLUE, 1);
-            bg.fillRoundedRect(width / 2 - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
-
-            // Create text on top
-            const btn = this.add.text(width / 2, y, label, {
-                fontSize: "32px",
-                color: "#ffffff",
-                fontFamily: GAME_CONFIG.FONT.FAMILY,
-                fontStyle: '600',
-                align: 'center'
-            })
-                .setOrigin(0.5);
-
-            // Make both interactive
-            const hitArea = new Phaser.Geom.Rectangle(
-                width / 2 - buttonWidth / 2,
-                y - buttonHeight / 2,
-                buttonWidth,
-                buttonHeight
-            );
-
-            bg.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains)
-                .setData('bg', true)
-                .setData('color', 0x8c7ae6);
-
-            bg.on("pointerover", () => {
-                bg.clear();
-                bg.fillStyle(GAME_CONFIG.COLORS.DARK_BLUE, 1);
-                bg.fillRoundedRect(width / 2 - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
-            })
-                .on("pointerout", () => {
-                    bg.clear();
-                    bg.fillStyle(GAME_CONFIG.COLORS.VIBRANT_BLUE, 1);
-                    bg.fillRoundedRect(width / 2 - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
-                })
-                .on("pointerdown", () => {
-                    const state = this.gameManager.getGameState();
-
-                    state.setDifficulty(mode);
-                    state.restartGame();
-
-                    this.difficultyButtons.forEach(b => {
-                        b.destroy();
-                        // Also destroy the background graphics
-                        const bgGraphics = this.children.getChildren().find(c =>
-                            c.type === 'Graphics' && (c as any).getData('bg')
-                        );
-                        if (bgGraphics) bgGraphics.destroy();
-                    });
-                    if (!this.sound.get("theme-song")) {
-                        this.sound.play("theme-song", { loop: true, volume: GAME_CONFIG.AUDIO.THEME_VOLUME });
-                    }
-                    this.scene.stop('Play');
-                    this.scene.start('GameUI');
-                });
-
-            bg.input!.cursor = 'pointer';
-            this.difficultyButtons.push(btn);
-        };
-
-        makeButton("Easy", height / 2, "easy");
-        makeButton("Medium", height / 2 + 80, "medium");
-        makeButton("Hard", height / 2 + 160, "hard");
+        this.createDifficultyButton("Easy", height / 2, "easy");
+        this.createDifficultyButton("Medium", height / 2 + 80, "medium");
+        this.createDifficultyButton("Hard", height / 2 + 160, "hard");
 
         // Create instructions button
         this.createInstructionsButton();
@@ -128,6 +63,113 @@ export class Play extends Phaser.Scene {
         // Create user profile component at bottom right
         this.userProfile = new UserProfile(this);
         this.userProfile.create(width - 120, height - 60);
+    }
+
+    private createDifficultyButton(label: string, y: number, mode: DifficultyMode) {
+        const { width } = this.sys.game.scale;
+        const buttonWidth = 200;
+        const buttonHeight = 60;
+        const borderRadius = 15;
+
+        // Create rounded rectangle background
+        const bg = this.add.graphics();
+        bg.fillStyle(GAME_CONFIG.COLORS.VIBRANT_BLUE, 1);
+        bg.fillRoundedRect(width / 2 - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
+
+        // Create text on top
+        const btn = this.add.text(width / 2, y, label, {
+            fontSize: "32px",
+            color: "#ffffff",
+            fontFamily: GAME_CONFIG.FONT.FAMILY,
+            fontStyle: '600',
+            align: 'center'
+        }).setOrigin(0.5);
+
+        // Make interactive
+        const hitArea = new Phaser.Geom.Rectangle(
+            width / 2 - buttonWidth / 2,
+            y - buttonHeight / 2,
+            buttonWidth,
+            buttonHeight
+        );
+
+        bg.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains)
+            .setData('bg', true)
+            .setData('color', 0x8c7ae6);
+
+        // Add event handlers
+        this.setupButtonHoverEffects(bg, width, y, buttonWidth, buttonHeight, borderRadius);
+        this.setupButtonClickHandler(bg, mode);
+
+        bg.input!.cursor = 'pointer';
+        this.difficultyButtons.push(btn);
+    }
+
+    private setupButtonHoverEffects(
+        bg: Phaser.GameObjects.Graphics,
+        width: number,
+        y: number,
+        buttonWidth: number,
+        buttonHeight: number,
+        borderRadius: number
+    ) {
+        bg.on("pointerover", () => {
+            bg.clear();
+            bg.fillStyle(GAME_CONFIG.COLORS.DARK_BLUE, 1);
+            bg.fillRoundedRect(width / 2 - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
+        });
+
+        bg.on("pointerout", () => {
+            bg.clear();
+            bg.fillStyle(GAME_CONFIG.COLORS.VIBRANT_BLUE, 1);
+            bg.fillRoundedRect(width / 2 - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
+        });
+    }
+
+    private setupButtonClickHandler(bg: Phaser.GameObjects.Graphics, mode: 'easy' | 'medium' | 'hard') {
+        bg.on("pointerdown", () => {
+            this.handleDifficultySelection(mode);
+        });
+    }
+
+    private handleDifficultySelection(mode: 'easy' | 'medium' | 'hard') {
+        const state = this.gameManager.getGameState();
+        state.setDifficulty(mode);
+        state.restartGame();
+
+        this.cleanupDifficultyButtons();
+        this.startThemeMusic();
+        this.startGameUI();
+    }
+
+    private cleanupDifficultyButtons() {
+        this.difficultyButtons.forEach(btn => {
+            btn.destroy();
+            const bgGraphics = this.findButtonBackground();
+            if (bgGraphics) {
+                bgGraphics.destroy();
+            }
+        });
+    }
+
+    private findButtonBackground(): Phaser.GameObjects.GameObject | undefined {
+        return this.children.getChildren().find(child =>
+            child.type === 'Graphics' && child.getData('bg')
+        );
+    }
+
+    private startThemeMusic() {
+        if (!this.sound.get("theme-song")) {
+            this.sound.play("theme-song", {
+                loop: true,
+                volume: GAME_CONFIG.AUDIO.THEME_VOLUME
+            });
+        }
+    }
+
+    private startGameUI() {
+        this.scene.stop('Play');
+        this.scene.start('GameUI');
     }
 
     createInstructionsButton() {

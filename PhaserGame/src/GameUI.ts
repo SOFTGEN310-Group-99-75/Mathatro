@@ -388,9 +388,7 @@ export class GameUI extends Phaser.Scene {
         );
     }
     setGames(txt: string) {
-        if (this.gamesCounter && this.gamesCounter.text && this.gamesCounter.text.setText) {
-            this.gamesCounter.text.setText(txt);
-        }
+        this.gamesCounter?.text?.setText(txt);
     }
     setObjective(txt: string) {
         this.objective.text.setText(txt);
