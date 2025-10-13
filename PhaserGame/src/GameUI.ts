@@ -90,7 +90,7 @@ export class GameUI extends Phaser.Scene {
         this.scoreTitle = this.add.text(sidebar.scoreTitleX, sidebar.scoreTitleY, 'Score Board', {
             fontSize: GAME_CONFIG.FONT.SCORE_SIZE + 2,
             color: '#ffffff',
-            fontStyle: 'bold',
+            fontStyle: '600',
             fontFamily: GAME_CONFIG.FONT.FAMILY
         }).setOrigin(0.5);
         this.currentScore = this.labelBox(sidebar.currentScoreX, sidebar.currentScoreY, sidebar.currentScoreWidth, sidebar.currentScoreHeight, 'current game score');
@@ -100,7 +100,7 @@ export class GameUI extends Phaser.Scene {
         this.add.text(healthBar.backgroundX, healthBar.backgroundY - 25, 'Health bar', {
             fontSize: '18px',
             color: '#000000',
-            fontStyle: 'bold',
+            fontStyle: '500',
             fontFamily: GAME_CONFIG.FONT.FAMILY
         }).setOrigin(0, 0);
         this.healthBarBg = this.rect(healthBar.backgroundX, healthBar.backgroundY, healthBar.backgroundWidth, healthBar.backgroundHeight, {
@@ -175,7 +175,7 @@ export class GameUI extends Phaser.Scene {
         this.equalsText = this.add.text(resultBar.equalsX, resultBar.equalsY, '= ', {
             fontSize: GAME_CONFIG.LAYOUT.RESULT_EQUALS_FONT_SIZE,
             color: '#4a5568',
-            fontStyle: 'bold',
+            fontStyle: '700',
             fontFamily: GAME_CONFIG.FONT.FAMILY
         });
 
@@ -190,7 +190,7 @@ export class GameUI extends Phaser.Scene {
         this.handCaption = this.add.text(handBar.captionX, handBar.captionY, 'Cards, either operator(+,-,*,/) or number (0–9)', {
             fontSize: GAME_CONFIG.FONT.CAPTION_SIZE,
             color: '#4a5568',
-            fontStyle: 'bold',
+            fontStyle: '500',
             fontFamily: GAME_CONFIG.FONT.FAMILY
         }).setOrigin(0.5, 0);
 
@@ -233,7 +233,7 @@ export class GameUI extends Phaser.Scene {
         const submitBtnText = this.add.text(submitBtnX, submitBtnY, "Submit", {
             fontSize: "28px",
             color: "#ffffff",
-            fontStyle: 'bold',
+            fontStyle: '600',
             fontFamily: GAME_CONFIG.FONT.FAMILY
         })
             .setOrigin(0.5)
@@ -593,7 +593,7 @@ export class GameUI extends Phaser.Scene {
         const btnText = this.add.text(btnX, btnY, 'Switch Difficulty', {
             fontSize: '16px',
             color: '#ffffff',
-            fontStyle: 'bold',
+            fontStyle: '500',
             fontFamily: GAME_CONFIG.FONT.FAMILY
         })
             .setOrigin(0.5)

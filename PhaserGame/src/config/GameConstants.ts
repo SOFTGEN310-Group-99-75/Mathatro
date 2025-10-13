@@ -87,18 +87,21 @@ export const GAME_CONFIG = {
         DRAGGING: 0.85,
     },
 
-    // Text styling - Modern Typography
+    // Text styling - Modern Typography with Inter font
     FONT: {
         TITLE_SIZE: 40,
         OBJECTIVE_SIZE: 20,
         CARD_SIZE: 22,
         SCORE_SIZE: 16,
         CAPTION_SIZE: 12,
-        FAMILY: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        FAMILY: '"Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
         WEIGHT: {
+            LIGHT: '300',
             NORMAL: '400',
-            BOLD: '600',
-            HEAVY: '700'
+            MEDIUM: '500',
+            SEMIBOLD: '600',
+            BOLD: '700',
+            EXTRABOLD: '800'
         },
         HINT_SIZE: 10,
         STROKE_THICKNESS: 4,

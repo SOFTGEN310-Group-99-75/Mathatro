@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { AuthService, AuthUser } from './AuthService';
+import { GAME_CONFIG } from '../config/GameConstants';
 
 export class LoginScene extends Phaser.Scene {
     private authService: AuthService;
@@ -35,24 +36,27 @@ export class LoginScene extends Phaser.Scene {
         // Clean up any existing HTML inputs from previous sessions
         this.removeHTMLInputs();
 
-        // Background with modern gradient
+        // Background with vibrant game theme gradient
         const bg = this.add.graphics();
-        bg.fillGradientStyle(0xf8f9fa, 0xf8f9fa, 0xe9ecef, 0xe9ecef, 1);
+        // Soft blue to teal gradient
+        bg.fillGradientStyle(0x4facfe, 0x4facfe, 0x00f2fe, 0x00f2fe, 1);
         bg.fillRect(0, 0, W, H);
 
-        // Title with CSS styling
+        // Title with modern game theme styling - Purple Mathatro
         const title = this.add.text(W / 2, H * 0.15, 'Mathatro', {
             fontSize: '52px',
-            color: '#2c3e50',
-            fontStyle: 'bold',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            color: '#7c3aed',
+            fontStyle: '800',
+            fontFamily: GAME_CONFIG.FONT.FAMILY
         }).setOrigin(0.5);
-        title.setStroke('#ffffff', 2);
+        title.setStroke('#ffffff', 3);
+        title.setShadow(4, 4, '#000000', 0.5);
 
-        const subtitle = this.add.text(W / 2, H * 0.2, 'Card Memory Game', {
+        const subtitle = this.add.text(W / 2, H * 0.23, 'It\'s a piece of π!', {
             fontSize: '22px',
-            color: '#6c757d',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            color: '#ffffff',
+            fontStyle: '500',
+            fontFamily: GAME_CONFIG.FONT.FAMILY
         }).setOrigin(0.5);
 
         // Create containers for login and signup forms
@@ -80,13 +84,17 @@ export class LoginScene extends Phaser.Scene {
         // Error and loading text - match main game styling
         this.errorText = this.add.text(W / 2, H * 0.85, '', {
             fontSize: '16px',
-            color: '#dc3545',
+            color: '#e53e3e',
+            fontFamily: GAME_CONFIG.FONT.FAMILY,
+            fontStyle: '500',
             align: 'center'
         }).setOrigin(0.5);
 
         this.loadingText = this.add.text(W / 2, H * 0.9, '', {
             fontSize: '16px',
-            color: '#007bff',
+            color: '#3182ce',
+            fontFamily: GAME_CONFIG.FONT.FAMILY,
+            fontStyle: '500',
             align: 'center'
         }).setOrigin(0.5);
 
@@ -112,54 +120,79 @@ export class LoginScene extends Phaser.Scene {
     private createLoginForm() {
         const container = this.loginContainer;
 
-        // Create form container with shadow
-        const formBg = this.add.rectangle(0, 0, 650, 420, 0xffffff, 0.98);
-        formBg.setStrokeStyle(1, 0xe9ecef);
+        // Create modern form container - solid white, compact size
+        const formBg = this.add.graphics();
+        formBg.fillStyle(0xffffff, 1);
+        formBg.lineStyle(3, 0xe2e8f0, 1);
+        formBg.fillRoundedRect(-225, -150, 450, 330, 16);
+        formBg.strokeRoundedRect(-225, -150, 450, 330, 16);
         formBg.setDepth(-1);
         container.add(formBg);
 
-        const shadow = this.add.rectangle(2, 2, 650, 420, 0x000000, 0.1);
-        shadow.setDepth(-2);
-        container.add(shadow);
 
-        // Input field labels
+        // Input field labels with modern styling
         const usernameLabel = this.add.text(0, -110, 'Username', {
             fontSize: '16px',
-            color: '#2c3e50',
-            fontStyle: 'bold',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            color: '#2d3748',
+            fontStyle: '600',
+            fontFamily: GAME_CONFIG.FONT.FAMILY
         }).setOrigin(0.5);
         container.add(usernameLabel);
 
         const passwordLabel = this.add.text(0, -30, 'Password', {
             fontSize: '16px',
-            color: '#2c3e50',
-            fontStyle: 'bold',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            color: '#2d3748',
+            fontStyle: '600',
+            fontFamily: GAME_CONFIG.FONT.FAMILY
         }).setOrigin(0.5);
         container.add(passwordLabel);
 
-        // Login button
-        const loginBtn = this.add.rectangle(0, 80, 240, 50, 0x007bff);
-        loginBtn.setStrokeStyle(1, 0x0056b3);
+        // Login button with modern game theme
+        const loginBtn = this.add.graphics();
+        loginBtn.fillStyle(GAME_CONFIG.COLORS.VIBRANT_BLUE, 1);
+        loginBtn.fillRoundedRect(-120, 55, 240, 50, 12);
+        loginBtn.lineStyle(2, 0xffffff, 0.8);
+        loginBtn.strokeRoundedRect(-120, 55, 240, 50, 12);
+
         const loginBtnText = this.add.text(0, 80, 'Login', {
             fontSize: '18px',
             color: '#ffffff',
-            fontStyle: 'bold',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            fontStyle: '600',
+            fontFamily: GAME_CONFIG.FONT.FAMILY
         }).setOrigin(0.5);
 
-        loginBtn.setInteractive();
+        loginBtn.setInteractive(new Phaser.Geom.Rectangle(-120, 55, 240, 50), Phaser.Geom.Rectangle.Contains);
+        loginBtn.on('pointerover', () => {
+            loginBtn.clear();
+            loginBtn.fillStyle(GAME_CONFIG.COLORS.DARK_BLUE, 1);
+            loginBtn.fillRoundedRect(-120, 55, 240, 50, 12);
+            loginBtn.lineStyle(2, 0xffffff, 0.8);
+            loginBtn.strokeRoundedRect(-120, 55, 240, 50, 12);
+        });
+        loginBtn.on('pointerout', () => {
+            loginBtn.clear();
+            loginBtn.fillStyle(GAME_CONFIG.COLORS.VIBRANT_BLUE, 1);
+            loginBtn.fillRoundedRect(-120, 55, 240, 50, 12);
+            loginBtn.lineStyle(2, 0xffffff, 0.8);
+            loginBtn.strokeRoundedRect(-120, 55, 240, 50, 12);
+        });
         loginBtn.on('pointerdown', () => this.handleLogin());
         container.add([loginBtn, loginBtnText]);
 
-        // Switch to signup link
+        // Switch to signup link with modern styling
         const switchText = this.add.text(0, 120, 'Don\'t have an account? Sign up', {
             fontSize: '14px',
-            color: '#007bff',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            color: '#3182ce',
+            fontFamily: GAME_CONFIG.FONT.FAMILY,
+            fontStyle: '500'
         }).setOrigin(0.5);
         switchText.setInteractive();
+        switchText.on('pointerover', () => {
+            switchText.setColor('#2c5282');
+        });
+        switchText.on('pointerout', () => {
+            switchText.setColor('#3182ce');
+        });
         switchText.on('pointerdown', () => this.switchToSignup());
         container.add(switchText);
     }
@@ -167,77 +200,96 @@ export class LoginScene extends Phaser.Scene {
     private createSignupForm() {
         const container = this.signupContainer;
 
-        // Signup form background styled to match login
-        const formBg = this.add.rectangle(0, 0, 650, 520, 0xffffff, 0.98);
-        formBg.setStrokeStyle(1, 0xe9ecef);
+        // Modern signup form container - compact size
+        const formBg = this.add.graphics();
+        formBg.fillStyle(0xffffff, 1);
+        formBg.lineStyle(3, 0xe2e8f0, 1);
+        formBg.fillRoundedRect(-225, -200, 450, 420, 16);
+        formBg.strokeRoundedRect(-225, -200, 450, 420, 16);
         formBg.setDepth(-1);
         container.add(formBg);
-        const shadow = this.add.rectangle(2, 2, 650, 520, 0x000000, 0.1);
-        shadow.setDepth(-2);
-        container.add(shadow);
 
-        // Signup title with CSS styling
+
+        // Signup title with modern styling
         const signupTitle = this.add.text(0, -170, 'Sign Up', {
             fontSize: '28px',
-            color: '#2c3e50',
-            fontStyle: 'bold',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            color: '#2d3748',
+            fontStyle: '700',
+            fontFamily: GAME_CONFIG.FONT.FAMILY
         }).setOrigin(0.5);
         container.add(signupTitle);
 
-        // Input field labels - Email first, then Username
+        // Input field labels with modern styling - Email first, then Username
         const emailLabel = this.add.text(0, -90, 'Email', {
             fontSize: '16px',
-            color: '#2c3e50',
-            fontStyle: 'bold',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            color: '#2d3748',
+            fontStyle: '600',
+            fontFamily: GAME_CONFIG.FONT.FAMILY
         }).setOrigin(0.5);
         container.add(emailLabel);
 
         const usernameLabel = this.add.text(0, -30, 'Username', {
             fontSize: '16px',
-            color: '#2c3e50',
-            fontStyle: 'bold',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            color: '#2d3748',
+            fontStyle: '600',
+            fontFamily: GAME_CONFIG.FONT.FAMILY
         }).setOrigin(0.5);
         container.add(usernameLabel);
 
         const passwordLabel = this.add.text(0, 30, 'Password', {
             fontSize: '16px',
-            color: '#2c3e50',
-            fontStyle: 'bold',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            color: '#2d3748',
+            fontStyle: '600',
+            fontFamily: GAME_CONFIG.FONT.FAMILY
         }).setOrigin(0.5);
         container.add(passwordLabel);
 
-        // Signup button - match main game green button style
-        const signupBtn = this.add.rectangle(0, 120, 240, 50, 0x007bff);
-        signupBtn.setStrokeStyle(1, 0x0056b3);
+        // Signup button with modern game theme
+        const signupBtn = this.add.graphics();
+        signupBtn.fillStyle(GAME_CONFIG.COLORS.FRESH_GREEN, 1);
+        signupBtn.fillRoundedRect(-120, 95, 240, 50, 12);
+        signupBtn.lineStyle(2, 0xffffff, 0.8);
+        signupBtn.strokeRoundedRect(-120, 95, 240, 50, 12);
+
         const signupBtnText = this.add.text(0, 120, 'Create account', {
             fontSize: '18px',
             color: '#ffffff',
-            fontStyle: 'bold',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            fontStyle: '600',
+            fontFamily: GAME_CONFIG.FONT.FAMILY
         }).setOrigin(0.5);
-        signupBtn.setInteractive();
+
+        signupBtn.setInteractive(new Phaser.Geom.Rectangle(-120, 95, 240, 50), Phaser.Geom.Rectangle.Contains);
         signupBtn.on('pointerover', () => {
-            signupBtn.fillColor = 0x0056b3;
-            signupBtn.setStrokeStyle(1, 0x004085);
+            signupBtn.clear();
+            signupBtn.fillStyle(GAME_CONFIG.COLORS.DARK_GREEN, 1);
+            signupBtn.fillRoundedRect(-120, 95, 240, 50, 12);
+            signupBtn.lineStyle(2, 0xffffff, 0.8);
+            signupBtn.strokeRoundedRect(-120, 95, 240, 50, 12);
         });
         signupBtn.on('pointerout', () => {
-            signupBtn.fillColor = 0x007bff;
-            signupBtn.setStrokeStyle(1, 0x0056b3);
+            signupBtn.clear();
+            signupBtn.fillStyle(GAME_CONFIG.COLORS.FRESH_GREEN, 1);
+            signupBtn.fillRoundedRect(-120, 95, 240, 50, 12);
+            signupBtn.lineStyle(2, 0xffffff, 0.8);
+            signupBtn.strokeRoundedRect(-120, 95, 240, 50, 12);
         });
         signupBtn.on('pointerdown', () => this.handleSignup());
         container.add([signupBtn, signupBtnText]);
 
-        // Switch to login - match main game link styling
+        // Switch to login with modern styling
         const switchText = this.add.text(0, 170, 'Already have an account? Log in', {
             fontSize: '14px',
-            color: '#007bff',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            color: '#3182ce',
+            fontFamily: GAME_CONFIG.FONT.FAMILY,
+            fontStyle: '500'
         }).setOrigin(0.5);
         switchText.setInteractive();
+        switchText.on('pointerover', () => {
+            switchText.setColor('#2c5282');
+        });
+        switchText.on('pointerout', () => {
+            switchText.setColor('#3182ce');
+        });
         switchText.on('pointerdown', () => this.switchToLogin());
         container.add(switchText);
     }
@@ -248,34 +300,35 @@ export class LoginScene extends Phaser.Scene {
         input.type = type;
         input.placeholder = placeholder;
 
-        // Apply consistent styling
+        // Apply modern game theme styling
         input.style.position = 'absolute';
         input.style.left = '50%';
         input.style.transform = 'translateX(-50%)';
         input.style.zIndex = '1000';
         input.style.width = '320px';
         input.style.height = '45px';
-        input.style.border = '2px solid #e9ecef';
-        input.style.borderRadius = '8px';
+        input.style.border = '2px solid #e2e8f0';
+        input.style.borderRadius = '12px';
         input.style.padding = '12px 16px';
         input.style.fontSize = '16px';
-        input.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        input.style.fontFamily = '"Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+        input.style.fontWeight = '400';
         input.style.backgroundColor = '#ffffff';
-        input.style.color = '#2c3e50';
+        input.style.color = '#2d3748';
         input.style.outline = 'none';
-        input.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
-        input.style.transition = 'all 0.2s ease-in-out';
+        input.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)';
+        input.style.transition = 'all 0.3s ease-in-out';
         input.style.boxSizing = 'border-box';
 
-        // Add focus styles
+        // Add modern focus styles
         input.addEventListener('focus', () => {
-            input.style.borderColor = '#007bff';
-            input.style.boxShadow = '0 0 0 3px rgba(0, 123, 255, 0.1), 0 4px 8px rgba(0, 0, 0, 0.15)';
+            input.style.borderColor = '#4c51bf';
+            input.style.boxShadow = '0 0 0 3px rgba(76, 81, 191, 0.1), 0 8px 16px rgba(0, 0, 0, 0.12)';
         });
 
         input.addEventListener('blur', () => {
-            input.style.borderColor = '#e9ecef';
-            input.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+            input.style.borderColor = '#e2e8f0';
+            input.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)';
         });
 
         document.body.appendChild(input);

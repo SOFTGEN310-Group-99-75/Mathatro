@@ -48,7 +48,7 @@ export class Play extends Phaser.Scene {
             fontSize: "24px",
             color: "#000000",
             fontFamily: GAME_CONFIG.FONT.FAMILY,
-            fontStyle: 'bold'
+            fontStyle: '600'
         }).setOrigin(0.5);
 
         const makeButton = (label: string, y: number, mode: 'easy' | 'medium' | 'hard') => {
@@ -66,7 +66,7 @@ export class Play extends Phaser.Scene {
                 fontSize: "32px",
                 color: "#ffffff",
                 fontFamily: GAME_CONFIG.FONT.FAMILY,
-                fontStyle: 'bold',
+                fontStyle: '600',
                 align: 'center'
             })
                 .setOrigin(0.5);

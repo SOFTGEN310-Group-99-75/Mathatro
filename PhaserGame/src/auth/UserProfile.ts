@@ -35,7 +35,7 @@ export class UserProfile {
         this.userInfo = this.scene.add.text(x, y - 12, '', {
             fontSize: '16px',
             color: '#ecf0f1',
-            fontStyle: 'bold',
+            fontStyle: '500',
             fontFamily: GAME_CONFIG.FONT.FAMILY,
             align: 'center'
         }).setOrigin(0.5);
@@ -56,7 +56,7 @@ export class UserProfile {
         this.logoutText = this.scene.add.text(x, buttonY, 'Logout', {
             fontSize: '13px',
             color: '#ffffff',
-            fontStyle: 'bold',
+            fontStyle: '500',
             fontFamily: GAME_CONFIG.FONT.FAMILY
         }).setOrigin(0.5);
 

@@ -268,7 +268,8 @@ export const createStyledText = (
     return scene.add.text(x, y, text, {
         fontSize: options.fontSize ?? GAME_CONFIG.FONT.SCORE_SIZE,
         color: options.color ?? GAME_CONFIG.COLORS.BLACK,
-        fontStyle: options.fontStyle ?? 'bold',
+        fontStyle: options.fontStyle ?? '500',
+        fontFamily: GAME_CONFIG.FONT.FAMILY,
         align: options.align ?? 'center',
         stroke: GAME_CONFIG.FONT.STROKE_COLOR,
         strokeThickness: 2,
@@ -314,11 +315,11 @@ export const createStyledCard = (
     card.fillRoundedRect(0, 0, w, h, 8);
     card.strokeRoundedRect(0, 0, w, h, 8);
 
-    // Text with modern typography
+    // Text with modern typography and Inter font
     const text = scene.add.text(w / 2, h / 2, label, {
         fontSize: options.fontSize ?? GAME_CONFIG.FONT.CARD_SIZE,
         color: options.color ?? '#4a5568',
-        fontStyle: options.fontStyle ?? 'bold',
+        fontStyle: options.fontStyle ?? '600',
         fontFamily: GAME_CONFIG.FONT.FAMILY,
         stroke: GAME_CONFIG.FONT.STROKE_COLOR,
         strokeThickness: 1,
