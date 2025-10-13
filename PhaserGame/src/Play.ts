@@ -46,7 +46,9 @@ export class Play extends Phaser.Scene {
 
         this.add.text(width / 2, height / 3 + 20, "Select Difficulty", {
             fontSize: "24px",
-            color: "#000000"
+            color: "#000000",
+            fontFamily: GAME_CONFIG.FONT.FAMILY,
+            fontStyle: 'bold'
         }).setOrigin(0.5);
 
         const makeButton = (label: string, y: number, mode: 'easy' | 'medium' | 'hard') => {
@@ -56,13 +58,15 @@ export class Play extends Phaser.Scene {
 
             // Create rounded rectangle background
             const bg = this.add.graphics();
-            bg.fillStyle(0x8c7ae6, 1);
+            bg.fillStyle(GAME_CONFIG.COLORS.VIBRANT_BLUE, 1);
             bg.fillRoundedRect(width / 2 - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
 
             // Create text on top
             const btn = this.add.text(width / 2, y, label, {
                 fontSize: "32px",
                 color: "#ffffff",
+                fontFamily: GAME_CONFIG.FONT.FAMILY,
+                fontStyle: 'bold',
                 align: 'center'
             })
                 .setOrigin(0.5);
@@ -81,12 +85,12 @@ export class Play extends Phaser.Scene {
 
             bg.on("pointerover", () => {
                 bg.clear();
-                bg.fillStyle(0x9c88ff, 1);
+                bg.fillStyle(GAME_CONFIG.COLORS.DARK_BLUE, 1);
                 bg.fillRoundedRect(width / 2 - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
             })
                 .on("pointerout", () => {
                     bg.clear();
-                    bg.fillStyle(0x8c7ae6, 1);
+                    bg.fillStyle(GAME_CONFIG.COLORS.VIBRANT_BLUE, 1);
                     bg.fillRoundedRect(width / 2 - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
                 })
                 .on("pointerdown", () => {

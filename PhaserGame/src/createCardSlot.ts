@@ -14,10 +14,13 @@ import { GAME_CONFIG } from './config/GameConstants';
 
 export const createCardSlot = (scene: Phaser.Scene, x: number, y: number, w: number, h: number, opts: any = {}) => {
     const group = scene.add.container(x, y);
-    const rect = scene.add.rectangle(0, 0, w, h, opts.fill ?? GAME_CONFIG.COLORS.GRAY, opts.alpha ?? 0.3)
-        .setOrigin(0, 0)
-        .setStrokeStyle(GAME_CONFIG.CARD_BORDER_WIDTH, GAME_CONFIG.COLORS.LIGHT_GRAY)
-        .setInteractive();
+    // Modern card slot with rounded corners and subtle styling
+    const rect = scene.add.graphics();
+    rect.fillStyle(opts.fill ?? GAME_CONFIG.COLORS.LIGHT_BG, opts.alpha ?? 0.4);
+    rect.lineStyle(2, GAME_CONFIG.COLORS.MEDIUM_BG, 0.6);
+    rect.fillRoundedRect(0, 0, w, h, 8);
+    rect.strokeRoundedRect(0, 0, w, h, 8);
+    rect.setInteractive();
 
 
     group.add(rect);
@@ -49,8 +52,10 @@ export const createCardSlot = (scene: Phaser.Scene, x: number, y: number, w: num
 
     // for checking whether pointer is over the slot
     (group as any).isPointerOver = (pointer: Phaser.Input.Pointer) => {
-        const slotBounds = rect.getBounds();
-        return slotBounds.contains(pointer.x, pointer.y);
+        const slotX = group.x;
+        const slotY = group.y;
+        return pointer.x >= slotX && pointer.x <= slotX + w &&
+            pointer.y >= slotY && pointer.y <= slotY + h;
     };
 
     return group;

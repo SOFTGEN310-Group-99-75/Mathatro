@@ -23,11 +23,11 @@ export class GameUI extends Phaser.Scene {
     private sidebar: any;
     private scoreTitle: any;
     private currentScore: any;
-    private calcText: any;
+    private readonly calcText: any;
     private cumulated: any;
     private healthBarBg: any;
     private healthBarFill: any;
-    private healthHint: any;
+    private readonly healthHint: any;
     private gamesCounter: any;
     private objective: any;
     private objectiveCaption: any;
@@ -79,20 +79,41 @@ export class GameUI extends Phaser.Scene {
             return createLabelBox(this, x, y, w, h, text, options);
         };
 
-        // Score Board panel - using LayoutManager
-        this.sidebar = this.rect(sidebar.x, sidebar.y, sidebar.width, sidebar.height, { fill: GAME_CONFIG.COLORS.BLACK, alpha: GAME_CONFIG.ALPHA.SIDEBAR, radius: 12 });
-        this.scoreTitle = this.add.text(sidebar.scoreTitleX, sidebar.scoreTitleY, 'Score Board', { fontSize: GAME_CONFIG.FONT.SCORE_SIZE + 2, color: GAME_CONFIG.COLORS.BLACK }).setOrigin(0.5);
+        // Score Board panel - using LayoutManager with glass morphism effect
+        this.sidebar = this.rect(sidebar.x, sidebar.y, sidebar.width, sidebar.height, {
+            fill: GAME_CONFIG.COLORS.DEEP_PURPLE,
+            alpha: 0.85,
+            radius: 12,
+            strokeColor: 0xffffff,
+            strokeWidth: 2
+        });
+        this.scoreTitle = this.add.text(sidebar.scoreTitleX, sidebar.scoreTitleY, 'Score Board', {
+            fontSize: GAME_CONFIG.FONT.SCORE_SIZE + 2,
+            color: '#ffffff',
+            fontStyle: 'bold',
+            fontFamily: GAME_CONFIG.FONT.FAMILY
+        }).setOrigin(0.5);
         this.currentScore = this.labelBox(sidebar.currentScoreX, sidebar.currentScoreY, sidebar.currentScoreWidth, sidebar.currentScoreHeight, 'current game score');
-        //this.calcText = this.add.text(sidebar.calcTextX, sidebar.calcTextY, 'calculations?\nmayber multipliers or smth else', { fontSize: GAME_CONFIG.FONT.CAPTION_SIZE, color: GAME_CONFIG.COLORS.DARK_GRAY, wordWrap: { width: sidebar.width - GAME_CONFIG.LAYOUT.CALC_TEXT_WIDTH_OFFSET } });
         this.cumulated = this.labelBox(sidebar.cumulatedX, sidebar.cumulatedY, sidebar.cumulatedWidth, sidebar.cumulatedHeight, 'Cumulated score (previous game)\nvs\nScore needed to pass the level', { fontSize: GAME_CONFIG.FONT.CAPTION_SIZE });
 
         // Health bar + Games counter - using LayoutManager
-        this.add.text(healthBar.backgroundX, healthBar.backgroundY - 25, 'Health bar', { fontSize: '18px', color: '#000000', fontStyle: 'bold' }).setOrigin(0, 0);
-        this.healthBarBg = this.rect(healthBar.backgroundX, healthBar.backgroundY, healthBar.backgroundWidth, healthBar.backgroundHeight, { fill: GAME_CONFIG.COLORS.RED, alpha: GAME_CONFIG.ALPHA.HEALTH_BG, radius: 8 });
+        this.add.text(healthBar.backgroundX, healthBar.backgroundY - 25, 'Health bar', {
+            fontSize: '18px',
+            color: '#000000',
+            fontStyle: 'bold',
+            fontFamily: GAME_CONFIG.FONT.FAMILY
+        }).setOrigin(0, 0);
+        this.healthBarBg = this.rect(healthBar.backgroundX, healthBar.backgroundY, healthBar.backgroundWidth, healthBar.backgroundHeight, {
+            fill: GAME_CONFIG.COLORS.LIGHT_BG,
+            alpha: 0.8,
+            radius: 8,
+            strokeColor: 0xffffff,
+            strokeWidth: 2
+        });
 
         // Create rounded health bar fill using graphics
         this.healthBarFill = this.add.graphics();
-        this.healthBarFill.fillStyle(GAME_CONFIG.COLORS.GREEN, GAME_CONFIG.ALPHA.HEALTH_FILL);
+        this.healthBarFill.fillStyle(0x48bb78, GAME_CONFIG.ALPHA.HEALTH_FILL);
         this.healthBarFill.fillRoundedRect(healthBar.fillX, healthBar.fillY, healthBar.fillWidth, healthBar.fillHeight, 7);
         this.healthBarFill.setData('maxWidth', healthBar.fillWidth);
         this.healthBarFill.setData('x', healthBar.fillX);
@@ -143,13 +164,35 @@ export class GameUI extends Phaser.Scene {
         });
         // -----------------------------------------
 
-        // Result slots - using LayoutManager
-        this.resultBar = this.rect(resultBar.x, resultBar.y, resultBar.width, resultBar.height, { fill: GAME_CONFIG.COLORS.BLACK, alpha: GAME_CONFIG.ALPHA.RESULT_BAR });
-        this.equalsText = this.add.text(resultBar.equalsX, resultBar.equalsY, '= ', { fontSize: GAME_CONFIG.LAYOUT.RESULT_EQUALS_FONT_SIZE, color: GAME_CONFIG.COLORS.BLACK });
+        // Result slots - using LayoutManager with glass morphism effect
+        this.resultBar = this.rect(resultBar.x, resultBar.y, resultBar.width, resultBar.height, {
+            fill: GAME_CONFIG.COLORS.LIGHT_BG,
+            alpha: 0.75,
+            radius: 12,
+            strokeColor: 0xffffff,
+            strokeWidth: 2
+        });
+        this.equalsText = this.add.text(resultBar.equalsX, resultBar.equalsY, '= ', {
+            fontSize: GAME_CONFIG.LAYOUT.RESULT_EQUALS_FONT_SIZE,
+            color: '#4a5568',
+            fontStyle: 'bold',
+            fontFamily: GAME_CONFIG.FONT.FAMILY
+        });
 
-        // Hand bar - using LayoutManager
-        this.handBar = this.rect(handBar.x, handBar.y, handBar.width, handBar.height, { fill: GAME_CONFIG.COLORS.BLACK, alpha: GAME_CONFIG.ALPHA.HAND_BAR });
-        this.handCaption = this.add.text(handBar.captionX, handBar.captionY, 'Cards, either operator(+,-,*,/) or number (0–9)', { fontSize: GAME_CONFIG.FONT.CAPTION_SIZE, color: '#000000', fontStyle: 'bold' }).setOrigin(0.5, 0);
+        // Hand bar - using LayoutManager with glass morphism effect
+        this.handBar = this.rect(handBar.x, handBar.y, handBar.width, handBar.height, {
+            fill: GAME_CONFIG.COLORS.MEDIUM_BG,
+            alpha: 0.8,
+            radius: 12,
+            strokeColor: 0xffffff,
+            strokeWidth: 2
+        });
+        this.handCaption = this.add.text(handBar.captionX, handBar.captionY, 'Cards, either operator(+,-,*,/) or number (0–9)', {
+            fontSize: GAME_CONFIG.FONT.CAPTION_SIZE,
+            color: '#4a5568',
+            fontStyle: 'bold',
+            fontFamily: GAME_CONFIG.FONT.FAMILY
+        }).setOrigin(0.5, 0);
 
 
         // Containers for dynamic visuals
@@ -177,7 +220,7 @@ export class GameUI extends Phaser.Scene {
         const submitBtnY = this.sys.game.scale.height - 160;
 
         const submitBtnBg = this.add.graphics();
-        submitBtnBg.fillStyle(0x8c7ae6, 1);
+        submitBtnBg.fillStyle(GAME_CONFIG.COLORS.VIBRANT_BLUE, 1);
         submitBtnBg.fillRoundedRect(
             submitBtnX - submitBtnWidth / 2,
             submitBtnY - submitBtnHeight / 2,
@@ -190,7 +233,8 @@ export class GameUI extends Phaser.Scene {
         const submitBtnText = this.add.text(submitBtnX, submitBtnY, "Submit", {
             fontSize: "28px",
             color: "#ffffff",
-            fontStyle: 'bold'
+            fontStyle: 'bold',
+            fontFamily: GAME_CONFIG.FONT.FAMILY
         })
             .setOrigin(0.5)
             .setDepth(1001);
@@ -207,7 +251,7 @@ export class GameUI extends Phaser.Scene {
 
         submitBtnBg.on('pointerover', () => {
             submitBtnBg.clear();
-            submitBtnBg.fillStyle(0x9c88ff, 1);
+            submitBtnBg.fillStyle(GAME_CONFIG.COLORS.DARK_BLUE, 1);
             submitBtnBg.fillRoundedRect(
                 submitBtnX - submitBtnWidth / 2,
                 submitBtnY - submitBtnHeight / 2,
@@ -221,7 +265,7 @@ export class GameUI extends Phaser.Scene {
 
         submitBtnBg.on('pointerout', () => {
             submitBtnBg.clear();
-            submitBtnBg.fillStyle(0x8c7ae6, 1);
+            submitBtnBg.fillStyle(GAME_CONFIG.COLORS.VIBRANT_BLUE, 1);
             submitBtnBg.fillRoundedRect(
                 submitBtnX - submitBtnWidth / 2,
                 submitBtnY - submitBtnHeight / 2,
@@ -236,7 +280,7 @@ export class GameUI extends Phaser.Scene {
         submitBtnBg.on("pointerdown", () => {
             // Press effect - darker color and scale down
             submitBtnBg.clear();
-            submitBtnBg.fillStyle(0x7c6ad6, 1);
+            submitBtnBg.fillStyle(GAME_CONFIG.COLORS.NAVY_BLUE, 1);
             submitBtnBg.fillRoundedRect(
                 submitBtnX - submitBtnWidth / 2,
                 submitBtnY - submitBtnHeight / 2,
@@ -250,7 +294,7 @@ export class GameUI extends Phaser.Scene {
         submitBtnBg.on("pointerup", () => {
             // Reset to hover state
             submitBtnBg.clear();
-            submitBtnBg.fillStyle(0x9c88ff, 1);
+            submitBtnBg.fillStyle(GAME_CONFIG.COLORS.DARK_BLUE, 1);
             submitBtnBg.fillRoundedRect(
                 submitBtnX - submitBtnWidth / 2,
                 submitBtnY - submitBtnHeight / 2,
@@ -324,12 +368,12 @@ export class GameUI extends Phaser.Scene {
         const currentWidth = Math.max(0, maxWidth * r);
 
         // Determine health bar color based on ratio
-        let healthColor = 0xf1c40f; // Yellow
+        let healthColor = 0xf6ad55; // Amber
         if (r > GAME_CONFIG.HEALTH_WARNING) {
-            healthColor = 0x2ecc71; // Green
+            healthColor = 0x48bb78; // Fresh Green
         }
         if (r <= GAME_CONFIG.HEALTH_CRITICAL) {
-            healthColor = 0xe74c3c; // Red
+            healthColor = 0xfc8181; // Coral Red
         }
 
         // Redraw the health bar fill with rounded corners
@@ -427,6 +471,7 @@ export class GameUI extends Phaser.Scene {
             }
         } catch (error) {
             // Keep previous display if expression is invalid
+            console.debug('Expression evaluation failed:', error);
         }
     }
 
@@ -535,7 +580,7 @@ export class GameUI extends Phaser.Scene {
         const btnY = gameHeight - 80;
 
         const btnBg = this.add.graphics();
-        btnBg.fillStyle(0x3498db, 1);
+        btnBg.fillStyle(GAME_CONFIG.COLORS.WARM_ORANGE, 1);
         btnBg.fillRoundedRect(
             btnX - btnWidth / 2,
             btnY - btnHeight / 2,
@@ -548,7 +593,8 @@ export class GameUI extends Phaser.Scene {
         const btnText = this.add.text(btnX, btnY, 'Switch Difficulty', {
             fontSize: '16px',
             color: '#ffffff',
-            fontStyle: 'bold'
+            fontStyle: 'bold',
+            fontFamily: GAME_CONFIG.FONT.FAMILY
         })
             .setOrigin(0.5)
             .setDepth(1000);
@@ -565,7 +611,7 @@ export class GameUI extends Phaser.Scene {
 
         btnBg.on('pointerover', () => {
             btnBg.clear();
-            btnBg.fillStyle(0x5dade2, 1);
+            btnBg.fillStyle(GAME_CONFIG.COLORS.DARK_ORANGE, 1);
             btnBg.fillRoundedRect(
                 btnX - btnWidth / 2,
                 btnY - btnHeight / 2,
@@ -578,7 +624,7 @@ export class GameUI extends Phaser.Scene {
 
         btnBg.on('pointerout', () => {
             btnBg.clear();
-            btnBg.fillStyle(0x3498db, 1);
+            btnBg.fillStyle(GAME_CONFIG.COLORS.WARM_ORANGE, 1);
             btnBg.fillRoundedRect(
                 btnX - btnWidth / 2,
                 btnY - btnHeight / 2,
@@ -591,7 +637,7 @@ export class GameUI extends Phaser.Scene {
 
         btnBg.on('pointerdown', () => {
             btnBg.clear();
-            btnBg.fillStyle(0x2980b9, 1);
+            btnBg.fillStyle(GAME_CONFIG.COLORS.DARK_ORANGE, 1);
             btnBg.fillRoundedRect(
                 btnX - btnWidth / 2,
                 btnY - btnHeight / 2,
@@ -604,7 +650,7 @@ export class GameUI extends Phaser.Scene {
 
         btnBg.on('pointerup', () => {
             btnBg.clear();
-            btnBg.fillStyle(0x5dade2, 1);
+            btnBg.fillStyle(GAME_CONFIG.COLORS.DARK_ORANGE, 1);
             btnBg.fillRoundedRect(
                 btnX - btnWidth / 2,
                 btnY - btnHeight / 2,

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { AuthService, AuthUser } from './AuthService';
+import { GAME_CONFIG } from '../config/GameConstants';
 
 export class UserProfile {
     private readonly scene: Phaser.Scene;
@@ -24,8 +25,8 @@ export class UserProfile {
         const bgRadius = 12;
 
         const profileBg = this.scene.add.graphics();
-        profileBg.fillStyle(0x34495e, 0.95);
-        profileBg.lineStyle(1, 0x2c3e50, 0.8);
+        profileBg.fillStyle(GAME_CONFIG.COLORS.DEEP_PURPLE, 0.85);
+        profileBg.lineStyle(2, 0xffffff, 0.9);
         profileBg.fillRoundedRect(x - bgWidth / 2, y - bgHeight / 2, bgWidth, bgHeight, bgRadius);
         profileBg.strokeRoundedRect(x - bgWidth / 2, y - bgHeight / 2, bgWidth, bgHeight, bgRadius);
         this.profileContainer.add(profileBg);
@@ -35,6 +36,7 @@ export class UserProfile {
             fontSize: '16px',
             color: '#ecf0f1',
             fontStyle: 'bold',
+            fontFamily: GAME_CONFIG.FONT.FAMILY,
             align: 'center'
         }).setOrigin(0.5);
         this.profileContainer.add(this.userInfo);
@@ -46,15 +48,16 @@ export class UserProfile {
         const buttonY = y + 12; // Moved up from y + 18
 
         this.logoutButton = this.scene.add.graphics();
-        this.logoutButton.fillStyle(0xe74c3c, 1);
-        this.logoutButton.lineStyle(1, 0xc0392b, 0.8);
+        this.logoutButton.fillStyle(GAME_CONFIG.COLORS.CORAL_RED, 0.9);
+        this.logoutButton.lineStyle(2, 0xffffff, 0.8);
         this.logoutButton.fillRoundedRect(x - buttonWidth / 2, buttonY - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
         this.logoutButton.strokeRoundedRect(x - buttonWidth / 2, buttonY - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
 
         this.logoutText = this.scene.add.text(x, buttonY, 'Logout', {
             fontSize: '13px',
             color: '#ffffff',
-            fontStyle: 'bold'
+            fontStyle: 'bold',
+            fontFamily: GAME_CONFIG.FONT.FAMILY
         }).setOrigin(0.5);
 
         // Add hover effects
@@ -77,7 +80,7 @@ export class UserProfile {
         });
         this.logoutButton.on('pointerout', () => {
             this.logoutButton.clear();
-            this.logoutButton.fillStyle(0xe74c3c, 1);
+            this.logoutButton.fillStyle(GAME_CONFIG.COLORS.CORAL_RED, 1);
             this.logoutButton.lineStyle(1, 0xc0392b, 0.8);
             this.logoutButton.fillRoundedRect(x - buttonWidth / 2, buttonY - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
             this.logoutButton.strokeRoundedRect(x - buttonWidth / 2, buttonY - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
