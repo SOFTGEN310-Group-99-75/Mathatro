@@ -1,28 +1,50 @@
 import Phaser from 'phaser';
-import { AuthService, AuthUser } from './AuthService';
+import { AuthService } from './AuthService';
+import { GAME_CONFIG } from '../config/GameConstants';
+import { createTitleText } from '../utils/UIHelpers';
+import { StyleHelpers } from '../utils/StyleHelpers';
+import { ResponsiveFormManager } from './ResponsiveFormManager';
 
 export class LoginScene extends Phaser.Scene {
     private authService: AuthService;
-    private loginContainer: Phaser.GameObjects.Container;
-    private signupContainer: Phaser.GameObjects.Container;
-    private emailInput: HTMLInputElement | null = null;
-    private passwordInput: HTMLInputElement | null = null;
-    private displayNameInput: HTMLInputElement | null = null;
-    private errorText: Phaser.GameObjects.Text;
-    private loadingText: Phaser.GameObjects.Text;
-    private isSignUpMode: boolean = false;
+    private readonly formManager: ResponsiveFormManager;
+    private loginContainer!: Phaser.GameObjects.Container;
+    private signupContainer!: Phaser.GameObjects.Container;
 
-    // Constants to avoid SonarQube false positives
+    // HTML inputs
+    private usernameInput: HTMLInputElement | null = null;
+    private passwordInput: HTMLInputElement | null = null;
+    private signupUsernameInput: HTMLInputElement | null = null;
+    private signupEmailInput: HTMLInputElement | null = null;
+    private signupPasswordInput: HTMLInputElement | null = null;
+
+    // Labels (anchor points for inputs)
+    private loginUsernameLabel!: Phaser.GameObjects.Text;
+    private loginPasswordLabel!: Phaser.GameObjects.Text;
+    private signupEmailLabel!: Phaser.GameObjects.Text;
+    private signupUsernameLabel!: Phaser.GameObjects.Text;
+    private signupPasswordLabel!: Phaser.GameObjects.Text;
+
+    // UI text
+    private errorText!: Phaser.GameObjects.Text;
+    private loadingText!: Phaser.GameObjects.Text;
+
+    private isSignUpMode = false;
+
+    // listeners
+    private resizeHandler: (() => void) | null = null;
+    private cameraHandler: (() => void) | null = null;
+
     private static readonly PASSWORD_PLACEHOLDER = 'Enter your password';
     private static readonly USERNAME_PLACEHOLDER = 'Enter your username';
     private static readonly EMAIL_PLACEHOLDER = 'Enter your email';
 
     constructor() {
         super({ key: 'LoginScene' });
+        this.formManager = new ResponsiveFormManager(this);
     }
 
     init() {
-        // Initialize scene state - this runs before create()
         this.isSignUpMode = false;
     }
 
@@ -30,211 +52,266 @@ export class LoginScene extends Phaser.Scene {
         const { width: W, height: H } = this.sys.game.scale;
         this.authService = AuthService.getInstance();
 
-        // Clean up any existing HTML inputs from previous sessions
-        this.removeHTMLInputs();
+        // Background
+        const bg = this.add.graphics();
+        bg.fillGradientStyle(0x4facfe, 0x4facfe, 0x00f2fe, 0x00f2fe, 1);
+        bg.fillRect(0, 0, W, H);
 
-        // Background - match main game background
-        this.add.rectangle(W / 2, H / 2, W, H, 0xf8f9fa);
+        // Title + subtitle
+        createTitleText(this, W / 2, H * 0.15, 'Mathatro', { fontSize: 52 });
+        this.add.text(
+            W / 2, H * 0.23, 'It\'s a piece of π!',
+            StyleHelpers.createTextStyle({ fontSize: '22px', color: '#ffffff', fontStyle: '500' })
+        ).setOrigin(0.5);
 
-        // Title - match main game styling
-        this.add.text(W / 2, H * 0.15, 'Mathatro', {
-            fontSize: '48px',
-            color: '#2c3e50',
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
-
-        this.add.text(W / 2, H * 0.2, 'Card Memory Game', {
-            fontSize: '24px',
-            color: '#7f8c8d'
-        }).setOrigin(0.5);
-
-        // Create containers for login and signup forms
-        // Position forms lower to avoid overlap with title
+        // Containers
         this.loginContainer = this.add.container(W / 2, H * 0.6);
         this.signupContainer = this.add.container(W / 2, H * 0.6);
         this.signupContainer.setVisible(false);
 
+        // Forms
         this.createLoginForm();
         this.createSignupForm();
-        
-        // Create HTML inputs once and manage them
-        this.emailInput = this.createHTMLInput('text', LoginScene.USERNAME_PLACEHOLDER, -50);
-        this.passwordInput = this.createHTMLInput('password', LoginScene.PASSWORD_PLACEHOLDER, 10);
-        this.displayNameInput = this.createHTMLInput('text', LoginScene.USERNAME_PLACEHOLDER, -80);
-        
-        // Set initial positions for login mode
+
+        // Inputs
+        this.usernameInput = this.formManager.createHTMLInput('text', LoginScene.USERNAME_PLACEHOLDER);
+        this.passwordInput = this.formManager.createHTMLInput('password', LoginScene.PASSWORD_PLACEHOLDER);
+        this.signupUsernameInput = this.formManager.createHTMLInput('text', LoginScene.USERNAME_PLACEHOLDER);
+        this.signupEmailInput = this.formManager.createHTMLInput('email', LoginScene.EMAIL_PLACEHOLDER);
+        this.signupPasswordInput = this.formManager.createHTMLInput('password', LoginScene.PASSWORD_PLACEHOLDER);
+
+        // Status text
+        this.errorText = this.add.text(
+            W / 2, H * 0.85, '',
+            StyleHelpers.createTextStyle({ fontSize: '16px', color: '#e53e3e', fontStyle: '500' })
+        ).setOrigin(0.5);
+
+        this.loadingText = this.add.text(
+            W / 2, H * 0.9, '',
+            StyleHelpers.createTextStyle({ fontSize: '16px', color: '#3182ce', fontStyle: '500' })
+        ).setOrigin(0.5);
+
+        // Events
+        this.setupEventListeners();
+
+        // Initial layout
+        this.formManager.updateInputDimensions([
+            this.usernameInput, this.passwordInput,
+            this.signupUsernameInput, this.signupEmailInput, this.signupPasswordInput
+        ]);
         this.updateInputPositions();
-
-        // Error and loading text - match main game styling
-        this.errorText = this.add.text(W / 2, H * 0.85, '', {
-            fontSize: '16px',
-            color: '#dc3545',
-            align: 'center'
-        }).setOrigin(0.5);
-
-        this.loadingText = this.add.text(W / 2, H * 0.9, '', {
-            fontSize: '16px',
-            color: '#007bff',
-            align: 'center'
-        }).setOrigin(0.5);
-
-        // Reset form state
-        this.isSignUpMode = false;
         this.clearError();
         this.hideLoading();
-        this.clearInputValues();
 
-        // Check if user is already authenticated
         if (this.authService.isAuthenticated()) {
             this.startGame();
         }
+    }
 
-        // Listen for authentication state changes
-        this.authService.onAuthStateChange((user: AuthUser | null) => {
-            if (user) {
-                this.startGame();
-            }
-        });
+    private setupEventListeners() {
+        this.resizeHandler = () => {
+            this.formManager.updateInputDimensions([
+                this.usernameInput, this.passwordInput,
+                this.signupUsernameInput, this.signupEmailInput, this.signupPasswordInput
+            ]);
+            this.updateInputPositions();
+        };
+
+        this.cameraHandler = () => this.updateInputPositions();
+
+        window.addEventListener('resize', this.resizeHandler);
+        this.scale.on('resize', this.cameraHandler);
+        this.cameras.main.on('camerazoom', this.cameraHandler);
+        this.cameras.main.on('camerarotate', this.cameraHandler);
+        this.cameras.main.on('camerascroll', this.cameraHandler);
     }
 
     private createLoginForm() {
-        const container = this.loginContainer;
+        const c = this.loginContainer;
+        const { formWidth, formHeight, formRadius } = this.formManager.getDimensions();
 
-        // Login form background - match main game sidebar style
-        const formBg = this.add.rectangle(0, 0, 600, 400, 0xe9ecef, 0.95);
-        formBg.setStrokeStyle(2, 0x6c757d);
-        container.add(formBg);
+        const formBg = this.add.graphics();
+        formBg.fillStyle(0xffffff, 1);
+        formBg.lineStyle(3, 0xe2e8f0, 1);
+        formBg.fillRoundedRect(-formWidth / 2, -formHeight / 2, formWidth, formHeight, formRadius);
+        formBg.strokeRoundedRect(-formWidth / 2, -formHeight / 2, formWidth, formHeight, formRadius);
+        formBg.setDepth(-1);
+        c.add(formBg);
 
-        // Login title - match main game text styling
-        const loginTitle = this.add.text(0, -150, 'Login', {
-            fontSize: '28px',
-            color: '#2c3e50',
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
-        container.add(loginTitle);
+        // Labels (centered; these are the anchors)
+        this.loginUsernameLabel = this.add.text(0, -110, 'Username', StyleHelpers.createLabelTextStyle()).setOrigin(0.5);
+        this.loginPasswordLabel = this.add.text(0, -30, 'Password', StyleHelpers.createLabelTextStyle()).setOrigin(0.5);
+        c.add([this.loginUsernameLabel, this.loginPasswordLabel]);
 
-        // Username input
-        this.createInputField(container, -50, 'Username', 'text');
+        // Button
+        this.createButton(c, 'Login', 0, 55, () => this.handleLogin());
 
-        // Password input
-        this.createInputField(container, 10, 'Password', 'password');
-
-        // Login button - match main game green button style
-        const loginBtn = this.add.rectangle(0, 80, 200, 40, 0x28a745);
-        const loginBtnText = this.add.text(0, 80, 'Login', {
-            fontSize: '18px',
-            color: '#ffffff',
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
-        loginBtn.setInteractive();
-        loginBtn.on('pointerdown', () => this.handleLogin());
-        container.add([loginBtn, loginBtnText]);
-
-        // Switch to signup - match main game link styling
-        const switchText = this.add.text(0, 120, 'Don\'t have an account? Sign up', {
-            fontSize: '14px',
-            color: '#007bff'
-        }).setOrigin(0.5);
-        switchText.setInteractive();
-        switchText.on('pointerdown', () => this.switchToSignup());
-        container.add(switchText);
+        // Switch link
+        this.createSwitchLink(c, "Don't have an account? Sign up", 0, 120, () => this.switchToSignup());
     }
 
     private createSignupForm() {
-        const container = this.signupContainer;
+        const c = this.signupContainer;
+        const { formWidth, formHeight, formRadius } = this.formManager.getDimensions();
+        const signupHeight = formHeight + 50;
 
-        // Signup form background - match main game sidebar style
-        const formBg = this.add.rectangle(0, 0, 600, 500, 0xe9ecef, 0.95);
-        formBg.setStrokeStyle(2, 0x6c757d);
-        container.add(formBg);
+        const formBg = this.add.graphics();
+        formBg.fillStyle(0xffffff, 1);
+        formBg.lineStyle(3, 0xe2e8f0, 1);
+        formBg.fillRoundedRect(-formWidth / 2, -signupHeight / 2, formWidth, signupHeight, formRadius);
+        formBg.strokeRoundedRect(-formWidth / 2, -signupHeight / 2, formWidth, signupHeight, formRadius);
+        formBg.setDepth(-1);
+        c.add(formBg);
 
-        // Signup title - match main game text styling
-        const signupTitle = this.add.text(0, -170, 'Sign Up', {
-            fontSize: '28px',
-            color: '#2c3e50',
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
-        container.add(signupTitle);
+        c.add(this.add.text(0, -170, 'Sign Up', StyleHelpers.createTitleTextStyle('28px')).setOrigin(0.5));
 
-        // Username input
-        this.createInputField(container, -80, 'Username', 'text');
+        // Labels (anchors)
+        this.signupEmailLabel = this.add.text(0, -100, 'Email', StyleHelpers.createLabelTextStyle()).setOrigin(0.5);
+        this.signupUsernameLabel = this.add.text(0, -30, 'Username', StyleHelpers.createLabelTextStyle()).setOrigin(0.5);
+        this.signupPasswordLabel = this.add.text(0, 30, 'Password', StyleHelpers.createLabelTextStyle()).setOrigin(0.5);
+        c.add([this.signupEmailLabel, this.signupUsernameLabel, this.signupPasswordLabel]);
 
-        // Email input
-        this.createInputField(container, -20, 'Email', 'email');
+        // Button
+        this.createButton(c, 'Create account', 0, 95, () => this.handleSignup());
 
-        // Password input
-        this.createInputField(container, 40, 'Password', 'password');
+        // Switch link
+        this.createSwitchLink(c, 'Already have an account? Login', 0, 160, () => this.switchToLogin());
+    }
 
-        // Signup button - match main game green button style
-        const signupBtn = this.add.rectangle(0, 110, 200, 40, 0x28a745);
-        const signupBtnText = this.add.text(0, 110, 'Sign Up', {
-            fontSize: '18px',
-            color: '#ffffff',
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
-        signupBtn.setInteractive();
-        signupBtn.on('pointerdown', () => this.handleSignup());
-        container.add([signupBtn, signupBtnText]);
+    private createButton(container: Phaser.GameObjects.Container, text: string, x: number, y: number, onClick: () => void) {
+        const { buttonWidth, buttonHeight, buttonRadius, fontSize } = this.formManager.getDimensions();
 
-        // Switch to login - match main game link styling
-        const switchText = this.add.text(0, 150, 'Already have an account? Login', {
-            fontSize: '14px',
-            color: '#007bff'
-        }).setOrigin(0.5);
+        const button = this.add.graphics();
+        button.fillStyle(GAME_CONFIG.COLORS.FRESH_GREEN, 1);
+        button.fillRoundedRect(-buttonWidth / 2, y, buttonWidth, buttonHeight, buttonRadius);
+        button.lineStyle(2, 0xffffff, 0.8);
+        button.strokeRoundedRect(-buttonWidth / 2, y, buttonWidth, buttonHeight, buttonRadius);
+
+        const buttonText = this.add.text(x, y + buttonHeight / 2, text, StyleHelpers.createButtonTextStyle(fontSize.toString())).setOrigin(0.5);
+
+        button.setInteractive(new Phaser.Geom.Rectangle(-buttonWidth / 2, y, buttonWidth, buttonHeight), Phaser.Geom.Rectangle.Contains);
+        (button.input as any)!.cursor = 'pointer';
+
+        button.on('pointerover', () => {
+            button.clear();
+            button.fillStyle(GAME_CONFIG.COLORS.DARK_GREEN, 1);
+            button.fillRoundedRect(-buttonWidth / 2, y, buttonWidth, buttonHeight, buttonRadius);
+            button.lineStyle(2, 0xffffff, 0.8);
+            button.strokeRoundedRect(-buttonWidth / 2, y, buttonWidth, buttonHeight, buttonRadius);
+            this.tweens.add({ targets: buttonText, scale: 1.05, duration: 200, ease: 'Power2' });
+        });
+
+        button.on('pointerout', () => {
+            button.clear();
+            button.fillStyle(GAME_CONFIG.COLORS.FRESH_GREEN, 1);
+            button.fillRoundedRect(-buttonWidth / 2, y, buttonWidth, buttonHeight, buttonRadius);
+            button.lineStyle(2, 0xffffff, 0.8);
+            button.strokeRoundedRect(-buttonWidth / 2, y, buttonWidth, buttonHeight, buttonRadius);
+            this.tweens.add({ targets: buttonText, scale: 1, duration: 200, ease: 'Power2' });
+        });
+
+        button.on('pointerdown', () => {
+            this.tweens.add({ targets: buttonText, scale: 0.95, duration: 100, yoyo: true, ease: 'Power2' });
+            onClick();
+        });
+
+        container.add([button, buttonText]);
+    }
+
+    private createSwitchLink(container: Phaser.GameObjects.Container, text: string, x: number, y: number, onClick: () => void) {
+        const switchText = this.add.text(x, y, text, StyleHelpers.createTextStyle({ fontSize: '14px', color: '#3182ce', fontStyle: '500' })).setOrigin(0.5);
         switchText.setInteractive();
-        switchText.on('pointerdown', () => this.switchToLogin());
+        (switchText.input as any)!.cursor = 'pointer';
+
+        switchText.on('pointerover', () => {
+            switchText.setColor('#2c5282');
+            this.tweens.add({ targets: switchText, scale: 1.05, duration: 200, ease: 'Power2' });
+        });
+        switchText.on('pointerout', () => {
+            switchText.setColor('#3182ce');
+            this.tweens.add({ targets: switchText, scale: 1, duration: 200, ease: 'Power2' });
+        });
+        switchText.on('pointerdown', () => {
+            this.tweens.add({ targets: switchText, scale: 0.95, duration: 100, yoyo: true, ease: 'Power2' });
+            onClick();
+        });
+
         container.add(switchText);
     }
 
-    private createInputField(container: Phaser.GameObjects.Container, y: number, label: string, type: string) {
-        const labelText = this.add.text(-280, y, label, {
-            fontSize: '16px',
-            color: '#2c3e50'
-        }).setOrigin(0, 0.5);
-        container.add(labelText);
-
-        const inputBg = this.add.rectangle(0, y, 350, 35, 0xffffff);
-        inputBg.setStrokeStyle(2, 0x6c757d);
-        container.add(inputBg);
+    private updateInputPositions() {
+        if (this.isSignUpMode) {
+            this.formManager.updateSignupInputPositions(
+                { username: this.signupUsernameInput, email: this.signupEmailInput, password: this.signupPasswordInput },
+                { username: this.usernameInput, password: this.passwordInput },
+                this.signupEmailLabel,
+                this.signupUsernameLabel,
+                this.signupPasswordLabel
+            );
+        } else {
+            this.formManager.updateLoginInputPositions(
+                this.usernameInput,
+                this.passwordInput,
+                { username: this.signupUsernameInput, email: this.signupEmailInput, password: this.signupPasswordInput },
+                this.loginUsernameLabel,
+                this.loginPasswordLabel
+            );
+        }
     }
 
-    private createHTMLInput(type: string, placeholder: string, y: number): HTMLInputElement {
-        const input = document.createElement('input');
-        input.type = type;
-        input.placeholder = placeholder;
-        input.style.position = 'absolute';
-        input.style.left = '50%';
-        input.style.top = '50%';
-        input.style.transform = 'translate(-50%, -50%)';
-        input.style.width = '340px';
-        input.style.height = '30px';
-        input.style.padding = '5px';
-        input.style.border = 'none';
-        input.style.borderRadius = '3px';
-        input.style.backgroundColor = '#ffffff';
-        input.style.color = '#2c3e50';
-        input.style.fontSize = '14px';
-        input.style.outline = 'none';
-        input.style.zIndex = '1000';
-        
-        // Position the input based on y offset
-        const gameHeight = this.sys.game.scale.height;
-        const inputY = (gameHeight * 0.6) + y;
-        input.style.top = `${inputY}px`;
-        
-        document.body.appendChild(input);
-        return input;
+    private async handleLogin() {
+        const username = this.usernameInput?.value.trim() || '';
+        const password = this.passwordInput?.value || '';
+        if (!username || !password) return this.showError('Please fill in all fields');
+
+        this.showLoading('Logging in...');
+        try {
+            const user = await this.authService.signInWithUsername(username, password);
+            if (user) this.startGame();
+        } catch (error: any) {
+            this.showError(this.getErrorMessage(error));
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    private async handleSignup() {
+        const email = this.signupEmailInput?.value.trim() || '';
+        const username = this.signupUsernameInput?.value.trim() || '';
+        const password = this.signupPasswordInput?.value || '';
+
+        if (!email || !username || !password) return this.showError('Please fill in all fields');
+        if (password.length < 6) return this.showError('Password must be at least 6 characters');
+
+        this.showLoading('Creating account...');
+        try {
+            const user = await this.authService.signUpWithUsername(username, password, email);
+            if (user) this.startGame();
+        } catch (error: any) {
+            this.showError(this.getErrorMessage(error));
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    private startGame() {
+        this.formManager.removeInputs([
+            this.usernameInput, this.passwordInput,
+            this.signupUsernameInput, this.signupEmailInput, this.signupPasswordInput
+        ]);
+        this.scene.start('Preloader');
+    }
+
+    private clearInputValues() {
+        [this.usernameInput, this.passwordInput, this.signupUsernameInput, this.signupEmailInput, this.signupPasswordInput]
+            .forEach(i => i && (i.value = ''));
     }
 
     private switchToSignup() {
         this.isSignUpMode = true;
         this.loginContainer.setVisible(false);
         this.signupContainer.setVisible(true);
-        
-        // Clear input values when switching modes
         this.clearInputValues();
-        
-        // Update input positions for signup form
         this.updateInputPositions();
         this.clearError();
     }
@@ -243,177 +320,57 @@ export class LoginScene extends Phaser.Scene {
         this.isSignUpMode = false;
         this.loginContainer.setVisible(true);
         this.signupContainer.setVisible(false);
-        
-        // Clear input values when switching modes
         this.clearInputValues();
-        
-        // Update input positions for login form
         this.updateInputPositions();
         this.clearError();
     }
 
-    private updateInputPositions() {
-        const gameHeight = this.sys.game.scale.height;
-        const baseY = gameHeight * 0.6;
-
-        if (this.isSignUpMode) {
-            // Signup form positions
-            if (this.displayNameInput) {
-                this.displayNameInput.style.top = `${baseY - 80}px`;
-                this.displayNameInput.style.display = 'block';
-            }
-            if (this.emailInput) {
-                this.emailInput.style.top = `${baseY - 20}px`;
-                this.emailInput.placeholder = LoginScene.EMAIL_PLACEHOLDER;
-            }
-            if (this.passwordInput) {
-                this.passwordInput.style.top = `${baseY + 40}px`;
-                this.passwordInput.placeholder = LoginScene.PASSWORD_PLACEHOLDER;
-            }
-        } else {
-            // Login form positions
-            if (this.displayNameInput) {
-                this.displayNameInput.style.display = 'none';
-            }
-            if (this.emailInput) {
-                this.emailInput.style.top = `${baseY - 50}px`;
-                this.emailInput.placeholder = LoginScene.USERNAME_PLACEHOLDER;
-            }
-            if (this.passwordInput) {
-                this.passwordInput.style.top = `${baseY + 10}px`;
-                this.passwordInput.placeholder = LoginScene.PASSWORD_PLACEHOLDER;
-            }
-        }
-    }
-
-    private async handleLogin() {
-        const username = this.emailInput?.value.trim() || '';
-        const password = this.passwordInput?.value || '';
-
-        if (!username || !password) {
-            this.showError('Please fill in all fields');
-            return;
-        }
-
-        this.showLoading('Logging in...');
-        this.clearError();
-
-        try {
-            await this.authService.signInWithUsername(username, password);
-            // Authentication state change will trigger startGame()
-        } catch (error: any) {
-            this.hideLoading();
-            this.showError(this.getErrorMessage(error.message || error.code));
-        }
-    }
-
-    private async handleSignup() {
-        const email = this.emailInput?.value.trim() || '';
-        const password = this.passwordInput?.value || '';
-        const username = this.displayNameInput?.value.trim() || '';
-
-        if (!email || !password || !username) {
-            this.showError('Please fill in all fields');
-            return;
-        }
-
-        if (password.length < 6) {
-            this.showError('Password must be at least 6 characters');
-            return;
-        }
-
-        this.showLoading('Creating account...');
-        this.clearError();
-
-        try {
-            await this.authService.signUpWithUsername(username, password, email);
-            // Authentication state change will trigger startGame()
-        } catch (error: any) {
-            this.hideLoading();
-            this.showError(this.getErrorMessage(error.message || error.code));
-        }
-    }
-
-    private startGame() {
-        // Remove HTML inputs
-        this.removeHTMLInputs();
-        
-        // Start the game scenes
-        this.scene.start('Preloader');
-    }
-
-    private removeHTMLInputs() {
-        // Safely remove HTML inputs if they exist
-        this.emailInput?.parentNode?.removeChild(this.emailInput);
-        this.passwordInput?.parentNode?.removeChild(this.passwordInput);
-        this.displayNameInput?.parentNode?.removeChild(this.displayNameInput);
-        
-        // Clear references
-        this.emailInput = null;
-        this.passwordInput = null;
-        this.displayNameInput = null;
-    }
-
     private showError(message: string) {
-        this.errorText.setText(message);
+        this.errorText?.setText(message);
     }
-
     private clearError() {
-        this.errorText.setText('');
+        this.errorText?.setText('');
     }
-
-    private clearInputValues() {
-        if (this.emailInput) {
-            this.emailInput.value = '';
-        }
-        if (this.passwordInput) {
-            this.passwordInput.value = '';
-        }
-        if (this.displayNameInput) {
-            this.displayNameInput.value = '';
-        }
-    }
-
     private showLoading(message: string) {
-        this.loadingText.setText(message);
+        this.loadingText?.setText(message);
     }
-
     private hideLoading() {
-        this.loadingText.setText('');
+        this.loadingText?.setText('');
     }
 
-    private getErrorMessage(errorCode: string): string {
-        switch (errorCode) {
-            case 'auth/user-not-found':
-                return 'No account found with this username';
-            case 'auth/wrong-password':
-                return 'Incorrect password';
-            case 'auth/email-already-in-use':
-                return 'An account with this email already exists';
-            case 'auth/weak-password':
-                return 'Password is too weak';
-            case 'auth/invalid-email':
-                return 'Invalid email address';
-            case 'auth/too-many-requests':
-                return 'Too many failed attempts. Please try again later';
-            case 'Username not found':
-                return 'Username not found. Please check your username or sign up for a new account.';
-            case 'Username is already taken':
-                return 'This username is already taken. Please choose a different username.';
-            default:
-                return 'An error occurred. Please try again';
+    private getErrorMessage(error: any): string {
+        if (error?.code) {
+            switch (error.code) {
+                case 'auth/user-not-found': return 'No account found with this email';
+                case 'auth/wrong-password': return 'Incorrect password';
+                case 'auth/email-already-in-use': return 'Email already registered';
+                case 'auth/weak-password': return 'Password is too weak';
+                case 'auth/invalid-email': return 'Invalid email address';
+                case 'auth/too-many-requests': return 'Too many attempts. Try again later';
+                default: return 'An error occurred. Please try again';
+            }
         }
+        return 'An error occurred. Please try again';
     }
 
     shutdown() {
-        // Clean up HTML inputs
-        this.removeHTMLInputs();
-        
-        // Clear any error or loading messages
+        if (this.resizeHandler) {
+            window.removeEventListener('resize', this.resizeHandler);
+            this.resizeHandler = null;
+        }
+        if (this.cameraHandler) {
+            this.scale.off('resize', this.cameraHandler);
+            this.cameras.main.off('camerazoom', this.cameraHandler);
+            this.cameras.main.off('camerarotate', this.cameraHandler);
+            this.cameras.main.off('camerascroll', this.cameraHandler);
+            this.cameraHandler = null;
+        }
+        this.formManager.removeInputs([
+            this.usernameInput, this.passwordInput,
+            this.signupUsernameInput, this.signupEmailInput, this.signupPasswordInput
+        ]);
         this.errorText?.setText('');
         this.loadingText?.setText('');
-        
-        // Reset form state
         this.isSignUpMode = false;
     }
 }

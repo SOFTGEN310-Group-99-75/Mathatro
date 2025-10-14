@@ -19,14 +19,14 @@ export const GAME_CONFIG = {
     HEALTH_WARNING: 0.5,
     HEALTH_CRITICAL: 0.25,
 
-    // Card dimensions
+    // Card dimensions - Enhanced styling
     CARD_WIDTH: 60,
     CARD_HEIGHT: 84,
-    CARD_BORDER_WIDTH: 3,
+    CARD_BORDER_WIDTH: 2,
     CARD_BORDER_COLOR: 0xd4af37,
-    CARD_SHADOW_OFFSET_X: 4,
-    CARD_SHADOW_OFFSET_Y: 6,
-    CARD_SHADOW_ALPHA: 0.18,
+    CARD_SHADOW_OFFSET_X: 3,
+    CARD_SHADOW_OFFSET_Y: 4,
+    CARD_SHADOW_ALPHA: 0.25,
 
     // Layout constants
     MARGIN: 12,
@@ -35,19 +35,39 @@ export const GAME_CONFIG = {
     INNER_PADDING: 35,
     CARD_GAP: 8,
 
-    // UI Colors
+    // UI Colors - Modern Palette
     COLORS: {
-        GREEN_FELT: 0x206030,
+        // Primary Colors
+        DEEP_PURPLE: 0x4a5568,
+        NAVY_BLUE: 0x2d3748,
+        VIBRANT_BLUE: 0x3182ce,
+        DARK_BLUE: 0x2c5aa0,
+
+        // Accent Colors
+        WARM_ORANGE: 0xed8936,
+        DARK_ORANGE: 0xdd6b20,
+        FRESH_GREEN: 0x48bb78,
+        DARK_GREEN: 0x38a169,
+        CORAL_RED: 0xfc8181,
+        AMBER: 0xf6ad55,
+
+        // Background Colors
+        LIGHT_BG: 0xf7fafc,
+        MEDIUM_BG: 0xedf2f7,
+        DARK_BG: 0xe2e8f0,
+
+        // Legacy colors for compatibility
+        GREEN_FELT: 0x48bb78,
         WHITE: '#ffffff',
         BLACK: '#000000',
         PURPLE: '#8c7ae6',
         LIGHT_PURPLE: '#9c88ff',
         RED: '#ff0000',
-        GREEN: 0x2ecc71,
-        YELLOW: 0xf1c40f,
-        RED_CRITICAL: 0xe74c3c,
-        GRAY: 0xbbbbbb,
-        LIGHT_GRAY: 0xa1a1a1,
+        GREEN: 0x48bb78,
+        YELLOW: 0xf6ad55,
+        RED_CRITICAL: 0xfc8181,
+        GRAY: 0x718096,
+        LIGHT_GRAY: 0xe2e8f0,
         BLUE: 0x3498db,
         DARK_GRAY: '#333333',
         MEDIUM_GRAY: '#666666',
@@ -67,13 +87,22 @@ export const GAME_CONFIG = {
         DRAGGING: 0.85,
     },
 
-    // Text styling
+    // Text styling - Modern Typography with Inter font
     FONT: {
         TITLE_SIZE: 40,
         OBJECTIVE_SIZE: 20,
         CARD_SIZE: 22,
         SCORE_SIZE: 16,
         CAPTION_SIZE: 12,
+        FAMILY: '"Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        WEIGHT: {
+            LIGHT: '300',
+            NORMAL: '400',
+            MEDIUM: '500',
+            SEMIBOLD: '600',
+            BOLD: '700',
+            EXTRABOLD: '800'
+        },
         HINT_SIZE: 10,
         STROKE_THICKNESS: 4,
         STROKE_COLOR: '#000000',
@@ -120,20 +149,20 @@ export const GAME_CONFIG = {
         HEALTH_BAR_HEIGHT: 22,
         HEALTH_BAR_GAMES_COUNTER_WIDTH: 110,
         HEALTH_HINT_Y_OFFSET: 12,
-        GAMES_COUNTER_WIDTH: 92,
-        GAMES_COUNTER_HEIGHT: 30,
+        GAMES_COUNTER_WIDTH: 150,
+        GAMES_COUNTER_HEIGHT: 35,
 
         // Objective positioning
         OBJECTIVE_Y_OFFSET: 70,
-        OBJECTIVE_WIDTH: 120,
-        OBJECTIVE_HEIGHT: 36,
+        OBJECTIVE_WIDTH: 200,
+        OBJECTIVE_HEIGHT: 50,
         OBJECTIVE_CAPTION_Y_OFFSET: 6,
 
         // Bar positioning
         RESULT_BAR_X_OFFSET: 40,
         RESULT_BAR_WIDTH_OFFSET: 80,
         RESULT_BAR_HEIGHT: 110,
-        RESULT_BAR_Y_OFFSET: 50,
+        RESULT_BAR_Y_OFFSET: 70,
         HAND_BAR_X_OFFSET: 20,
         HAND_BAR_WIDTH_OFFSET: 40,
         HAND_BAR_HEIGHT: 110,
@@ -209,30 +238,30 @@ export const CARD_NAMES = [
 export type DifficultyMode = 'easy' | 'medium' | 'hard';
 
 export interface DifficultyConfig {
-  operators: string[];
-  minNumber: number;
-  maxNumber: number;
-  maxLevels: number;
+    operators: string[];
+    minNumber: number;
+    maxNumber: number;
+    maxLevels: number;
 }
 export const DIFFICULTY_CONFIG: Record<DifficultyMode, DifficultyConfig> = {
-  easy: {
-    operators: ['+', '-'],
-    minNumber: 1,
-    maxNumber: 9,
-    maxLevels: 5
-  },
-  medium: {
-    operators: ['+', '-', '*', '/'],
-    minNumber: 1,
-    maxNumber: 9,
-    maxLevels: 7
-  },
-  hard: {
-    operators: ['+', '-', '*', '/', '^'],
-    minNumber: 1,
-    maxNumber: 9,
-    maxLevels: 10
-  }
+    easy: {
+        operators: ['+', '-'],
+        minNumber: 1,
+        maxNumber: 9,
+        maxLevels: 5
+    },
+    medium: {
+        operators: ['+', '-', '*', '/'],
+        minNumber: 1,
+        maxNumber: 9,
+        maxLevels: 7
+    },
+    hard: {
+        operators: ['+', '-', '*', '/', '^'],
+        minNumber: 1,
+        maxNumber: 9,
+        maxLevels: 10
+    }
 };
 
 

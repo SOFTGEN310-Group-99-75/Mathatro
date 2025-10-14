@@ -164,10 +164,10 @@ export class LayoutManager {
     /**
      * Calculate games counter positioning
      */
-    static calculateGamesCounterLayout(mainX: number, mainY: number, mainWidth: number): GamesCounterLayout {
+    static calculateGamesCounterLayout(mainX: number, mainY: number, mainWidth: number, healthBarHeight: number): GamesCounterLayout {
         return {
-            x: mainX + mainWidth - GAME_CONFIG.LAYOUT.GAMES_COUNTER_WIDTH,
-            y: mainY,
+            x: mainX,
+            y: mainY + healthBarHeight + 10,
             width: GAME_CONFIG.LAYOUT.GAMES_COUNTER_WIDTH,
             height: GAME_CONFIG.LAYOUT.GAMES_COUNTER_HEIGHT
         };
@@ -258,9 +258,10 @@ export class LayoutManager {
     static calculateCompleteLayout(gameWidth: number, gameHeight: number): CompleteLayout {
         const mainArea = this.calculateMainAreaDimensions(gameWidth, gameHeight);
         const sidebar = this.calculateSidebarLayout(gameWidth, gameHeight);
-        const healthBar = this.calculateHealthBarLayout(mainArea.mainX, mainArea.margin, mainArea.mainWidth);
-        const gamesCounter = this.calculateGamesCounterLayout(mainArea.mainX, mainArea.margin, mainArea.mainWidth);
-        const objective = this.calculateObjectiveLayout(mainArea.mainX, mainArea.margin, mainArea.mainWidth);
+        const healthBarYOffset = 25; // Extra space for "Health bar" label
+        const healthBar = this.calculateHealthBarLayout(mainArea.mainX, mainArea.margin + healthBarYOffset, mainArea.mainWidth);
+        const gamesCounter = this.calculateGamesCounterLayout(mainArea.mainX, mainArea.margin + healthBarYOffset, mainArea.mainWidth, GAME_CONFIG.LAYOUT.HEALTH_BAR_HEIGHT);
+        const objective = this.calculateObjectiveLayout(mainArea.mainX, mainArea.margin + healthBarYOffset, mainArea.mainWidth);
         const resultBar = this.calculateResultBarLayout(mainArea.mainX, objective.y, mainArea.mainWidth);
         const handBar = this.calculateHandBarLayout(mainArea.mainX, resultBar.y, mainArea.mainWidth);
         const testSection = this.calculateTestSectionLayout(mainArea.mainX, mainArea.margin, mainArea.mainWidth);

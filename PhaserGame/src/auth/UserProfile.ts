@@ -1,12 +1,13 @@
 import Phaser from 'phaser';
 import { AuthService, AuthUser } from './AuthService';
+import { GAME_CONFIG } from '../config/GameConstants';
 
 export class UserProfile {
     private readonly scene: Phaser.Scene;
     private readonly authService: AuthService;
     private readonly profileContainer: Phaser.GameObjects.Container;
     private userInfo: Phaser.GameObjects.Text;
-    private logoutButton: Phaser.GameObjects.Rectangle;
+    private logoutButton: Phaser.GameObjects.Graphics;
     private logoutText: Phaser.GameObjects.Text;
     private currentUser: AuthUser | null = null;
 
@@ -18,39 +19,74 @@ export class UserProfile {
     }
 
     public create(x: number, y: number) {
-        // Profile background with modern rounded corners effect
-        const profileBg = this.scene.add.rectangle(x, y, 180, 60, 0x34495e, 0.95);
-        profileBg.setStrokeStyle(1, 0x2c3e50, 0.8);
+        // Profile background with rounded corners
+        const bgWidth = 180;
+        const bgHeight = 60;
+        const bgRadius = 12;
+
+        const profileBg = this.scene.add.graphics();
+        profileBg.fillStyle(GAME_CONFIG.COLORS.DEEP_PURPLE, 0.85);
+        profileBg.lineStyle(2, 0xffffff, 0.9);
+        profileBg.fillRoundedRect(x - bgWidth / 2, y - bgHeight / 2, bgWidth, bgHeight, bgRadius);
+        profileBg.strokeRoundedRect(x - bgWidth / 2, y - bgHeight / 2, bgWidth, bgHeight, bgRadius);
         this.profileContainer.add(profileBg);
 
         // User info text - only display name
-        this.userInfo = this.scene.add.text(x, y - 8, '', {
+        this.userInfo = this.scene.add.text(x, y - 12, '', {
             fontSize: '16px',
             color: '#ecf0f1',
-            fontStyle: 'bold',
+            fontStyle: '500',
+            fontFamily: GAME_CONFIG.FONT.FAMILY,
             align: 'center'
         }).setOrigin(0.5);
         this.profileContainer.add(this.userInfo);
 
-        // Logout button with modern styling
-        this.logoutButton = this.scene.add.rectangle(x, y + 18, 100, 28, 0xe74c3c);
-        this.logoutButton.setStrokeStyle(1, 0xc0392b, 0.8);
-        this.logoutText = this.scene.add.text(x, y + 18, 'Logout', {
+        // Logout button with rounded corners
+        const buttonWidth = 100;
+        const buttonHeight = 28;
+        const borderRadius = 8;
+        const buttonY = y + 12; // Moved up from y + 18
+
+        this.logoutButton = this.scene.add.graphics();
+        this.logoutButton.fillStyle(GAME_CONFIG.COLORS.CORAL_RED, 0.9);
+        this.logoutButton.lineStyle(2, 0xffffff, 0.8);
+        this.logoutButton.fillRoundedRect(x - buttonWidth / 2, buttonY - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
+        this.logoutButton.strokeRoundedRect(x - buttonWidth / 2, buttonY - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
+
+        this.logoutText = this.scene.add.text(x, buttonY, 'Logout', {
             fontSize: '13px',
             color: '#ffffff',
-            fontStyle: 'bold'
+            fontStyle: '500',
+            fontFamily: GAME_CONFIG.FONT.FAMILY
         }).setOrigin(0.5);
-        
+
         // Add hover effects
-        this.logoutButton.setInteractive({ useHandCursor: true });
+        const hitArea = new Phaser.Geom.Rectangle(
+            x - buttonWidth / 2,
+            buttonY - buttonHeight / 2,
+            buttonWidth,
+            buttonHeight
+        );
+
+        this.logoutButton.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
+        this.logoutButton.input!.cursor = 'pointer';
+
         this.logoutButton.on('pointerover', () => {
-            this.logoutButton.setFillStyle(0xc0392b);
+            this.logoutButton.clear();
+            this.logoutButton.fillStyle(0xc0392b, 1);
+            this.logoutButton.lineStyle(1, 0xc0392b, 0.8);
+            this.logoutButton.fillRoundedRect(x - buttonWidth / 2, buttonY - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
+            this.logoutButton.strokeRoundedRect(x - buttonWidth / 2, buttonY - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
         });
         this.logoutButton.on('pointerout', () => {
-            this.logoutButton.setFillStyle(0xe74c3c);
+            this.logoutButton.clear();
+            this.logoutButton.fillStyle(GAME_CONFIG.COLORS.CORAL_RED, 1);
+            this.logoutButton.lineStyle(1, 0xc0392b, 0.8);
+            this.logoutButton.fillRoundedRect(x - buttonWidth / 2, buttonY - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
+            this.logoutButton.strokeRoundedRect(x - buttonWidth / 2, buttonY - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
         });
         this.logoutButton.on('pointerdown', () => this.handleLogout());
-        
+
         this.profileContainer.add([this.logoutButton, this.logoutText]);
 
         // Listen for authentication state changes

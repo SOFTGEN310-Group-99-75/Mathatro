@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_CONFIG } from '../config/GameConstants';
+import { StyleHelpers } from './StyleHelpers';
 
 /**
  * UI Helper utilities to reduce code duplication across scenes
@@ -13,6 +14,7 @@ export interface LabelBoxOptions {
     fontStyle?: string;
     align?: string;
     bg?: string;
+    radius?: number;
 }
 
 export interface CardOptions extends LabelBoxOptions {
@@ -24,10 +26,99 @@ export interface RectOptions {
     alpha?: number;
     strokeColor?: number;
     strokeWidth?: number;
+    radius?: number;
+    gradient?: {
+        from: number;
+        to: number;
+        direction: 'horizontal' | 'vertical';
+    };
 }
 
 /**
  * Creates a styled rectangle with consistent styling
+ */
+interface GraphicsFillParams {
+    graphics: Phaser.GameObjects.Graphics;
+    bounds: { x: number; y: number; w: number; h: number };
+    gradient?: { from: number; to: number };
+    fill?: number;
+    alpha: number;
+    radius?: number;
+}
+
+interface GraphicsStrokeParams {
+    graphics: Phaser.GameObjects.Graphics;
+    bounds: { x: number; y: number; w: number; h: number };
+    strokeWidth: number;
+    strokeColor: number;
+    radius?: number;
+}
+
+/**
+ * Helper function to apply gradient fill to graphics
+ */
+const applyGradientFill = (params: GraphicsFillParams) => {
+    if (!params.gradient) return;
+
+    const { graphics, bounds, gradient, alpha, radius } = params;
+    const { x, y, w, h } = bounds;
+    const gradientSteps = 5;
+    const stepHeight = h / gradientSteps;
+
+    for (let i = 0; i < gradientSteps; i++) {
+        const stepY = y + (i * stepHeight);
+        const stepAlpha = alpha * (1 - (i * 0.1));
+        const color = Phaser.Display.Color.Interpolate.ColorWithColor(
+            Phaser.Display.Color.IntegerToColor(gradient.from),
+            Phaser.Display.Color.IntegerToColor(gradient.to),
+            gradientSteps,
+            i
+        );
+        const stepColor = Phaser.Display.Color.GetColor(color.r, color.g, color.b);
+
+        graphics.fillStyle(stepColor, stepAlpha);
+        if (radius) {
+            graphics.fillRoundedRect(x, stepY, w, stepHeight + 1, radius);
+        } else {
+            graphics.fillRect(x, stepY, w, stepHeight + 1);
+        }
+    }
+};
+
+/**
+ * Helper function to apply solid fill to graphics
+ */
+const applySolidFill = (params: GraphicsFillParams) => {
+    const { graphics, bounds, fill, alpha, radius } = params;
+    const { x, y, w, h } = bounds;
+
+    if (!fill) return;
+
+    graphics.fillStyle(fill, alpha);
+    if (radius) {
+        graphics.fillRoundedRect(x, y, w, h, radius);
+    } else {
+        graphics.fillRect(x, y, w, h);
+    }
+};
+
+/**
+ * Helper function to apply stroke to graphics
+ */
+const applyStroke = (params: GraphicsStrokeParams) => {
+    const { graphics, bounds, strokeWidth, strokeColor, radius } = params;
+    const { x, y, w, h } = bounds;
+
+    graphics.lineStyle(strokeWidth, strokeColor, 0.7);
+    if (radius) {
+        graphics.strokeRoundedRect(x, y, w, h, radius);
+    } else {
+        graphics.strokeRect(x, y, w, h);
+    }
+};
+
+/**
+ * Creates a styled rectangle with optional rounded corners and gradients
  */
 export const createStyledRect = (
     scene: Phaser.Scene,
@@ -37,6 +128,44 @@ export const createStyledRect = (
     h: number,
     options: RectOptions = {}
 ) => {
+    const needsGraphics = (options.radius && options.radius > 0) || options.gradient;
+
+    if (needsGraphics) {
+        const graphics = scene.add.graphics();
+        const alpha = options.alpha ?? GAME_CONFIG.ALPHA.FELT;
+        const fill = options.fill ?? GAME_CONFIG.COLORS.GREEN_FELT;
+        const bounds = { x, y, w, h };
+
+        if (options.gradient) {
+            applyGradientFill({
+                graphics,
+                bounds,
+                gradient: options.gradient,
+                alpha,
+                radius: options.radius
+            });
+        } else {
+            applySolidFill({
+                graphics,
+                bounds,
+                fill,
+                alpha,
+                radius: options.radius
+            });
+        }
+
+        applyStroke({
+            graphics,
+            bounds,
+            strokeWidth: options.strokeWidth ?? 2,
+            strokeColor: options.strokeColor ?? 0xffffff,
+            radius: options.radius
+        });
+
+        return graphics;
+    }
+
+    // Use regular rectangle for simple cases
     const rect = scene.add.rectangle(
         x, y, w, h,
         options.fill ?? GAME_CONFIG.COLORS.GREEN_FELT,
@@ -67,7 +196,8 @@ export const createLabelBox = (
     const group = scene.add.container(x, y);
     const box = createStyledRect(scene, 0, 0, w, h, {
         fill: options.fill ?? GAME_CONFIG.COLORS.GREEN_FELT,
-        alpha: options.alpha ?? GAME_CONFIG.ALPHA.FELT
+        alpha: options.alpha ?? GAME_CONFIG.ALPHA.FELT,
+        radius: options.radius
     });
 
     const textObj = scene.add.text(w / 2, h / 2, text, {
@@ -84,7 +214,8 @@ export const createLabelBox = (
             color: GAME_CONFIG.COLORS.BLACK,
             blur: GAME_CONFIG.FONT.SHADOW_BLUR,
             fill: true
-        }
+        },
+        wordWrap: { width: w - 10, useAdvancedWrap: true }
     }).setOrigin(0.5);
 
     group.add([box, textObj]);
@@ -101,13 +232,9 @@ export const createTitleText = (
     text: string,
     options: Partial<LabelBoxOptions> = {}
 ) => {
-    return scene.add.text(x, y, text, {
-        align: "center",
-        strokeThickness: GAME_CONFIG.FONT.STROKE_THICKNESS,
-        fontSize: options.fontSize ?? GAME_CONFIG.FONT.TITLE_SIZE,
-        fontStyle: "bold",
-        color: options.color ?? GAME_CONFIG.COLORS.PURPLE
-    }).setOrigin(0.5);
+    const titleText = scene.add.text(x, y, text, StyleHelpers.createTitleTextStyle(options.fontSize ? `${options.fontSize}px` : undefined)).setOrigin(0.5);
+    StyleHelpers.applyTitleStyle(titleText);
+    return titleText;
 };
 
 /**
@@ -200,21 +327,12 @@ export const createStyledText = (
     text: string,
     options: Partial<LabelBoxOptions> = {}
 ) => {
-    return scene.add.text(x, y, text, {
-        fontSize: options.fontSize ?? GAME_CONFIG.FONT.SCORE_SIZE,
+    return scene.add.text(x, y, text, StyleHelpers.createTextStyle({
+        fontSize: options.fontSize ? `${options.fontSize}px` : `${GAME_CONFIG.FONT.SCORE_SIZE}px`,
         color: options.color ?? GAME_CONFIG.COLORS.BLACK,
-        fontStyle: options.fontStyle ?? 'bold',
-        align: options.align ?? 'center',
-        stroke: GAME_CONFIG.FONT.STROKE_COLOR,
-        strokeThickness: 2,
-        shadow: {
-            offsetX: GAME_CONFIG.FONT.SHADOW_OFFSET_X,
-            offsetY: GAME_CONFIG.FONT.SHADOW_OFFSET_Y,
-            color: GAME_CONFIG.COLORS.BLACK,
-            blur: GAME_CONFIG.FONT.SHADOW_BLUR,
-            fill: true
-        }
-    }).setOrigin(0.5);
+        fontStyle: options.fontStyle ?? '500',
+        fontFamily: GAME_CONFIG.FONT.FAMILY
+    })).setOrigin(0.5);
 };
 
 /**
@@ -232,36 +350,35 @@ export const createStyledCard = (
     const { draggable = false } = options;
     const group = scene.add.container(x, y);
 
-    // Shadow
-    const shadow = scene.add.rectangle(
+    // Enhanced shadow with blur effect
+    const shadow = scene.add.graphics();
+    shadow.fillStyle(0x000000, GAME_CONFIG.CARD_SHADOW_ALPHA * 1.5);
+    shadow.fillRoundedRect(
         GAME_CONFIG.CARD_SHADOW_OFFSET_X,
         GAME_CONFIG.CARD_SHADOW_OFFSET_Y,
         w, h,
-        0x000000,
-        GAME_CONFIG.CARD_SHADOW_ALPHA
-    ).setOrigin(0, 0);
-
-    // Card background
-    const card = scene.add.rectangle(0, 0, w, h, options.fill ?? 0xffffff, options.alpha ?? 1)
-        .setOrigin(0, 0);
-
-    card.setStrokeStyle(
-        GAME_CONFIG.CARD_BORDER_WIDTH,
-        GAME_CONFIG.CARD_BORDER_COLOR,
-        1
+        8 // Rounded shadow to match card
     );
 
-    // Text
+    // Card background with modern styling
+    const card = scene.add.graphics();
+    card.fillStyle(options.fill ?? 0xffffff, options.alpha ?? 1);
+    card.lineStyle(2, GAME_CONFIG.COLORS.DEEP_PURPLE, 0.8);
+    card.fillRoundedRect(0, 0, w, h, 8);
+    card.strokeRoundedRect(0, 0, w, h, 8);
+
+    // Text with modern typography and Inter font
     const text = scene.add.text(w / 2, h / 2, label, {
         fontSize: options.fontSize ?? GAME_CONFIG.FONT.CARD_SIZE,
-        color: options.color ?? GAME_CONFIG.COLORS.BLACK,
-        fontStyle: options.fontStyle ?? 'bold',
+        color: options.color ?? '#4a5568',
+        fontStyle: options.fontStyle ?? '600',
+        fontFamily: GAME_CONFIG.FONT.FAMILY,
         stroke: GAME_CONFIG.FONT.STROKE_COLOR,
-        strokeThickness: 2,
+        strokeThickness: 1,
         shadow: {
             offsetX: GAME_CONFIG.FONT.SHADOW_OFFSET_X,
             offsetY: GAME_CONFIG.FONT.SHADOW_OFFSET_Y,
-            color: GAME_CONFIG.COLORS.BLACK,
+            color: '#ffffff',
             blur: GAME_CONFIG.FONT.SHADOW_BLUR,
             fill: true
         }
@@ -270,7 +387,10 @@ export const createStyledCard = (
     group.add([shadow, card, text]);
     (group as any).shadow = shadow;
     (group as any).slot = null;
+    (group as any).card = card;
+    (group as any).text = text;
 
+    // Add hover effects and drag functionality
     if (draggable) {
         group.setSize(w, h);
         group.setInteractive(
@@ -278,6 +398,29 @@ export const createStyledCard = (
             Phaser.Geom.Rectangle.Contains
         );
         scene.input.setDraggable(group);
+
+        // Add hover effects for better interactivity
+        group.on('pointerover', () => {
+            // Slightly scale up and enhance shadow
+            group.setScale(1.05);
+            shadow.setAlpha(GAME_CONFIG.CARD_SHADOW_ALPHA * 2);
+        });
+
+        group.on('pointerout', () => {
+            // Reset scale and shadow
+            group.setScale(1);
+            shadow.setAlpha(GAME_CONFIG.CARD_SHADOW_ALPHA * 1.5);
+        });
+
+        group.on('pointerdown', () => {
+            // Slightly scale down for press effect
+            group.setScale(0.98);
+        });
+
+        group.on('pointerup', () => {
+            // Reset to hover state
+            group.setScale(1.05);
+        });
     }
 
     return group;

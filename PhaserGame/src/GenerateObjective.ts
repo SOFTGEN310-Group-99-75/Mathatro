@@ -1,4 +1,4 @@
-import { GAME_CONFIG, OBJECTIVE_TYPES, PRIME_NUMBERS, DIFFICULTY_CONFIG, DifficultyMode } from './config/GameConstants';
+import { GAME_CONFIG, OBJECTIVE_TYPES, PRIME_NUMBERS, DifficultyMode } from './config/GameConstants';
 
 // Difficulty-specific objective pools
 const EASY_OBJECTIVES = ["Equal to", "Odd number", "Even number"];
@@ -6,7 +6,7 @@ const MEDIUM_OBJECTIVES = ["Greater than", "Less than", "Divisible by", "Prime n
 const HARD_OBJECTIVES = ["Power of", "Factor of", "Prime number", "Divisible by"];
 
 export const GenerateObjective = (difficulty: DifficultyMode): string => {
-    let pool: string[];
+    let pool: readonly string[];
 
     switch (difficulty) {
         case "easy":
@@ -22,7 +22,7 @@ export const GenerateObjective = (difficulty: DifficultyMode): string => {
             pool = OBJECTIVE_TYPES;
     }
 
-    const obj = Phaser.Utils.Array.GetRandom(pool);
+    const obj = Phaser.Utils.Array.GetRandom([...pool]);
     let objective = "";
 
     switch (obj) {
