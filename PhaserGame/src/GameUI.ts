@@ -342,10 +342,17 @@ export class GameUI extends Phaser.Scene {
                 this.feedbackAnimations.showIncorrectFeedback();
 
                 this.gameManager.updateLives(-1);
+                this.gameManager.updateLives(-1);
+
+                // Check if player is out of health
+                if (this.gameManager.getGameState().lives <= 0) {
+                    this.showGameOverOverlay();
+                    return;
+                }
+
             }
 
         });
-
 
         // UI is now updated via GameManager events - no direct event handling needed
 
@@ -361,6 +368,43 @@ export class GameUI extends Phaser.Scene {
 
         this.createDragEvents();
     }
+
+    private showGameOverOverlay() {
+    const { width: W, height: H } = this.sys.game.scale;
+    const overlay = this.add.container(0, 0).setDepth(5000);
+
+    const maskBg = this.add.rectangle(0, 0, W, H, 0x000000, 0.55).setOrigin(0, 0).setInteractive();
+    overlay.add(maskBg);
+
+    const panel = this.add.rectangle(W / 2 - 240, H / 2 - 130, 480, 260, 0xffffff, 0.92)
+        .setOrigin(0, 0)
+        .setStrokeStyle(4, 0xfc8181);
+    overlay.add(panel);
+
+    const title = this.add.text(W / 2, H / 2 - 20, 'GAME OVER', {
+        fontSize: '48px',
+        color: '#fc8181',
+        fontStyle: 'bold'
+    }).setOrigin(0.5);
+    overlay.add(title);
+
+    const homeBtn = this.add.text(W / 2, H / 2 + 60, 'Return Home', {
+        fontSize: '28px',
+        color: '#ffffff',
+        backgroundColor: '#fc8181',
+        padding: { left: 20, right: 20, top: 10, bottom: 10 }
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    overlay.add(homeBtn);
+
+    homeBtn.on('pointerover', () => homeBtn.setStyle({ backgroundColor: '#ff9c9c' }));
+    homeBtn.on('pointerout', () => homeBtn.setStyle({ backgroundColor: '#fc8181' }));
+
+    homeBtn.on('pointerdown', () => {
+        this.scene.stop('GameUI');
+        this.scene.start('Play');
+    });
+    }
+
 
     setHealth(ratio: number) {
         const r = Phaser.Math.Clamp(ratio, 0, 1);
