@@ -52,9 +52,6 @@ export class ResponsiveFormManager {
         input.placeholder = placeholder;
 
         Object.assign(input.style, {
-            position: 'relative',  // relative to wrapper
-            left: '0px',
-            top: '0px',
             width: `${width}px`,
             height: `${height}px`,
             fontSize: `${fontSize}px`,
@@ -86,22 +83,12 @@ export class ResponsiveFormManager {
             })
         );
 
-        // Absolutely-positioned wrapper overlays the canvas
-        const wrapper = document.createElement('div');
-        Object.assign(wrapper.style, {
-            position: 'absolute',
-            left: '0px',
-            top: '0px',
-            width: `${width}px`,
-            height: `${height}px`,
-            zIndex: '1000',
-            pointerEvents: 'none' // wrapper clicks pass through; input handles events
-        } as CSSStyleDeclaration);
+        // Create a Phaser DOMElement wrapping the input and let Phaser manage position/scale
+        const dom = this.scene.add.dom(0, 0, input) as Phaser.GameObjects.DOMElement;
+        dom.setOrigin(0.5);
+        dom.setDepth(1000); // above form graphics
 
-        wrapper.appendChild(input);
-        document.body.appendChild(wrapper);
-
-        (input as any).__wrapper = wrapper;
+        (input as any).__dom = dom;
         return input;
     }
 
@@ -146,24 +133,23 @@ export class ResponsiveFormManager {
      * The input's wrapper is placed with its top-left computed from center minus half width/height.
      */
     positionInputAtLabel(input: HTMLInputElement, label: Phaser.GameObjects.Text, offsetY: number) {
-        const { width, height } = this.getDimensions();
-        const labelCenter = this.getWorldCenter(label);
-        const targetWorldX = labelCenter.x;
-        const targetWorldY = labelCenter.y + offsetY;
+        const dom = (input as any).__dom as Phaser.GameObjects.DOMElement | undefined;
+        if (!dom) return;
 
-        const screen = this.worldToScreen(targetWorldX, targetWorldY);
-        const wrapper = (input as any).__wrapper as HTMLDivElement | undefined;
-        if (!wrapper) return;
+        // If label is in a container, add DOMElement to the same container and position locally.
+        const parentContainer = (label as any).parentContainer as Phaser.GameObjects.Container | undefined;
+        if (parentContainer && (dom as any).parentContainer !== parentContainer) {
+            parentContainer.add(dom);
+        }
 
-        Object.assign(wrapper.style, {
-            left: `${screen.x - width / 2}px`,
-            top: `${screen.y - height / 2}px`,
-            width: `${width}px`,
-            height: `${height}px`
-        } as CSSStyleDeclaration);
-
-        // Ensure input is at (0,0) inside wrapper
-        Object.assign(input.style, { position: 'relative', left: '0px', top: '0px' } as CSSStyleDeclaration);
+        if ((dom as any).parentContainer) {
+            // Position relative to container space
+            dom.setPosition(label.x, label.y + offsetY);
+        } else {
+            // Position in world space if no container
+            const labelCenter = this.getWorldCenter(label);
+            dom.setPosition(labelCenter.x, labelCenter.y + offsetY);
+        }
     }
 
     updateInputDimensions(inputs: (HTMLInputElement | null)[]): void {
@@ -176,14 +162,6 @@ export class ResponsiveFormManager {
                     height: `${height}px`,
                     fontSize: `${fontSize}px`
                 } as CSSStyleDeclaration);
-
-                const wrapper = (input as any).__wrapper as HTMLDivElement | undefined;
-                if (wrapper) {
-                    Object.assign(wrapper.style, {
-                        width: `${width}px`,
-                        height: `${height}px`
-                    } as CSSStyleDeclaration);
-                }
             });
     }
 
@@ -191,16 +169,15 @@ export class ResponsiveFormManager {
         inputs
             .filter((i): i is HTMLInputElement => !!i)
             .forEach(input => {
-                const wrapper = (input as any).__wrapper as HTMLDivElement | undefined;
-                wrapper?.parentNode?.removeChild(wrapper);
+                const dom = (input as any).__dom as Phaser.GameObjects.DOMElement | undefined;
+                dom?.destroy();
             });
     }
 
     private setInputVisibility(input: HTMLInputElement | null, visible: boolean) {
         if (!input) return;
-        const wrapper = (input as any).__wrapper as HTMLDivElement | undefined;
-        if (wrapper) wrapper.style.display = visible ? 'block' : 'none';
-        input.style.display = visible ? 'block' : 'none';
+        const dom = (input as any).__dom as Phaser.GameObjects.DOMElement | undefined;
+        if (dom) dom.setVisible(visible);
     }
 
     /** LOGIN layout: inputs below their labels by a fixed rhythm */

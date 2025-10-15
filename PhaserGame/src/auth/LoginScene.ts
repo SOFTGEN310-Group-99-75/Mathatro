@@ -6,7 +6,7 @@ import { StyleHelpers } from '../utils/StyleHelpers';
 import { ResponsiveFormManager } from './ResponsiveFormManager';
 
 export class LoginScene extends Phaser.Scene {
-    private authService: AuthService;
+    private authService!: AuthService;
     private readonly formManager: ResponsiveFormManager;
     private loginContainer!: Phaser.GameObjects.Container;
     private signupContainer!: Phaser.GameObjects.Container;
