@@ -536,32 +536,45 @@ export class GameUI extends Phaser.Scene {
     }
 
     // Attach pointer listeners to a card container for click/drag logic
-    attachCardPointerListeners(card: any) {
-        card.on('pointerdown', function (this: any, pointer: Phaser.Input.Pointer) {
-            this._wasDrag = false;
-        });
-        card.on('dragstart', function (this: any, pointer: Phaser.Input.Pointer) {
-            this._wasDrag = true;
-        });
-        card.on('pointerup', function (this: any, pointer: Phaser.Input.Pointer) {
-            if (!this._wasDrag) {
-                const scene: any = this.scene;
-                if (scene.handSlots?.includes(this.slot)) {
-                    const emptyResultSlot = scene.resultSlots?.find((s: any) => !s.card);
-                    if (emptyResultSlot) {
-                        emptyResultSlot.setCard(this);
-                        scene.updateResultDisplay();
-                    }
-                } else if (scene.resultSlots?.includes(this.slot)) {
-                    const emptyHandSlot = scene.handSlots?.find((s: any) => !s.card);
-                    if (emptyHandSlot) {
-                        emptyHandSlot.setCard(this);
-                        scene.updateResultDisplay();
-                    }
+attachCardPointerListeners(card: any) {
+    // Make card interactive
+    card.setInteractive({ useHandCursor: true });
+
+    // orce pointer cursor on hover (
+    card.on('pointerover', function (this: any) {
+        this.scene.input.setDefaultCursor('pointer');
+    });
+    card.on('pointerout', function (this: any) {
+        this.scene.input.setDefaultCursor('default');
+    });
+
+    // Keep your click/drag logic
+    card.on('pointerdown', function (this: any, pointer: Phaser.Input.Pointer) {
+        this._wasDrag = false;
+    });
+    card.on('dragstart', function (this: any, pointer: Phaser.Input.Pointer) {
+        this._wasDrag = true;
+    });
+    card.on('pointerup', function (this: any, pointer: Phaser.Input.Pointer) {
+        if (!this._wasDrag) {
+            const scene: any = this.scene;
+            if (scene.handSlots?.includes(this.slot)) {
+                const emptyResultSlot = scene.resultSlots?.find((s: any) => !s.card);
+                if (emptyResultSlot) {
+                    emptyResultSlot.setCard(this);
+                    scene.updateResultDisplay();
+                }
+            } else if (scene.resultSlots?.includes(this.slot)) {
+                const emptyHandSlot = scene.handSlots?.find((s: any) => !s.card);
+                if (emptyHandSlot) {
+                    emptyHandSlot.setCard(this);
+                    scene.updateResultDisplay();
                 }
             }
-        });
-    }
+        }
+    });
+}
+
 
     // Reset result slots to '?' placeholders for the next round
     resetResultSlots() {
