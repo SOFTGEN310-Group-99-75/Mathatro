@@ -166,16 +166,16 @@ export class LoginScene extends Phaser.Scene {
         c.add(this.add.text(0, -170, 'Sign Up', StyleHelpers.createTitleTextStyle('28px')).setOrigin(0.5));
 
         // Labels (anchors)
-        this.signupEmailLabel = this.add.text(0, -100, 'Email', StyleHelpers.createLabelTextStyle()).setOrigin(0.5);
-        this.signupUsernameLabel = this.add.text(0, -30, 'Username', StyleHelpers.createLabelTextStyle()).setOrigin(0.5);
+        this.signupEmailLabel = this.add.text(0, -125, 'Email', StyleHelpers.createLabelTextStyle()).setOrigin(0.5);
+        this.signupUsernameLabel = this.add.text(0, -50, 'Username', StyleHelpers.createLabelTextStyle()).setOrigin(0.5);
         this.signupPasswordLabel = this.add.text(0, 30, 'Password', StyleHelpers.createLabelTextStyle()).setOrigin(0.5);
         c.add([this.signupEmailLabel, this.signupUsernameLabel, this.signupPasswordLabel]);
 
         // Button
-        this.createButton(c, 'Create account', 0, 95, () => this.handleSignup());
+        this.createButton(c, 'Create account', 0, 115, () => this.handleSignup());
 
         // Switch link
-        this.createSwitchLink(c, 'Already have an account? Login', 0, 160, () => this.switchToLogin());
+        this.createSwitchLink(c, 'Already have an account? Login', 0, 180, () => this.switchToLogin());
     }
 
     private createButton(container: Phaser.GameObjects.Container, text: string, x: number, y: number, onClick: () => void) {

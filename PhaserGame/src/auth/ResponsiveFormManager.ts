@@ -20,8 +20,8 @@ export class ResponsiveFormManager {
         const buttonWidth = Math.max(200, Math.min(350, formWidth * 0.7));
 
         const scale = Math.max(0.8, Math.min(1.2, gameWidth / 800));
-        const height = Math.round(45 * scale);
-        const fontSize = Math.max(14, Math.min(18, Math.round(16 * scale)));
+        const height = Math.round(40 * scale);
+        const fontSize = Math.max(14, Math.min(18, Math.round(14 * scale)));
         const formHeight = Math.round(320 * scale);
         const formRadius = Math.max(10, Math.min(18, Math.round(12 * scale)));
         const buttonH = Math.round(45 * scale);
