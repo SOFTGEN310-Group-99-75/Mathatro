@@ -211,7 +211,7 @@ export class Play extends Phaser.Scene {
         // Create instructions panel (initially hidden)
         const createPanel = () => {
             const panelWidth = 380;
-            const panelHeight = 500;
+            const panelHeight = 530;
             const panelX = 40;
             const panelY = btnY + btnHeight / 2 + 10;
 
