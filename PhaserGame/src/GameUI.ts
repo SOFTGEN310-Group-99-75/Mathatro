@@ -94,7 +94,6 @@ export class GameUI extends Phaser.Scene {
             fontFamily: GAME_CONFIG.FONT.FAMILY
         }).setOrigin(0.5);
         this.currentScore = this.labelBox(sidebar.currentScoreX, sidebar.currentScoreY, sidebar.currentScoreWidth, sidebar.currentScoreHeight, 'current game score');
-        this.cumulated = this.labelBox(sidebar.cumulatedX, sidebar.cumulatedY, sidebar.cumulatedWidth, sidebar.cumulatedHeight, 'Cumulated score (previous game)\nvs\nScore needed to pass the level', { fontSize: GAME_CONFIG.FONT.CAPTION_SIZE });
 
         // Health bar + Games counter - using LayoutManager
         this.add.text(healthBar.backgroundX, healthBar.backgroundY - 25, 'Health bar', {
