@@ -42,89 +42,141 @@ export class Play extends Phaser.Scene {
     private readonly difficultyButtons: Phaser.GameObjects.Text[] = [];
 
     create() {
-        const { width, height } = this.sys.game.scale;
+    const { width, height } = this.sys.game.scale;
 
-        createTitleText(this, width / 2, height / 4, "Mathatro", { fontSize: 48 });
+    // 🌈 Proper vertical gradient background (top = teal, bottom = soft blue)
+    const bg = this.add.graphics();
+    // bg.fillGradientStyle(
+    //     0x89f7fe, 0x89f7fe, // top-left, top-right
+    //     0x66a6ff, 0x66a6ff, // bottom-left, bottom-right
+    //     1, 1, 1, 1
+    // );
+    bg.fillRect(0, 0, width, height);
 
-        this.add.text(width / 2, height / 3 + 20, "Select Difficulty", {
-            fontSize: "24px",
-            color: "#000000",
-            fontFamily: GAME_CONFIG.FONT.FAMILY,
-            fontStyle: '600'
-        }).setOrigin(0.5);
+    // 🎉 Title (playful + bounce)
+    const title = this.add.text(width / 2, height / 4, "Mathatro", {
+        fontSize: "96px",
+        fontFamily: "Poppins, Nunito, Arial, sans-serif",
+        fontStyle: "900",
+        color: "#ffffff",
+        stroke: "#6b46c1",
+        strokeThickness: 8,
+        shadow: { offsetX: 6, offsetY: 6, color: "#000000", blur: 10, fill: true }
+    }).setOrigin(0.5);
 
-        this.createDifficultyButton("Easy", height / 2, "easy");
-        this.createDifficultyButton("Medium", height / 2 + 80, "medium");
-        this.createDifficultyButton("Hard", height / 2 + 160, "hard");
+    this.tweens.add({
+        targets: title,
+        scale: { from: 1, to: 1.08 },
+        yoyo: true,
+        repeat: -1,
+        duration: 800,
+        ease: "Sine.easeInOut"
+    });
 
-        // Create instructions button
-        this.createInstructionsButton();
+    // 🪧 Subheading
+    this.add.text(width / 2, height / 3 + 30, "Select Your Difficulty", {
+        fontSize: "30px",
+        color: "#ffffff",
+        fontFamily: "Nunito, Arial, sans-serif",
+        fontStyle: "700",
+        shadow: { offsetX: 2, offsetY: 2, color: "#000000", blur: 4, fill: true }
+    }).setOrigin(0.5);
 
-        // Create user profile component at bottom right
-        this.userProfile = new UserProfile(this);
-        this.userProfile.create(width - 120, height - 60);
+    // 🎮 Difficulty buttons
+    this.createDifficultyButton("Easy",   height / 2,        "easy");
+    this.createDifficultyButton("Medium", height / 2 + 90,   "medium");
+    this.createDifficultyButton("Hard",   height / 2 + 180,  "hard");
+
+    // 📖 Instructions
+    this.createInstructionsButton();
+
+    // 👤 User Profile (bottom-right)
+    this.userProfile = new UserProfile(this);
+    this.userProfile.create(width - 120, height - 60);
     }
+
 
     private createDifficultyButton(label: string, y: number, mode: DifficultyMode) {
-        const { width } = this.sys.game.scale;
-        const buttonWidth = 200;
-        const buttonHeight = 60;
-        const borderRadius = 15;
+    const { width } = this.sys.game.scale;
+    const buttonWidth = 260;
+    const buttonHeight = 80;
+    const radius = 25;
 
-        // Create rounded rectangle background
-        const bg = this.add.graphics();
-        bg.fillStyle(GAME_CONFIG.COLORS.VIBRANT_BLUE, 1);
-        bg.fillRoundedRect(width / 2 - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
+    const [cTop, cBottom] = ({
+        easy:   [0x43e97b, 0x38f9d7],
+        medium: [0xf6d365, 0xfda085],
+        hard:   [0xf093fb, 0xf5576c],
+    } as Record<DifficultyMode, [number, number]>)[mode];
 
-        // Create text on top
-        const btn = this.add.text(width / 2, y, label, {
-            fontSize: "32px",
-            color: "#ffffff",
-            fontFamily: GAME_CONFIG.FONT.FAMILY,
-            fontStyle: '600',
-            align: 'center'
-        }).setOrigin(0.5);
+    const btn = this.add.container(width / 2, y);
+    btn.setSize(buttonWidth, buttonHeight);
 
-        // Make interactive
-        const hitArea = new Phaser.Geom.Rectangle(
-            width / 2 - buttonWidth / 2,
-            y - buttonHeight / 2,
-            buttonWidth,
-            buttonHeight
-        );
+    const g = this.add.graphics();
+    g.fillGradientStyle(cTop, cTop, cBottom, cBottom, 1, 1, 1, 1);
+    g.fillRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, radius);
 
-        bg.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains)
-            .setData('bg', true)
-            .setData('color', 0x8c7ae6);
+    const txt = this.add.text(0, 0, label, {
+        fontSize: "40px",
+        color: "#ffffff",
+        fontFamily: "Poppins, Nunito, Arial, sans-serif",
+        fontStyle: "800",
+        align: "center",
+        shadow: { offsetX: 3, offsetY: 3, color: "#000000", blur: 6, fill: true }
+    }).setOrigin(0.5);
 
-        // Add event handlers
-        this.setupButtonHoverEffects(bg, width, y, buttonWidth, buttonHeight, borderRadius);
-        this.setupButtonClickHandler(bg, mode);
+    btn.add([g, txt]);
 
-        bg.input!.cursor = 'pointer';
-        this.difficultyButtons.push(btn);
+    // 💡 Use a Zone as the true interactive area
+    const zone = this.add.zone(0, 0, buttonWidth, buttonHeight)
+        .setOrigin(0.5)
+        .setInteractive({ useHandCursor: true });
+
+    btn.add(zone);
+
+    // Stable hover / click detection
+    zone.on("pointerover", () => this.animateButtonHover(btn, 1.08));
+    zone.on("pointerout",  () => this.animateButtonHover(btn, 1.0));
+    zone.on("pointerdown", () => {
+        this.sound.play("whoosh", { volume: 0.5 });
+        this.handleDifficultySelection(mode);
+    });
     }
+
+    private animateButtonHover(btn: Phaser.GameObjects.Container, scale: number) {
+    this.tweens.add({
+        targets: btn,
+        scale,
+        duration: 150,
+        ease: scale > 1 ? "Back.Out" : "Back.In"
+    });
+    }
+
+
 
     private setupButtonHoverEffects(
-        bg: Phaser.GameObjects.Graphics,
-        width: number,
-        y: number,
-        buttonWidth: number,
-        buttonHeight: number,
-        borderRadius: number
+    container: Phaser.GameObjects.Container
     ) {
-        bg.on("pointerover", () => {
-            bg.clear();
-            bg.fillStyle(GAME_CONFIG.COLORS.DARK_BLUE, 1);
-            bg.fillRoundedRect(width / 2 - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
+    container.on("pointerover", () => {
+        this.tweens.add({
+        targets: container,
+        scale: 1.08,
+        duration: 150,
+        ease: "Back.Out"
         });
+        // optional hover sound
+        // this.sound.play("hover", { volume: 0.2 });
+    });
 
-        bg.on("pointerout", () => {
-            bg.clear();
-            bg.fillStyle(GAME_CONFIG.COLORS.VIBRANT_BLUE, 1);
-            bg.fillRoundedRect(width / 2 - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
+    container.on("pointerout", () => {
+        this.tweens.add({
+        targets: container,
+        scale: 1.0,
+        duration: 150,
+        ease: "Back.In"
         });
+    });
     }
+
 
     private setupButtonClickHandler(bg: Phaser.GameObjects.Graphics, mode: 'easy' | 'medium' | 'hard') {
         bg.on("pointerdown", () => {
@@ -173,137 +225,155 @@ export class Play extends Phaser.Scene {
     }
 
     createInstructionsButton() {
-        const btnX = 100;
-        const btnY = 80;
-        const btnWidth = 140;
-        const btnHeight = 50;
-        const btnRadius = 12;
+    const btnX = 130;
+    const btnY = 90;
+    const btnWidth = 200;
+    const btnHeight = 70;
+    const btnRadius = 22;
 
-        let isExpanded = false;
-        let instructionsPanel: Phaser.GameObjects.Container;
-        let panelBg: Phaser.GameObjects.Graphics;
+    let isExpanded = false;
+    let instructionsPanel: Phaser.GameObjects.Container;
 
-        // Create button background
-        const btnBg = this.add.graphics();
-        btnBg.fillStyle(GAME_CONFIG.COLORS.WARM_ORANGE, 1);
-        btnBg.fillRoundedRect(btnX - btnWidth / 2, btnY - btnHeight / 2, btnWidth, btnHeight, btnRadius);
-        btnBg.lineStyle(2, 0xffffff, 0.8);
-        btnBg.strokeRoundedRect(btnX - btnWidth / 2, btnY - btnHeight / 2, btnWidth, btnHeight, btnRadius);
+    // 🌈 Gradient colors for the button
+    const topColor = 0xf6d365;   // warm yellow
+    const bottomColor = 0xfda085; // coral
 
-        // Create button text
-        const btnText = this.add.text(btnX, btnY, '📖 Instructions', {
-            fontSize: '16px',
-            color: '#ffffff',
-            fontStyle: '600',
-            fontFamily: GAME_CONFIG.FONT.FAMILY
+    // 📦 Create container so hover scaling is smooth
+    const buttonContainer = this.add.container(btnX, btnY);
+    buttonContainer.setSize(btnWidth, btnHeight);
+
+    // 🎨 Gradient button background
+    const btnBg = this.add.graphics();
+    btnBg.fillGradientStyle(
+        topColor, topColor, bottomColor, bottomColor,
+        1, 1, 1, 1
+    );
+    btnBg.fillRoundedRect(-btnWidth / 2, -btnHeight / 2, btnWidth, btnHeight, btnRadius);
+
+    // 🧁 Text label
+    const btnText = this.add.text(0, 0, '📖 Instructions', {
+        fontSize: '22px',
+        color: '#ffffff',
+        fontFamily: 'Poppins, Nunito, Arial, sans-serif',
+        fontStyle: '700',
+        shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 4, fill: true }
+    }).setOrigin(0.5);
+
+    buttonContainer.add([btnBg, btnText]);
+
+    // 💡 Add invisible hit zone (so scaling doesn’t break interactivity)
+    const zone = this.add.zone(0, 0, btnWidth, btnHeight)
+        .setOrigin(0.5)
+        .setInteractive({ useHandCursor: true });
+    buttonContainer.add(zone);
+
+    // 🎬 Hover effects: grow + shrink
+    zone.on('pointerover', () => {
+        this.tweens.add({
+        targets: buttonContainer,
+        scale: 1.1,
+        duration: 150,
+        ease: 'Back.Out'
+        });
+    });
+
+    zone.on('pointerout', () => {
+        this.tweens.add({
+        targets: buttonContainer,
+        scale: 1.0,
+        duration: 150,
+        ease: 'Back.In'
+        });
+    });
+
+    // 🧭 Create instructions panel (scrollable, hidden initially)
+    const createPanel = () => {
+        const panelWidth = 380;
+        const panelHeight = 530;
+        const panelX = 40;
+        const panelY = btnY + btnHeight / 2 + 10;
+
+        instructionsPanel = this.add.container(0, 0).setDepth(1000);
+
+        const shadow = this.add.graphics();
+        shadow.fillStyle(0x000000, 0.2);
+        shadow.fillRoundedRect(panelX + 4, panelY + 4, panelWidth, panelHeight, 16);
+
+        const panelBg = this.add.graphics();
+        panelBg.fillStyle(0xffffff, 0.98);
+        panelBg.lineStyle(3, bottomColor, 1);
+        panelBg.fillRoundedRect(panelX, panelY, panelWidth, panelHeight, 16);
+        panelBg.strokeRoundedRect(panelX, panelY, panelWidth, panelHeight, 16);
+
+        const title = this.add.text(panelX + panelWidth / 2, panelY + 30, 'How to Play', {
+        fontSize: '26px',
+        color: '#2d3748',
+        fontFamily: 'Nunito',
+        fontStyle: '800'
         }).setOrigin(0.5);
 
-        // Create interactive hit area
-        const hitArea = new Phaser.Geom.Rectangle(
-            btnX - btnWidth / 2,
-            btnY - btnHeight / 2,
-            btnWidth,
-            btnHeight
-        );
+        const instructions = [
+        '🎯 Goal: Create math expressions to match the target!',
+        '',
+        '📋 Rules:',
+        '  • Use number and operator cards (+, -, ×, ÷)',
+        '  • Arrange them to hit the objective',
+        '  • Tap Submit when ready',
+        '',
+        '❤️ Lives:',
+        '  • You start with full health',
+        '  • Wrong answer → lose a heart',
+        '  • Right answer → gain points!',
+        '',
+        '🎮 Difficulty:',
+        '  • Higher levels = trickier numbers',
+        '  • More rounds & harder targets!'
+        ];
 
-        btnBg.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
+        const text = this.add.text(panelX + 20, panelY + 70, instructions.join('\n'), {
+        fontSize: '16px',
+        color: '#4a5568',
+        fontFamily: 'Nunito',
+        lineSpacing: 8,
+        wordWrap: { width: panelWidth - 40 }
+        }).setOrigin(0, 0);
 
-        // Create instructions panel (initially hidden)
-        const createPanel = () => {
-            const panelWidth = 380;
-            const panelHeight = 500;
-            const panelX = 40;
-            const panelY = btnY + btnHeight / 2 + 10;
+        // Scroll mask for overflow
+        const maskShape = this.add.graphics();
+        maskShape.fillRect(panelX + 10, panelY + 60, panelWidth - 20, panelHeight - 70);
+        const mask = maskShape.createGeometryMask();
+        text.setMask(mask);
 
-            instructionsPanel = this.add.container(0, 0).setDepth(1000);
-
-            // Panel background
-            panelBg = this.add.graphics();
-            panelBg.fillStyle(0xffffff, 0.98);
-            panelBg.lineStyle(3, GAME_CONFIG.COLORS.WARM_ORANGE, 1);
-            panelBg.fillRoundedRect(panelX, panelY, panelWidth, panelHeight, 16);
-            panelBg.strokeRoundedRect(panelX, panelY, panelWidth, panelHeight, 16);
-
-            // Shadow
-            const shadow = this.add.graphics();
-            shadow.fillStyle(0x000000, 0.2);
-            shadow.fillRoundedRect(panelX + 3, panelY + 3, panelWidth, panelHeight, 16);
-            shadow.setDepth(999);
-
-            // Title
-            const title = this.add.text(panelX + panelWidth / 2, panelY + 30, 'How to Play', {
-                fontSize: '24px',
-                color: '#2d3748',
-                fontStyle: '700',
-                fontFamily: GAME_CONFIG.FONT.FAMILY
-            }).setOrigin(0.5);
-
-            // Instructions text
-            const instructions = [
-                '🎯 Goal: Create a math expression/number to match the criteria',
-                '',
-                '📋 Rules:',
-                '  • Use cards from your hand',
-                '  • Create a math expression',
-                '  • Numbers & operators (+, -, *, /)',
-                '  • Click Submit when ready',
-                '',
-                '❤️ Lives: You have limited health',
-                '  • Correct answer: +10 points',
-                '  • Wrong answer: low health',
-                '',
-                '🎮 Difficulty affects:',
-                '  • Target number range',
-                '  • Card complexity',
-                '  • Number of rounds'
-            ];
-
-            const instructionsText = this.add.text(
-                panelX + 20,
-                panelY + 70,
-                instructions.join('\n'),
-                {
-                    fontSize: '14px',
-                    color: '#4a5568',
-                    fontFamily: GAME_CONFIG.FONT.FAMILY,
-                    lineSpacing: 8,
-                    align: 'left',
-                    wordWrap: { width: panelWidth - 40 }
-                }
-            ).setOrigin(0, 0);
-
-            instructionsPanel.add([shadow, panelBg, title, instructionsText]);
-            instructionsPanel.setVisible(false);
-        };
-
-        createPanel();
-
-        // Button hover effects
-        btnBg.on('pointerover', () => {
-            btnBg.clear();
-            btnBg.fillStyle(GAME_CONFIG.COLORS.DARK_ORANGE, 1);
-            btnBg.fillRoundedRect(btnX - btnWidth / 2, btnY - btnHeight / 2, btnWidth, btnHeight, btnRadius);
-            btnBg.lineStyle(2, 0xffffff, 0.8);
-            btnBg.strokeRoundedRect(btnX - btnWidth / 2, btnY - btnHeight / 2, btnWidth, btnHeight, btnRadius);
+        // Scroll wheel support
+        this.input.on('wheel', (_pointer, _gameObjects, _dx, dy) => {
+        if (!instructionsPanel.visible) return;
+        text.y -= dy * 0.5;
+        text.y = Phaser.Math.Clamp(text.y, panelY + 70 - 200, panelY + 70);
         });
 
-        btnBg.on('pointerout', () => {
-            btnBg.clear();
-            btnBg.fillStyle(GAME_CONFIG.COLORS.WARM_ORANGE, 1);
-            btnBg.fillRoundedRect(btnX - btnWidth / 2, btnY - btnHeight / 2, btnWidth, btnHeight, btnRadius);
-            btnBg.lineStyle(2, 0xffffff, 0.8);
-            btnBg.strokeRoundedRect(btnX - btnWidth / 2, btnY - btnHeight / 2, btnWidth, btnHeight, btnRadius);
-        });
+        instructionsPanel.add([shadow, panelBg, title, text]);
+        instructionsPanel.setVisible(false);
+    };
 
-        // Toggle panel on click
-        btnBg.on('pointerdown', () => {
-            isExpanded = !isExpanded;
-            instructionsPanel.setVisible(isExpanded);
-            btnText.setText(isExpanded ? '📖 Close' : '📖 Instructions');
-        });
+    createPanel();
 
-        btnBg.input!.cursor = 'pointer';
+    // 📖 Click → toggle open/close
+    zone.on('pointerdown', () => {
+        isExpanded = !isExpanded;
+        instructionsPanel.setVisible(isExpanded);
+
+        btnText.setText(isExpanded ? '📕 Close' : '📖 Instructions');
+
+        // fun press animation
+        this.tweens.add({
+        targets: buttonContainer,
+        scale: { from: 1, to: 0.95 },
+        yoyo: true,
+        duration: 100
+        });
+    });
     }
+
 
     restartGame() {
         // Restart game using GameManager

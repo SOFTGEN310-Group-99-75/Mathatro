@@ -19,86 +19,94 @@ export class UserProfile {
     }
 
     public create(x: number, y: number) {
-        // Profile background with rounded corners
-        const bgWidth = 180;
-        const bgHeight = 60;
-        const bgRadius = 12;
+    // 🟣 Profile card background (glass-like)
+    const bgWidth = 190;
+    const bgHeight = 100;
+    const radius = 15;
 
-        const profileBg = this.scene.add.graphics();
-        profileBg.fillStyle(GAME_CONFIG.COLORS.DEEP_PURPLE, 0.85);
-        profileBg.lineStyle(2, 0xffffff, 0.9);
-        profileBg.fillRoundedRect(x - bgWidth / 2, y - bgHeight / 2, bgWidth, bgHeight, bgRadius);
-        profileBg.strokeRoundedRect(x - bgWidth / 2, y - bgHeight / 2, bgWidth, bgHeight, bgRadius);
-        this.profileContainer.add(profileBg);
+    const profileBg = this.scene.add.graphics();
+    profileBg.fillStyle(0xffffff, 0.15); // translucent white
+    profileBg.lineStyle(2, 0xffffff, 0.3);
+    profileBg.fillRoundedRect(x - bgWidth / 2, y - bgHeight / 2, bgWidth, bgHeight, radius);
+    profileBg.strokeRoundedRect(x - bgWidth / 2, y - bgHeight / 2, bgWidth, bgHeight, radius);
 
-        // User info text - only display name
-        this.userInfo = this.scene.add.text(x, y - 12, '', {
-            fontSize: '16px',
-            color: '#ecf0f1',
-            fontStyle: '500',
-            fontFamily: GAME_CONFIG.FONT.FAMILY,
-            align: 'center'
-        }).setOrigin(0.5);
-        this.profileContainer.add(this.userInfo);
+    this.profileContainer.add(profileBg);
 
-        // Logout button with rounded corners
-        const buttonWidth = 100;
-        const buttonHeight = 28;
-        const borderRadius = 8;
-        const buttonY = y + 12; // Moved up from y + 18
+    // 👤 Username (larger, centered, above logout)
+    this.userInfo = this.scene.add.text(x, y - 20, '', {
+        fontSize: '18px',
+        color: '#6b46c1',
+        fontFamily: 'Poppins, Nunito, Arial, sans-serif',
+        fontStyle: '700',
+        shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 4, fill: true }
+    }).setOrigin(0.5);
+    this.profileContainer.add(this.userInfo);
 
-        this.logoutButton = this.scene.add.graphics();
-        this.logoutButton.fillStyle(GAME_CONFIG.COLORS.CORAL_RED, 0.9);
-        this.logoutButton.lineStyle(2, 0xffffff, 0.8);
-        this.logoutButton.fillRoundedRect(x - buttonWidth / 2, buttonY - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
-        this.logoutButton.strokeRoundedRect(x - buttonWidth / 2, buttonY - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
+    // 🔥 Gradient Logout button
+    const buttonWidth = 120;
+    const buttonHeight = 38;
+    const buttonRadius = 10;
+    const buttonY = y + 20;
 
-        this.logoutText = this.scene.add.text(x, buttonY, 'Logout', {
-            fontSize: '13px',
-            color: '#ffffff',
-            fontStyle: '500',
-            fontFamily: GAME_CONFIG.FONT.FAMILY
-        }).setOrigin(0.5);
+    const logoutContainer = this.scene.add.container(x, buttonY);
+    logoutContainer.setSize(buttonWidth, buttonHeight);
 
-        // Add hover effects
-        const hitArea = new Phaser.Geom.Rectangle(
-            x - buttonWidth / 2,
-            buttonY - buttonHeight / 2,
-            buttonWidth,
-            buttonHeight
-        );
+    const g = this.scene.add.graphics();
+    g.fillGradientStyle(0xff6b6b, 0xff6b6b, 0xc0392b, 0xc0392b, 1, 1, 1, 1);
+    g.fillRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, buttonRadius);
 
-        this.logoutButton.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
-        this.logoutButton.input!.cursor = 'pointer';
+    this.logoutText = this.scene.add.text(0, 0, 'Logout', {
+        fontSize: '16px',
+        color: '#ffffff',
+        fontFamily: 'Poppins, Nunito, Arial, sans-serif',
+        fontStyle: '700',
+        shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 3, fill: true }
+    }).setOrigin(0.5);
 
-        this.logoutButton.on('pointerover', () => {
-            this.logoutButton.clear();
-            this.logoutButton.fillStyle(0xc0392b, 1);
-            this.logoutButton.lineStyle(1, 0xc0392b, 0.8);
-            this.logoutButton.fillRoundedRect(x - buttonWidth / 2, buttonY - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
-            this.logoutButton.strokeRoundedRect(x - buttonWidth / 2, buttonY - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
+    logoutContainer.add([g, this.logoutText]);
+
+    const zone = this.scene.add.zone(0, 0, buttonWidth, buttonHeight)
+        .setOrigin(0.5)
+        .setInteractive({ useHandCursor: true });
+    logoutContainer.add(zone);
+
+    // Hover effects
+    zone.on('pointerover', () => {
+        this.scene.tweens.add({
+        targets: logoutContainer,
+        scale: 1.1,
+        duration: 150,
+        ease: 'Back.Out'
         });
-        this.logoutButton.on('pointerout', () => {
-            this.logoutButton.clear();
-            this.logoutButton.fillStyle(GAME_CONFIG.COLORS.CORAL_RED, 1);
-            this.logoutButton.lineStyle(1, 0xc0392b, 0.8);
-            this.logoutButton.fillRoundedRect(x - buttonWidth / 2, buttonY - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
-            this.logoutButton.strokeRoundedRect(x - buttonWidth / 2, buttonY - buttonHeight / 2, buttonWidth, buttonHeight, borderRadius);
+    });
+
+    zone.on('pointerout', () => {
+        this.scene.tweens.add({
+        targets: logoutContainer,
+        scale: 1.0,
+        duration: 150,
+        ease: 'Back.In'
         });
-        this.logoutButton.on('pointerdown', () => this.handleLogout());
+    });
 
-        this.profileContainer.add([this.logoutButton, this.logoutText]);
+    zone.on('pointerdown', () => {
+        this.scene.sound?.play('whoosh', { volume: 0.4 });
+        this.handleLogout();
+    });
 
-        // Listen for authentication state changes
-        this.authService.onAuthStateChange((user: AuthUser | null) => {
-            this.currentUser = user;
-            this.updateUserInfo();
-        });
+    this.profileContainer.add(logoutContainer);
 
-        // Initial update
-        this.currentUser = this.authService.getCurrentUser();
+    // Auth listener
+    this.authService.onAuthStateChange((user: AuthUser | null) => {
+        this.currentUser = user;
         this.updateUserInfo();
+    });
+
+    this.currentUser = this.authService.getCurrentUser();
+    this.updateUserInfo();
     }
+
+
 
     private updateUserInfo() {
         if (this.currentUser) {

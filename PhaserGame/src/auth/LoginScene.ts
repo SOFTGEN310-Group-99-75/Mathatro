@@ -54,15 +54,46 @@ export class LoginScene extends Phaser.Scene {
 
         // Background
         const bg = this.add.graphics();
-        bg.fillGradientStyle(0x4facfe, 0x4facfe, 0x00f2fe, 0x00f2fe, 1);
+        // bg.fillGradientStyle(0x4facfe, 0x4facfe, 0x00f2fe, 0x00f2fe, 1);
         bg.fillRect(0, 0, W, H);
 
-        // Title + subtitle
-        createTitleText(this, W / 2, H * 0.15, 'Mathatro', { fontSize: 52 });
-        this.add.text(
-            W / 2, H * 0.23, 'It\'s a piece of π!',
-            StyleHelpers.createTextStyle({ fontSize: '22px', color: '#ffffff', fontStyle: '500' })
-        ).setOrigin(0.5);
+        // 🎨 Main Title (consistent with game scene)
+        const title = this.add.text(W / 2, H * 0.18, 'Mathatro', {
+            fontSize: '96px',
+            fontFamily: 'Poppins, Nunito, Arial, sans-serif',
+            fontStyle: '900',
+            color: '#ffffff',
+            stroke: '#6b46c1',
+            strokeThickness: 8,
+            shadow: {
+                offsetX: 6,
+                offsetY: 6,
+                color: '#000000',
+                blur: 10,
+                fill: true
+            }
+        }).setOrigin(0.5);
+
+        // 💫 Gentle pulse animation
+        this.tweens.add({
+            targets: title,
+            scale: { from: 1, to: 1.05 },
+            yoyo: true,
+            repeat: -1,
+            duration: 1200,
+            ease: 'Sine.easeInOut'
+        });
+
+        // 🧁 Subtitle (fun + friendly)
+        this.add.text(W / 2, H * 0.27, "It's a piece of π!", {
+            fontSize: '26px',
+            color: '#6b46c1',
+            fontFamily: 'Nunito, Poppins, Arial, sans-serif',
+            fontStyle: '600',
+            shadow: { offsetX: 2, offsetY: 2, color: '#8e8e8eff', blur: 4, fill: true }
+        }).setOrigin(0.5);
+
+                
 
         // Containers
         this.loginContainer = this.add.container(W / 2, H * 0.6);
