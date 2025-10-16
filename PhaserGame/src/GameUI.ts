@@ -20,24 +20,24 @@ export class GameUI extends Phaser.Scene {
     private layout: any;
     private rect: any;
     private labelBox: any;
-    private sidebar: any;
-    private scoreTitle: any;
-    private currentScore: any;
-    private readonly calcText: any;
-    private cumulated: any;
-    private healthBarBg: any;
-    private healthBarFill: any;
-    private readonly healthHint: any;
-    private gamesCounter: any;
-    private objective: any;
-    private objectiveCaption: any;
-    private objectiveTestLabel: any;
-    private resultBar: any;
-    private equalsText: any;
-    private handBar: any;
-    private handCaption: any;
-    private resultContainer: any;
-    private handContainer: any;
+    private sidebar!: any;
+    private scoreTitle!: any;
+    private currentScore!: any;
+    private calcText?: any;
+    private cumulated!: any;
+    private healthBarBg!: any;
+    private healthBarFill!: any;
+    private healthHint?: any;
+    private gamesCounter!: any;
+    private objective!: any;
+    private objectiveCaption!: any;
+    private objectiveTestLabel!: any;
+    private resultBar!: any;
+    private equalsText!: any;
+    private handBar!: any;
+    private handCaption!: any;
+    private resultContainer!: any;
+    private handContainer!: any;
     private handSlots: any[] = [];
     private resultSlots: any[] = [];
     private winOverlay?: Phaser.GameObjects.Container;
@@ -46,8 +46,8 @@ export class GameUI extends Phaser.Scene {
     private gamesProgressHandler?: (data: { current: number; total: number }) => void;
     private gameWonHandler?: () => void;
     private objectiveChangedHandler?: (objective: string) => void;
-    private userProfile: UserProfile;
-    private feedbackAnimations: FeedbackAnimations;
+    private userProfile!: UserProfile;
+    private feedbackAnimations!: FeedbackAnimations;
 
     constructor() {
         super({ key: 'GameUI' });
@@ -455,7 +455,7 @@ export class GameUI extends Phaser.Scene {
 
         try {
             const result = evaluateExpression(cards);
-            if (result !== null && !isNaN(result)) {
+            if (result !== null && !Number.isNaN(result)) {
                 this.equalsText.setText(`= ${result}`);
             }
         } catch (error) {
@@ -568,7 +568,7 @@ export class GameUI extends Phaser.Scene {
 
     // Reset result slots to '?' placeholders for the next round
     resetResultSlots() {
-        const placeholders = Array(GAME_CONFIG.RESULT_SLOTS).fill('?');
+        const placeholders = new Array(GAME_CONFIG.RESULT_SLOTS).fill('?');
         this.updateResultSlots(placeholders);
     }
 

@@ -5,9 +5,9 @@ export class UserProfile {
     private readonly scene: Phaser.Scene;
     private readonly authService: AuthService;
     private readonly profileContainer: Phaser.GameObjects.Container;
-    private userInfo: Phaser.GameObjects.Text;
-    private logoutButton: Phaser.GameObjects.Rectangle;
-    private logoutText: Phaser.GameObjects.Text;
+    private userInfo!: Phaser.GameObjects.Text;
+    private logoutButton!: Phaser.GameObjects.Rectangle;
+    private logoutText!: Phaser.GameObjects.Text;
     private currentUser: AuthUser | null = null;
 
     constructor(scene: Phaser.Scene) {

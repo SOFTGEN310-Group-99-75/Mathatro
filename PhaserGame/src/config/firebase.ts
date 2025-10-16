@@ -3,15 +3,15 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getAnalytics } from 'firebase/analytics';
 
-// Firebase project config - grabbed from console
+// Firebase config loaded from env vars for security
 const firebaseConfig = {
-  apiKey: "AIzaSyAsodsLtIQcuhHqkAlDPZHU3DFEeHsp8PU",
-  authDomain: "mathatro.firebaseapp.com",
-  projectId: "mathatro",
-  storageBucket: "mathatro.firebasestorage.app",
-  messagingSenderId: "730963402265",
-  appId: "1:730963402265:web:3b8d50a17dbb6d0f7b9488",
-  measurementId: "G-PCBLWN1V7P"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Boot up Firebase
