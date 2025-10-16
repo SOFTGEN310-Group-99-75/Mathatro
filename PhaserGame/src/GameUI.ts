@@ -52,321 +52,269 @@ export class GameUI extends Phaser.Scene {
     constructor() {
         super({ key: 'GameUI' });
     }
-
     create() {
-        this.scene.bringToTop();
-        const { width: W, height: H } = this.sys.game.scale;
-        this.input.dragDistanceThreshold = GAME_CONFIG.DRAG.DISTANCE_THRESHOLD;
+    this.scene.bringToTop();
+    const { width: W, height: H } = this.sys.game.scale;
+    this.input.dragDistanceThreshold = GAME_CONFIG.DRAG.DISTANCE_THRESHOLD;
 
-        // Initialize managers
-        this.gameManager = GameManager.getInstance();
-        this.layout = LayoutManager.calculateCompleteLayout(W, H);
+    // Initialize managers
+    this.gameManager = GameManager.getInstance();
+    this.layout = LayoutManager.calculateCompleteLayout(W, H);
 
-        // Store layout dimensions for easy access
-        const { sidebar, healthBar, gamesCounter, objective, resultBar, handBar, testSection } = this.layout;
+    // Store layout dimensions for easy access
+    const { sidebar, healthBar, gamesCounter, objective, resultBar, handBar, testSection } = this.layout;
 
-        // UI helpers - now using centralized utilities
-        this.rect = (x: number, y: number, w: number, h: number, options: any = {}) => {
-            const {
-                fill = GAME_CONFIG.COLORS.GREEN_FELT,
-                alpha = GAME_CONFIG.ALPHA.FELT,
-                strokeColor = GAME_CONFIG.COLORS.WHITE,
-                strokeWidth = 2
-            } = options;
-            return createStyledRect(this, x, y, w, h, { fill, alpha, strokeColor, strokeWidth });
-        };
-        this.labelBox = (x: number, y: number, w: number, h: number, text: string, options: any = {}) => {
-            return createLabelBox(this, x, y, w, h, text, options);
-        };
+    // UI helpers - now using centralized utilities
+    this.rect = (x: number, y: number, w: number, h: number, options: any = {}) => {
+        const {
+        fill = GAME_CONFIG.COLORS.GREEN_FELT,
+        alpha = GAME_CONFIG.ALPHA.FELT,
+        strokeColor = GAME_CONFIG.COLORS.WHITE,
+        strokeWidth = 2
+        } = options;
+        return createStyledRect(this, x, y, w, h, { fill, alpha, strokeColor, strokeWidth });
+    };
 
-        // Score Board panel - using LayoutManager with glass morphism effect
-        this.sidebar = this.rect(sidebar.x, sidebar.y, sidebar.width, sidebar.height, {
-            fill: GAME_CONFIG.COLORS.DEEP_PURPLE,
-            alpha: 0.85,
-            radius: 12,
-            strokeColor: 0xffffff,
-            strokeWidth: 2
-        });
-        this.scoreTitle = this.add.text(sidebar.scoreTitleX, sidebar.scoreTitleY, 'Score Board', {
-            fontSize: GAME_CONFIG.FONT.SCORE_SIZE + 2,
-            color: '#ffffff',
-            fontStyle: '600',
-            fontFamily: GAME_CONFIG.FONT.FAMILY
-        }).setOrigin(0.5);
-        this.currentScore = this.labelBox(sidebar.currentScoreX, sidebar.currentScoreY, sidebar.currentScoreWidth, sidebar.currentScoreHeight, 'current game score');
+    this.labelBox = (x: number, y: number, w: number, h: number, text: string, options: any = {}) => {
+        return createLabelBox(this, x, y, w, h, text, options);
+    };
 
-        // Health bar + Games counter - using LayoutManager
-        this.add.text(healthBar.backgroundX, healthBar.backgroundY - 25, 'Health bar', {
-            fontSize: '18px',
-            color: '#000000',
-            fontStyle: '500',
-            fontFamily: GAME_CONFIG.FONT.FAMILY
-        }).setOrigin(0, 0);
-        this.healthBarBg = this.rect(healthBar.backgroundX, healthBar.backgroundY, healthBar.backgroundWidth, healthBar.backgroundHeight, {
-            fill: GAME_CONFIG.COLORS.LIGHT_BG,
-            alpha: 0.8,
-            radius: 8,
-            strokeColor: 0xffffff,
-            strokeWidth: 2
-        });
+    // Sidebar / Scoreboard
+    this.sidebar = this.rect(sidebar.x, sidebar.y, sidebar.width, sidebar.height, {
+        fill: GAME_CONFIG.COLORS.DEEP_PURPLE,
+        alpha: 0.85,
+        radius: 12,
+        strokeColor: 0xffffff,
+        strokeWidth: 2
+    });
 
-        // Create rounded health bar fill using graphics
-        this.healthBarFill = this.add.graphics();
-        this.healthBarFill.fillStyle(0x48bb78, GAME_CONFIG.ALPHA.HEALTH_FILL);
-        this.healthBarFill.fillRoundedRect(healthBar.fillX, healthBar.fillY, healthBar.fillWidth, healthBar.fillHeight, 7);
-        this.healthBarFill.setData('maxWidth', healthBar.fillWidth);
-        this.healthBarFill.setData('x', healthBar.fillX);
-        this.healthBarFill.setData('y', healthBar.fillY);
-        this.healthBarFill.setData('height', healthBar.fillHeight);
-        const state = this.gameManager.getGameState();
-        // Register event listeners with stored references for cleanup
-        this.handCardsHandler = (hand: string[]) => this.updateHand(hand);
-        state.onGameEvent('handCardsChanged', this.handCardsHandler);
-        this.gamesProgressHandler = ({ current, total }) => this.setGames(`Round: ${current} / ${total}`);
-        state.onGameEvent('gamesProgressChanged', this.gamesProgressHandler);
-        this.gameWonHandler = () => this.showWinOverlay();
-        state.onGameEvent('gameWon', this.gameWonHandler);
-        this.gamesCounter = this.labelBox(
-            gamesCounter.x, gamesCounter.y,
-            gamesCounter.width, gamesCounter.height,
-            `Round: ${state.gamesPlayed} / ${state.maxGames}`,
-            { radius: 12 }
-        );
-        // Listen for objective changes (so we don't rely on manual set after submit)
-        this.objectiveChangedHandler = (objective: string) => this.setObjective(objective);
-        state.onGameEvent('objectiveChanged', this.objectiveChangedHandler);
-        // Cleanup listeners when scene shuts down (ensure we don't call into destroyed objects)
-        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-            const stateRef = this.gameManager.getGameState();
-            if (this.handCardsHandler) stateRef.offGameEvent('handCardsChanged', this.handCardsHandler);
-            if (this.gamesProgressHandler) stateRef.offGameEvent('gamesProgressChanged', this.gamesProgressHandler);
-            if (this.gameWonHandler) stateRef.offGameEvent('gameWon', this.gameWonHandler);
-            if (this.objectiveChangedHandler) stateRef.offGameEvent('objectiveChanged', this.objectiveChangedHandler);
-        });
-        // Objective label - using LayoutManager
-        this.objective = this.labelBox(objective.x, objective.y, objective.width, objective.height, GAME_CONFIG.LAYOUT.DEFAULT_OBJECTIVE_TEXT, { fontSize: GAME_CONFIG.FONT.OBJECTIVE_SIZE, fontStyle: 'bold', radius: 12 });
-        this.objectiveCaption = this.add.text(objective.captionX, objective.captionY, 'Objective', { fontSize: '20px', color: '#000000', fontStyle: 'bold' }).setOrigin(0.5, 1);
+    this.scoreTitle = this.add.text(sidebar.scoreTitleX, sidebar.scoreTitleY, 'Score Board', {
+        fontSize: GAME_CONFIG.FONT.SCORE_SIZE + 2,
+        color: '#ffffff',
+        fontStyle: '600',
+        fontFamily: GAME_CONFIG.FONT.FAMILY
+    }).setOrigin(0.5);
 
+    this.currentScore = this.labelBox(
+        sidebar.currentScoreX,
+        sidebar.currentScoreY,
+        sidebar.currentScoreWidth,
+        sidebar.currentScoreHeight,
+        'current game score'
+    );
 
-        // -------------- Test Section remove any time - using LayoutManager
-        this.objectiveTestLabel = this.add.text(testSection.x, testSection.y, 'Test Objective', {
-            fontSize: GAME_CONFIG.FONT.SCORE_SIZE,
-            color: GAME_CONFIG.COLORS.WHITE,
-            fontStyle: 'bold',
-        });
-        this.objectiveTestLabel.setAlpha(GAME_CONFIG.LAYOUT.DEFAULT_ALPHA);
-        this.objectiveTestLabel.setInteractive();
-        // when label box is clicked, call generateObjective
-        this.objectiveTestLabel.on(Phaser.Input.Events.POINTER_DOWN, () => {
-            const newObjective = this.gameManager.generateObjective();
-            this.gameManager.setObjective(newObjective);
-        });
-        // -----------------------------------------
+    // Health bar
+    this.add.text(healthBar.backgroundX, healthBar.backgroundY - 25, 'Health bar', {
+        fontSize: '18px',
+        color: '#000000',
+        fontStyle: '500',
+        fontFamily: GAME_CONFIG.FONT.FAMILY
+    }).setOrigin(0, 0);
 
-        // Result slots - using LayoutManager with glass morphism effect
-        this.resultBar = this.rect(resultBar.x, resultBar.y, resultBar.width, resultBar.height, {
-            fill: GAME_CONFIG.COLORS.LIGHT_BG,
-            alpha: 0.75,
-            radius: 12,
-            strokeColor: 0xffffff,
-            strokeWidth: 2
-        });
-        this.equalsText = this.add.text(resultBar.equalsX, resultBar.equalsY, '= ', {
-            fontSize: GAME_CONFIG.LAYOUT.RESULT_EQUALS_FONT_SIZE,
-            color: '#4a5568',
-            fontStyle: '700',
-            fontFamily: GAME_CONFIG.FONT.FAMILY
-        });
+    this.healthBarBg = this.rect(healthBar.backgroundX, healthBar.backgroundY, healthBar.backgroundWidth, healthBar.backgroundHeight, {
+        fill: GAME_CONFIG.COLORS.LIGHT_BG,
+        alpha: 0.8,
+        radius: 8,
+        strokeColor: 0xffffff,
+        strokeWidth: 2
+    });
 
-        // Hand bar - using LayoutManager with glass morphism effect
-        this.handBar = this.rect(handBar.x, handBar.y, handBar.width, handBar.height, {
-            fill: GAME_CONFIG.COLORS.MEDIUM_BG,
-            alpha: 0.8,
-            radius: 12,
-            strokeColor: 0xffffff,
-            strokeWidth: 2
-        });
-        this.handCaption = this.add.text(handBar.captionX, handBar.captionY, 'Cards, either operator(+,-,*,/) or number (0–9)', {
-            fontSize: GAME_CONFIG.FONT.CAPTION_SIZE,
-            color: '#4a5568',
-            fontStyle: '500',
-            fontFamily: GAME_CONFIG.FONT.FAMILY
-        }).setOrigin(0.5, 0);
+    this.healthBarFill = this.add.graphics();
+    this.healthBarFill.fillStyle(0x48bb78, GAME_CONFIG.ALPHA.HEALTH_FILL);
+    this.healthBarFill.fillRoundedRect(healthBar.fillX, healthBar.fillY, healthBar.fillWidth, healthBar.fillHeight, 7);
+    this.healthBarFill.setData('maxWidth', healthBar.fillWidth);
+    this.healthBarFill.setData('x', healthBar.fillX);
+    this.healthBarFill.setData('y', healthBar.fillY);
+    this.healthBarFill.setData('height', healthBar.fillHeight);
 
+    const state = this.gameManager.getGameState();
 
-        // Containers for dynamic visuals
-        this.resultContainer = this.add.container(0, 0).setDepth(GAME_CONFIG.DRAG.DEPTH + 2);
-        this.handContainer = this.add.container(0, 0).setDepth(GAME_CONFIG.DRAG.DEPTH + 2);
+    // Event listeners
+    this.handCardsHandler = (hand: string[]) => this.updateHand(hand);
+    state.onGameEvent('handCardsChanged', this.handCardsHandler);
 
-        // Initialize with defaults
-        this.setHealth(GAME_CONFIG.HEALTH_FULL);
-        // Initialize with current objective from game manager
-        const currentObjective = this.gameManager.getCurrentObjective();
-        this.setObjective(currentObjective || GAME_CONFIG.LAYOUT.DEFAULT_OBJECTIVE_TEXT);
-        this.setScore(GAME_CONFIG.DEFAULT_SCORE);
-        this.createHandSlots(GAME_CONFIG.HAND_SLOTS);
-        // initial paint from state
-        this.updateHand(this.gameManager.getGameState().handCards);
+    this.gamesProgressHandler = ({ current, total }) => this.setGames(`Round: ${current} / ${total}`);
+    state.onGameEvent('gamesProgressChanged', this.gamesProgressHandler);
 
-        this.createResultSlots(GAME_CONFIG.RESULT_SLOTS);
-        this.updateResultSlots(['?', '?', '?', '?', '?', '?']); // Add some placeholder result slots
+    this.gameWonHandler = () => this.showWinOverlay();
+    state.onGameEvent('gameWon', this.gameWonHandler);
 
-        // Submit Button with rounded corners
-        const submitBtnWidth = 160;
-        const submitBtnHeight = 50;
-        const submitBtnRadius = 12;
-        const submitBtnX = this.sys.game.scale.width / 2;
-        const submitBtnY = this.sys.game.scale.height - 160;
+    this.gamesCounter = this.labelBox(
+        gamesCounter.x,
+        gamesCounter.y,
+        gamesCounter.width,
+        gamesCounter.height,
+        `Round: ${state.gamesPlayed} / ${state.maxGames}`,
+        { radius: 12 }
+    );
 
-        const submitBtnBg = this.add.graphics();
-        submitBtnBg.fillStyle(GAME_CONFIG.COLORS.VIBRANT_BLUE, 1);
-        submitBtnBg.fillRoundedRect(
-            submitBtnX - submitBtnWidth / 2,
-            submitBtnY - submitBtnHeight / 2,
-            submitBtnWidth,
-            submitBtnHeight,
-            submitBtnRadius
-        );
-        submitBtnBg.setDepth(1000);
+    this.objectiveChangedHandler = (objective: string) => this.setObjective(objective);
+    state.onGameEvent('objectiveChanged', this.objectiveChangedHandler);
 
-        const submitBtnText = this.add.text(submitBtnX, submitBtnY, "Submit", {
-            fontSize: "28px",
-            color: "#ffffff",
-            fontStyle: '600',
-            fontFamily: GAME_CONFIG.FONT.FAMILY
-        })
-            .setOrigin(0.5)
-            .setDepth(1001);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        const stateRef = this.gameManager.getGameState();
+        if (this.handCardsHandler) stateRef.offGameEvent('handCardsChanged', this.handCardsHandler);
+        if (this.gamesProgressHandler) stateRef.offGameEvent('gamesProgressChanged', this.gamesProgressHandler);
+        if (this.gameWonHandler) stateRef.offGameEvent('gameWon', this.gameWonHandler);
+        if (this.objectiveChangedHandler) stateRef.offGameEvent('objectiveChanged', this.objectiveChangedHandler);
+    });
 
-        const submitHitArea = new Phaser.Geom.Rectangle(
-            submitBtnX - submitBtnWidth / 2,
-            submitBtnY - submitBtnHeight / 2,
-            submitBtnWidth,
-            submitBtnHeight
-        );
+    // Objective
+    this.objective = this.labelBox(
+        objective.x,
+        objective.y,
+        objective.width,
+        objective.height,
+        GAME_CONFIG.LAYOUT.DEFAULT_OBJECTIVE_TEXT,
+        { fontSize: GAME_CONFIG.FONT.OBJECTIVE_SIZE, fontStyle: 'bold', radius: 12 }
+    );
 
-        submitBtnBg.setInteractive(submitHitArea, Phaser.Geom.Rectangle.Contains);
-        submitBtnBg.input!.cursor = 'pointer';
+    this.objectiveCaption = this.add.text(
+        objective.captionX,
+        objective.captionY,
+        'Objective',
+        { fontSize: '20px', color: '#000000', fontStyle: 'bold' }
+    ).setOrigin(0.5, 1);
 
-        submitBtnBg.on('pointerover', () => {
-            submitBtnBg.clear();
-            submitBtnBg.fillStyle(GAME_CONFIG.COLORS.DARK_BLUE, 1);
-            submitBtnBg.fillRoundedRect(
-                submitBtnX - submitBtnWidth / 2,
-                submitBtnY - submitBtnHeight / 2,
-                submitBtnWidth,
-                submitBtnHeight,
-                submitBtnRadius
-            );
-            // Scale up slightly on hover
-            submitBtnText.setScale(1.05);
-        });
+    // Test Section (temporary)
+    this.objectiveTestLabel = this.add.text(testSection.x, testSection.y, 'Test Objective', {
+        fontSize: GAME_CONFIG.FONT.SCORE_SIZE,
+        color: GAME_CONFIG.COLORS.WHITE,
+        fontStyle: 'bold'
+    });
+    this.objectiveTestLabel.setAlpha(GAME_CONFIG.LAYOUT.DEFAULT_ALPHA);
+    this.objectiveTestLabel.setInteractive();
+    this.objectiveTestLabel.on(Phaser.Input.Events.POINTER_DOWN, () => {
+        const newObjective = this.gameManager.generateObjective();
+        this.gameManager.setObjective(newObjective);
+    });
 
-        submitBtnBg.on('pointerout', () => {
-            submitBtnBg.clear();
-            submitBtnBg.fillStyle(GAME_CONFIG.COLORS.VIBRANT_BLUE, 1);
-            submitBtnBg.fillRoundedRect(
-                submitBtnX - submitBtnWidth / 2,
-                submitBtnY - submitBtnHeight / 2,
-                submitBtnWidth,
-                submitBtnHeight,
-                submitBtnRadius
-            );
-            // Reset scale
-            submitBtnText.setScale(1);
-        });
+    // Result slots
+    this.resultBar = this.rect(resultBar.x, resultBar.y, resultBar.width, resultBar.height, {
+        fill: GAME_CONFIG.COLORS.LIGHT_BG,
+        alpha: 0.75,
+        radius: 12,
+        strokeColor: 0xffffff,
+        strokeWidth: 2
+    });
 
-        submitBtnBg.on("pointerdown", () => {
-            // Press effect - darker color and scale down
-            submitBtnBg.clear();
-            submitBtnBg.fillStyle(GAME_CONFIG.COLORS.NAVY_BLUE, 1);
-            submitBtnBg.fillRoundedRect(
-                submitBtnX - submitBtnWidth / 2,
-                submitBtnY - submitBtnHeight / 2,
-                submitBtnWidth,
-                submitBtnHeight,
-                submitBtnRadius
-            );
-            submitBtnText.setScale(0.95);
-        });
+    this.equalsText = this.add.text(resultBar.equalsX, resultBar.equalsY, '= ', {
+        fontSize: GAME_CONFIG.LAYOUT.RESULT_EQUALS_FONT_SIZE,
+        color: '#4a5568',
+        fontStyle: '700',
+        fontFamily: GAME_CONFIG.FONT.FAMILY
+    });
 
-        submitBtnBg.on("pointerup", () => {
-            // Reset to hover state
-            submitBtnBg.clear();
-            submitBtnBg.fillStyle(GAME_CONFIG.COLORS.DARK_BLUE, 1);
-            submitBtnBg.fillRoundedRect(
-                submitBtnX - submitBtnWidth / 2,
-                submitBtnY - submitBtnHeight / 2,
-                submitBtnWidth,
-                submitBtnHeight,
-                submitBtnRadius
-            );
-            submitBtnText.setScale(1.05);
+    // Hand bar
+    this.handBar = this.rect(handBar.x, handBar.y, handBar.width, handBar.height, {
+        fill: GAME_CONFIG.COLORS.MEDIUM_BG,
+        alpha: 0.8,
+        radius: 12,
+        strokeColor: 0xffffff,
+        strokeWidth: 2
+    });
 
-            // Execute submit logic
-            console.log("Submit clicked ✅");
+    this.handCaption = this.add.text(handBar.captionX, handBar.captionY, 'Cards, either operator(+,-,*,/) or number (0–9)', {
+        fontSize: GAME_CONFIG.FONT.CAPTION_SIZE,
+        color: '#4a5568',
+        fontStyle: '500',
+        fontFamily: GAME_CONFIG.FONT.FAMILY
+    }).setOrigin(0.5, 0);
 
-            // Collect labels safely
-            const cards = this.resultSlots
-                .map(slot => slot.card?.list?.[2]?.text ?? "")
-                .filter(label => label !== "");
+    // Containers for visuals
+    this.resultContainer = this.add.container(0, 0).setDepth(GAME_CONFIG.DRAG.DEPTH + 2);
+    this.handContainer = this.add.container(0, 0).setDepth(GAME_CONFIG.DRAG.DEPTH + 2);
 
-            console.log("Collected Cards:", cards);
+    // Initialize defaults
+    this.setHealth(GAME_CONFIG.HEALTH_FULL);
+    const currentObjective = this.gameManager.getCurrentObjective();
+    this.setObjective(currentObjective || GAME_CONFIG.LAYOUT.DEFAULT_OBJECTIVE_TEXT);
+    this.setScore(GAME_CONFIG.DEFAULT_SCORE);
+    this.createHandSlots(GAME_CONFIG.HAND_SLOTS);
+    this.updateHand(this.gameManager.getGameState().handCards);
+    this.createResultSlots(GAME_CONFIG.RESULT_SLOTS);
+    this.updateResultSlots(['?', '?', '?', '?', '?', '?']);
 
-            if (cards.length === 0) {
-                console.warn("No cards in result slots!");
-                return;
-            }
+    // 🌈 Submit Button (consistent with new UI style)
+    const submitBtnWidth = 220;
+    const submitBtnHeight = 60;
+    const submitBtnRadius = 18;
+    const submitBtnX = this.sys.game.scale.width / 2;
+    const submitBtnY = this.sys.game.scale.height - 160;
 
-            const result = evaluateExpression(cards);
-            console.log("Evaluated Result:", result);
+    const submitBtnContainer = this.add.container(submitBtnX, submitBtnY);
+    submitBtnContainer.setSize(submitBtnWidth, submitBtnHeight);
 
-            const isCorrect = checkObjective(result, this.gameManager.getCurrentObjective());
-            console.log("Objective:", this.gameManager.getCurrentObjective(), "=>", isCorrect);
+    const submitBtnBg = this.add.graphics();
+    submitBtnBg.fillGradientStyle(0x89f7fe, 0x89f7fe, 0x66a6ff, 0x66a6ff, 1, 1, 1, 1);
+    submitBtnBg.fillRoundedRect(-submitBtnWidth / 2, -submitBtnHeight / 2, submitBtnWidth, submitBtnHeight, submitBtnRadius);
 
-            if (isCorrect) {
-                // Show success feedback
-                this.feedbackAnimations.showCorrectFeedback();
+    const submitBtnText = this.add.text(0, 0, "Submit", {
+        fontSize: "28px",
+        color: "#ffffff",
+        fontStyle: "700",
+        fontFamily: "Poppins, Nunito, Arial, sans-serif",
+        shadow: { offsetX: 3, offsetY: 3, color: "#000000", blur: 6, fill: true }
+    }).setOrigin(0.5);
 
-                this.gameManager.updateScore(10);
-                const stateBefore = this.gameManager.getGameState();
-                stateBefore.advanceRound();
-                // Refresh hand for new round
-                this.updateHand(stateBefore.handCards);
-                // Reset result slots back to placeholders (question marks)
-                this.resetResultSlots();
-                // Games counter will update via existing gamesProgressChanged listener
-            } else {
-                // Show failure feedback
-                this.feedbackAnimations.showIncorrectFeedback();
+    submitBtnContainer.add([submitBtnBg, submitBtnText]);
 
-                this.gameManager.updateLives(-1);
-                this.gameManager.updateLives(-1);
+    const submitHitArea = this.add.zone(0, 0, submitBtnWidth, submitBtnHeight)
+        .setOrigin(0.5)
+        .setInteractive({ useHandCursor: true });
+    submitBtnContainer.add(submitHitArea);
 
-                // Check if player is out of health
-                if (this.gameManager.getGameState().lives <= 0) {
-                    this.showGameOverOverlay();
-                    return;
-                }
+    submitHitArea.on("pointerover", () => {
+        this.tweens.add({ targets: submitBtnContainer, scale: 1.08, duration: 150, ease: "Back.Out" });
+    });
 
-            }
+    submitHitArea.on("pointerout", () => {
+        this.tweens.add({ targets: submitBtnContainer, scale: 1.0, duration: 150, ease: "Back.In" });
+    });
 
-        });
+    submitHitArea.on("pointerdown", () => {
+        this.sound?.play("whoosh", { volume: 0.4 });
+        this.tweens.add({ targets: submitBtnContainer, scale: 0.95, duration: 100, yoyo: true, ease: "Back.InOut" });
+    });
 
-        // UI is now updated via GameManager events - no direct event handling needed
+    submitHitArea.on("pointerup", () => {
+        console.log("Submit clicked ✅");
+        const cards = this.resultSlots
+        .map(slot => slot.card?.list?.[2]?.text ?? "")
+        .filter(label => label !== "");
+        if (cards.length === 0) return;
 
-        // Create user profile component at bottom right
-        this.userProfile = new UserProfile(this);
-        this.userProfile.create(W - 120, H - 60);
+        const result = evaluateExpression(cards);
+        const isCorrect = checkObjective(result, this.gameManager.getCurrentObjective());
 
-        // Initialize feedback animations
-        this.feedbackAnimations = new FeedbackAnimations(this);
+        if (isCorrect) {
+        this.feedbackAnimations.showCorrectFeedback();
+        this.gameManager.updateScore(10);
+        const stateBefore = this.gameManager.getGameState();
+        stateBefore.advanceRound();
+        this.updateHand(stateBefore.handCards);
+        this.resetResultSlots();
+        } else {
+        this.feedbackAnimations.showIncorrectFeedback();
+        this.gameManager.updateLives(-1);
+        this.gameManager.updateLives(-1);
+        if (this.gameManager.getGameState().lives <= 0) {
+            this.showGameOverOverlay();
+            return;
+        }
+        }
+    });
 
-        // Switch Difficulty button
-        this.createSwitchDifficultyButton(W, H);
+    // User profile + feedback
+    this.userProfile = new UserProfile(this);
+    this.userProfile.create(W - 120, H - 60);
+    this.feedbackAnimations = new FeedbackAnimations(this);
 
-        this.createDragEvents();
+    // Switch Difficulty
+    this.createSwitchDifficultyButton(W, H);
+    this.createDragEvents();
     }
+
 
     private showGameOverOverlay() {
     const { width: W, height: H } = this.sys.game.scale;
@@ -578,46 +526,45 @@ export class GameUI extends Phaser.Scene {
         });
     }
 
-    // Attach pointer listeners to a card container for click/drag logic
-attachCardPointerListeners(card: any) {
-    // Make card interactive
-    card.setInteractive({ useHandCursor: true });
+        // Attach pointer listeners to a card container for click/drag logic
+    attachCardPointerListeners(card: any) {
+        // Make card interactive
+        card.setInteractive({ useHandCursor: true });
 
-    // orce pointer cursor on hover (
-    card.on('pointerover', function (this: any) {
-        this.scene.input.setDefaultCursor('pointer');
-    });
-    card.on('pointerout', function (this: any) {
-        this.scene.input.setDefaultCursor('default');
-    });
+        // orce pointer cursor on hover (
+        card.on('pointerover', function (this: any) {
+            this.scene.input.setDefaultCursor('pointer');
+        });
+        card.on('pointerout', function (this: any) {
+            this.scene.input.setDefaultCursor('default');
+        });
 
-    // Keep your click/drag logic
-    card.on('pointerdown', function (this: any, pointer: Phaser.Input.Pointer) {
-        this._wasDrag = false;
-    });
-    card.on('dragstart', function (this: any, pointer: Phaser.Input.Pointer) {
-        this._wasDrag = true;
-    });
-    card.on('pointerup', function (this: any, pointer: Phaser.Input.Pointer) {
-        if (!this._wasDrag) {
-            const scene: any = this.scene;
-            if (scene.handSlots?.includes(this.slot)) {
-                const emptyResultSlot = scene.resultSlots?.find((s: any) => !s.card);
-                if (emptyResultSlot) {
-                    emptyResultSlot.setCard(this);
-                    scene.updateResultDisplay();
-                }
-            } else if (scene.resultSlots?.includes(this.slot)) {
-                const emptyHandSlot = scene.handSlots?.find((s: any) => !s.card);
-                if (emptyHandSlot) {
-                    emptyHandSlot.setCard(this);
-                    scene.updateResultDisplay();
+        // Keep your click/drag logic
+        card.on('pointerdown', function (this: any, pointer: Phaser.Input.Pointer) {
+            this._wasDrag = false;
+        });
+        card.on('dragstart', function (this: any, pointer: Phaser.Input.Pointer) {
+            this._wasDrag = true;
+        });
+        card.on('pointerup', function (this: any, pointer: Phaser.Input.Pointer) {
+            if (!this._wasDrag) {
+                const scene: any = this.scene;
+                if (scene.handSlots?.includes(this.slot)) {
+                    const emptyResultSlot = scene.resultSlots?.find((s: any) => !s.card);
+                    if (emptyResultSlot) {
+                        emptyResultSlot.setCard(this);
+                        scene.updateResultDisplay();
+                    }
+                } else if (scene.resultSlots?.includes(this.slot)) {
+                    const emptyHandSlot = scene.handSlots?.find((s: any) => !s.card);
+                    if (emptyHandSlot) {
+                        emptyHandSlot.setCard(this);
+                        scene.updateResultDisplay();
+                    }
                 }
             }
-        }
-    });
-}
-
+        });
+    }
 
     // Reset result slots to '?' placeholders for the next round
     resetResultSlots() {
@@ -625,100 +572,64 @@ attachCardPointerListeners(card: any) {
         this.updateResultSlots(placeholders);
     }
 
-    // Create Switch Difficulty button
+    // 🟠 Gradient "Switch Difficulty" Button — matches new UI style
     createSwitchDifficultyButton(gameWidth: number, gameHeight: number) {
-        const btnWidth = 180;
-        const btnHeight = 45;
-        const btnRadius = 10;
-        const btnX = gameWidth / 2;
-        const btnY = gameHeight - 80;
+    const btnWidth = 220;
+    const btnHeight = 60;
+    const btnRadius = 18;
+    const btnX = gameWidth / 2;
+    const btnY = gameHeight - 80;
 
-        const btnBg = this.add.graphics();
-        btnBg.fillStyle(GAME_CONFIG.COLORS.WARM_ORANGE, 1);
-        btnBg.fillRoundedRect(
-            btnX - btnWidth / 2,
-            btnY - btnHeight / 2,
-            btnWidth,
-            btnHeight,
-            btnRadius
-        );
-        btnBg.setDepth(999);
+    // Container to group graphics + text
+    const btnContainer = this.add.container(btnX, btnY);
+    btnContainer.setSize(btnWidth, btnHeight);
 
-        const btnText = this.add.text(btnX, btnY, 'Switch Difficulty', {
-            fontSize: '16px',
-            color: '#ffffff',
-            fontStyle: '500',
-            fontFamily: GAME_CONFIG.FONT.FAMILY
-        })
-            .setOrigin(0.5)
-            .setDepth(1000);
+    // Gradient background
+    const btnBg = this.add.graphics();
+    btnBg.fillGradientStyle(0xf6d365, 0xf6d365, 0xfda085, 0xfda085, 1, 1, 1, 1);
+    btnBg.fillRoundedRect(-btnWidth / 2, -btnHeight / 2, btnWidth, btnHeight, btnRadius);
 
-        const hitArea = new Phaser.Geom.Rectangle(
-            btnX - btnWidth / 2,
-            btnY - btnHeight / 2,
-            btnWidth,
-            btnHeight
-        );
+    // Text
+    const btnText = this.add.text(0, 0, 'Switch Difficulty', {
+        fontSize: '20px',
+        color: '#ffffff',
+        fontStyle: '700',
+        fontFamily: 'Poppins, Nunito, Arial, sans-serif',
+        shadow: {
+        offsetX: 2,
+        offsetY: 2,
+        color: '#000000',
+        blur: 4,
+        fill: true
+        }
+    }).setOrigin(0.5);
 
-        btnBg.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
-        btnBg.input!.cursor = 'pointer';
+    btnContainer.add([btnBg, btnText]);
 
-        btnBg.on('pointerover', () => {
-            btnBg.clear();
-            btnBg.fillStyle(GAME_CONFIG.COLORS.DARK_ORANGE, 1);
-            btnBg.fillRoundedRect(
-                btnX - btnWidth / 2,
-                btnY - btnHeight / 2,
-                btnWidth,
-                btnHeight,
-                btnRadius
-            );
-            btnText.setScale(1.05);
-        });
+    // Interactive zone
+    const zone = this.add.zone(0, 0, btnWidth, btnHeight).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    btnContainer.add(zone);
 
-        btnBg.on('pointerout', () => {
-            btnBg.clear();
-            btnBg.fillStyle(GAME_CONFIG.COLORS.WARM_ORANGE, 1);
-            btnBg.fillRoundedRect(
-                btnX - btnWidth / 2,
-                btnY - btnHeight / 2,
-                btnWidth,
-                btnHeight,
-                btnRadius
-            );
-            btnText.setScale(1);
-        });
+    // Hover animation
+    zone.on('pointerover', () => {
+        this.tweens.add({ targets: btnContainer, scale: 1.08, duration: 150, ease: 'Back.Out' });
+    });
+    zone.on('pointerout', () => {
+        this.tweens.add({ targets: btnContainer, scale: 1.0, duration: 150, ease: 'Back.In' });
+    });
 
-        btnBg.on('pointerdown', () => {
-            btnBg.clear();
-            btnBg.fillStyle(GAME_CONFIG.COLORS.DARK_ORANGE, 1);
-            btnBg.fillRoundedRect(
-                btnX - btnWidth / 2,
-                btnY - btnHeight / 2,
-                btnWidth,
-                btnHeight,
-                btnRadius
-            );
-            btnText.setScale(0.95);
-        });
+    // Click bounce animation + action
+    zone.on('pointerdown', () => {
+        this.sound?.play('whoosh', { volume: 0.4 });
+        this.tweens.add({ targets: btnContainer, scale: 0.95, duration: 100, yoyo: true, ease: 'Back.InOut' });
+    });
 
-        btnBg.on('pointerup', () => {
-            btnBg.clear();
-            btnBg.fillStyle(GAME_CONFIG.COLORS.DARK_ORANGE, 1);
-            btnBg.fillRoundedRect(
-                btnX - btnWidth / 2,
-                btnY - btnHeight / 2,
-                btnWidth,
-                btnHeight,
-                btnRadius
-            );
-            btnText.setScale(1.05);
-
-            // Return to difficulty selection (Play scene)
-            this.scene.stop('GameUI');
-            this.scene.start('Play');
-        });
+    zone.on('pointerup', () => {
+        this.scene.stop('GameUI');
+        this.scene.start('Play');
+    });
     }
+
 
     // Display a win overlay with a button to go back to home (Play) scene
     private showWinOverlay() {
