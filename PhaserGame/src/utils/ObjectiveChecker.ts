@@ -1,10 +1,12 @@
 
 import { PRIME_NUMBERS } from '../config/GameConstants';
 
+// Check if number is prime
 function isPrime(num: number): boolean {
   return PRIME_NUMBERS.includes(num as any);
 }
 
+// Check if value is a power of base
 function isPowerOf(base: number, value: number): boolean {
   if (value < 1) return false;
   let current = base;
@@ -14,6 +16,7 @@ function isPowerOf(base: number, value: number): boolean {
   return current === value;
 }
 
+// Check if result meets the objective criteria
 export function checkObjective(result: number, objective: string): boolean {
   if (objective.startsWith("Equal to")) {
     const num = parseInt(objective.split(" ")[2]);

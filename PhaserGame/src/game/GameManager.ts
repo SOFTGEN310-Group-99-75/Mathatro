@@ -1,10 +1,7 @@
 import { GameStateManager } from './GameStateManager';
 
-/**
- * GameManager - Centralized game coordination
- * Handles game state management and coordinates between scenes
- * Implements proper separation of concerns
- */
+// Main controller for the game
+// Bridges between game state and UI scenes - keeps them from talking directly
 export class GameManager {
     private static instance: GameManager;
     private readonly gameState: GameStateManager;
@@ -15,9 +12,7 @@ export class GameManager {
         this.gameState = new GameStateManager();
     }
 
-    /**
-     * Get singleton instance
-     */
+    // Singleton so any scene can grab the same game manager
     public static getInstance(): GameManager {
         if (!GameManager.instance) {
             GameManager.instance = new GameManager();
@@ -25,11 +20,10 @@ export class GameManager {
         return GameManager.instance;
     }
 
-    /**
-     * Initialize with a scene (usually the main Play scene)
-     */
+    // Hook up the manager to a Phaser scene
     public initialize(scene: Phaser.Scene): void {
         this.scene = scene;
+        // Only setup listeners once, even if we reinit
         if (!this.listenersRegistered) {
             this.setupGameEventListeners();
             this.listenersRegistered = true;
@@ -37,95 +31,70 @@ export class GameManager {
         this.gameState.initializeGame();
     }
 
-    /**
-     * Get the game state manager
-     */
+    // Access the game state manager
     public getGameState(): GameStateManager {
         return this.gameState;
     }
 
-    /**
-     * Generate a new objective using game state
-     */
+    // Generate a random objective for the current difficulty
     public generateObjective(): string {
         return this.gameState.generateObjective();
     }
 
-    /**
-     * Set objective in game state
-     */
+    // Set the current objective
     public setObjective(objective: string): void {
         this.gameState.setObjective(objective);
     }
 
-    /**
-     * Get current objective from game state
-     */
+    // Get the current objective string
     public getCurrentObjective(): string {
         return this.gameState.currentObjective;
     }
 
-    /**
-     * Update score
-     */
+    // Add or subtract points from score
     public updateScore(points: number): void {
         this.gameState.updateScore(points);
     }
 
-    /**
-     * Get current score
-     */
+    // Get current score value
     public getCurrentScore(): number {
         return this.gameState.score;
     }
 
-    /**
-     * Update lives
-     */
+    // Change player's lives (positive or negative)
     public updateLives(delta: number): void {
         this.gameState.updateLives(delta);
     }
 
-    /**
-     * Get current lives
-     */
+    // Get current lives count
     public getCurrentLives(): number {
         return this.gameState.lives;
     }
 
-    /**
-     * Get health ratio
-     */
+    // Get health as a 0-1 ratio for the health bar
     public getHealthRatio(): number {
         return this.gameState.getHealthRatio();
     }
 
-    /**
-     * Start a new game
-     */
+    // Start a fresh game
     public startNewGame(): void {
         this.gameState.startNewGame();
     }
 
-    /**
-     * Restart the current game
-     */
+    // Reset and restart the current game
     public restartGame(): void {
         this.gameState.restartGame();
     }
 
-    /**
-     * Get game status
-     */
+    // Get full game state info
     public getGameStatus() {
         return this.gameState.getGameStatus();
     }
 
-    /**
-     * Setup event listeners to coordinate between scenes
-     */
+    // Wire up events so UI updates when game state changes
+    // This keeps the UI and game logic decoupled
     private setupGameEventListeners(): void {
-        // Listen to game state events and coordinate with scenes
+        // Update score display when it changes
         this.gameState.onGameEvent('scoreChanged', (score: number) => {
             if (this.scene?.scene.isActive('GameUI')) {
                 const gameUIScene = this.scene.scene.get('GameUI') as any;
@@ -133,6 +102,7 @@ export class GameManager {
             }
         });
 
+        // Update health bar when lives change
         this.gameState.onGameEvent('livesChanged', (lives: number) => {
             if (this.scene?.scene.isActive('GameUI')) {
                 const healthRatio = this.gameState.getHealthRatio();
@@ -161,9 +131,7 @@ export class GameManager {
         });
     }
 
-    /**
-     * Show game won message
-     */
+    // Display win message to player
     private showGameWon(): void {
         if (this.scene) {
             const winnerText = this.scene.children.getByName('winnerText') as Phaser.GameObjects.Text;
@@ -177,9 +145,7 @@ export class GameManager {
         }
     }
 
-    /**
-     * Show game over message
-     */
+    // Display game over message to player
     private showGameOver(): void {
         if (this.scene) {
             const gameOverText = this.scene.children.getByName('gameOverText') as Phaser.GameObjects.Text;

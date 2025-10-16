@@ -29,12 +29,10 @@ interface GameEventData {
     level?: number;
 }
 
-/**
- * GameStateManager - Handles all game state and core game logic
- * Separated from UI concerns for better maintainability and testability
- */
+// Holds all the game state - health, score, cards, etc.
+// Keeps game logic separate from UI rendering
 export class GameStateManager {
-    // Game state
+    // Player stuff
     public lives: number;
     public score: number;
     public currentLevel: number;
@@ -43,16 +41,16 @@ export class GameStateManager {
     public isGameWon: boolean;
     public isGameOver: boolean;
 
-    // Card state
+    // What cards are in play
     public handCards: any[];
     public resultCards: any[];
     public availableCards: any[];
 
-    // Game progression
+    // Progress tracking
     public gamesPlayed: number;
     public maxGames: number;
     public difficulty: DifficultyMode = 'easy';
-    // Track objectives seen in current game (for uniqueness)
+    // Don't repeat objectives in same game session
     private usedObjectives: Set<string> = new Set();
 
 
@@ -80,9 +78,7 @@ export class GameStateManager {
         this.initializeGame();
     }
 
-    /**
-     * Initialize the game with starting values
-     */
+    // Set up a new game with initial values
     initializeGame() {
         this.usedObjectives = new Set();
         const solvable = this.generateUniqueSolvableRound();
@@ -96,51 +92,39 @@ export class GameStateManager {
         this.isGameOver = false;
     }
 
-    /**
-         * Generate a new objective for the current game
-         */
+    // Generate random objective based on difficulty
     generateObjective(): string {
         // Keep legacy function for compatibility, though main flow now uses expression-first generation
         return GenerateObjective(this.difficulty);
     }
 
-    /**
-     * Update the current objective
-     */
+    // Set a new objective and notify listeners
     setObjective(objective: string): void {
         this.currentObjective = objective;
         this.emitGameEvent('objectiveChanged', objective);
     }
 
 
-    /**
-     * Generate a new objective and update state
-     */
+    // Create and set a new random objective
     generateNewObjective(): string {
         const newObjective = this.generateObjective();
         this.setObjective(newObjective);
         return newObjective;
     }
 
-    /**
-     * Update player score
-     */
+    // Add points to the score
     updateScore(points: number): void {
         this.score += points;
         this.emitGameEvent('scoreChanged', this.score);
     }
 
-    /**
-     * Set player score directly
-     */
+    // Set score to exact value
     setScore(score: number): void {
         this.score = score;
         this.emitGameEvent('scoreChanged', this.score);
     }
 
-    /**
-     * Update player health/lives
-     */
+    // Change lives by delta amount (positive or negative)
     updateLives(delta: number): void {
         this.lives = Math.max(0, Math.min(GAME_CONFIG.INITIAL_LIVES, this.lives + delta));
         this.emitGameEvent('livesChanged', this.lives);
@@ -150,9 +134,7 @@ export class GameStateManager {
         }
     }
 
-    /**
-     * Set lives directly
-     */
+    // Set lives to exact value
     setLives(lives: number): void {
         this.lives = Math.max(0, Math.min(GAME_CONFIG.INITIAL_LIVES, lives));
         this.emitGameEvent('livesChanged', this.lives);
@@ -164,54 +146,46 @@ export class GameStateManager {
 
 
 
+    // Change game difficulty (easy/medium/hard)
     setDifficulty(mode: DifficultyMode) {
         this.difficulty = mode;
         const config = DIFFICULTY_CONFIG[mode];
         this.maxGames = config.maxLevels;
     }
 
-    /**
-     * Get current health ratio (0-1)
-     */
+    // Get health as percentage (0.0 to 1.0)
     getHealthRatio(): number {
         return this.lives / GAME_CONFIG.INITIAL_LIVES;
     }
 
-    /**
-     * Update game progression
-     */
+    // Update round counter display
     setGamesProgress(current: number, total: number): void {
         this.gamesPlayed = current;
         this.maxGames = total;
         this.emitGameEvent('gamesProgressChanged', { current, total });
     }
 
-    /**
-     * Handle game win
-     */
+    // Trigger win state when player beats all rounds
     gameWin(): void {
         this.isGameWon = true;
         this.isGameActive = false;
         this.emitGameEvent('gameWon', { score: this.score, level: this.currentLevel });
     }
 
-    /**
-     * Handle game over
-     */
+    // Trigger game over state when lives hit zero
     gameOver(): void {
         this.isGameOver = true;
         this.isGameActive = false;
         this.emitGameEvent('gameOver', { score: this.score, level: this.currentLevel });
     }
 
-    /**
-     * Start a new game
-     */
+    // Begin a fresh game session
     startNewGame(): void {
         this.initializeGame();
         this.emitGameEvent('gameStarted');
     }
 
+    // Reset everything and start over
     restartGame(): void {
         this.lives = GAME_CONFIG.INITIAL_LIVES;
         this.score = GAME_CONFIG.DEFAULT_SCORE;
@@ -238,25 +212,19 @@ export class GameStateManager {
 
 
 
-    /**
-     * Update hand cards
-     */
+    // Update the player's hand of cards
     setHandCards(cards: any[]): void {
         this.handCards = [...cards];
         this.emitGameEvent('handCardsChanged', this.handCards);
     }
 
-    /**
-     * Update result cards
-     */
+    // Update the result area cards
     setResultCards(cards: any[]): void {
         this.resultCards = [...cards];
         this.emitGameEvent('resultCardsChanged', this.resultCards);
     }
 
-    /**
-     * Get current game status
-     */
+    // Get complete game state snapshot
     getGameStatus(): GameStatus {
         return {
             lives: this.lives,
@@ -272,9 +240,7 @@ export class GameStateManager {
         };
     }
 
-    /**
-     * Emit game events for UI to listen to
-     */
+    // Fire an event that UI can listen to
     emitGameEvent(eventType: string, data: any = null): void {
         // This will be connected to Phaser's event system
         if (typeof window !== 'undefined' && (window as any).game) {
@@ -282,18 +248,14 @@ export class GameStateManager {
         }
     }
 
-    /**
-     * Subscribe to game events
-     */
+    // Listen for game state changes
     onGameEvent(eventType: string, callback: (data?: any) => void): void {
         if (typeof window !== 'undefined' && (window as any).game) {
             (window as any).game.events.on(`game:${eventType}`, callback);
         }
     }
 
-    /**
-     * Unsubscribe from game events
-     */
+    // Stop listening to game state changes
     offGameEvent(eventType: string, callback: (data?: any) => void): void {
         if (typeof window !== 'undefined' && (window as any).game) {
             (window as any).game.events.off(`game:${eventType}`, callback);
@@ -301,6 +263,7 @@ export class GameStateManager {
     }
 
 
+    // Move to the next round or trigger win
     advanceRound() {
         if (this.gamesPlayed < this.maxGames) {
             this.gamesPlayed++;
@@ -320,6 +283,7 @@ export class GameStateManager {
     }
 
 
+    // Create random hand of number and operator cards
     generateHandCards(): string[] {
         const config = DIFFICULTY_CONFIG[this.difficulty];
 
@@ -334,28 +298,27 @@ export class GameStateManager {
         return [...nums, ...ops];
     }
 
-    /** Generate a solvable round whose objective has not yet appeared in this game */
+    // Generate a round that's actually solvable AND hasn't been used yet
+    // This took way too long to debug but it works now
     private generateUniqueSolvableRound(maxAttempts: number = 200) {
         let lastRound = generateSolvableHandAndObjective(this.difficulty);
-        // Phase 1: normal attempts
+        // Phase 1: try to get a unique solvable objective
         for (let i = 0; i < maxAttempts; i++) {
             const round = i === 0 ? lastRound : generateSolvableHandAndObjective(this.difficulty);
             lastRound = round;
-            if (this.usedObjectives.has(round.objective)) continue; // uniqueness check
+            if (this.usedObjectives.has(round.objective)) continue; // skip if we've seen this before
             const validation = isObjectiveSolvable(round.hand, round.objective, { maxNumbers: 3 });
-            // Debug logging removed for security - no sensitive game state exposure
             console.debug('[RoundGen][Phase1]', { attempt: i, validated: validation.solvable });
             if (validation.solvable) return round;
         }
-        // Phase 2: escalate by forcing uniqueness relaxation but still require solvable
+        // Phase 2: okay fine, we'll allow repeats but it still has to be solvable
         for (let j = 0; j < 100; j++) {
             const round = generateSolvableHandAndObjective(this.difficulty);
             const validation = isObjectiveSolvable(round.hand, round.objective, { maxNumbers: 3 });
-            // Debug logging removed for security - no sensitive game state exposure
             console.warn('[RoundGen][Phase2]', { attempt: j, validated: validation.solvable });
             if (validation.solvable) return round;
         }
-        // Final emergency fallback: ensure at least trivial solvable condition by forcing Equal to 2 expression
+        // Emergency escape hatch: give them 1+1=2 if all else fails
         const fallback = {
             hand: ['1', '1', '+', '+', '2', '3', '+', '4'],
             objective: 'Equal to 2',

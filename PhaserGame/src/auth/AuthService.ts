@@ -15,6 +15,8 @@ export interface AuthUser {
   displayName: string | null;
 }
 
+// Main service for handling all authentication
+// Singleton pattern so we can access it from anywhere
 export class AuthService {
   private static instance: AuthService;
   private currentUser: AuthUser | null = null;
@@ -22,7 +24,8 @@ export class AuthService {
   private readonly usernameService: UsernameService = UsernameService.getInstance();
 
   private constructor() {
-    // Listen for authentication state changes
+    // Hook into Firebase's auth state listener
+    // This fires whenever login/logout happens
     onAuthStateChanged(auth, (user: User | null) => {
       if (user) {
         this.currentUser = {
@@ -34,11 +37,12 @@ export class AuthService {
         this.currentUser = null;
       }
       
-      // Notify all listeners
+      // Tell everyone who's listening that auth state changed
       this.authStateListeners.forEach(listener => listener(this.currentUser));
     });
   }
 
+  // Get the singleton instance
   public static getInstance(): AuthService {
     if (!AuthService.instance) {
       AuthService.instance = new AuthService();
@@ -46,6 +50,7 @@ export class AuthService {
     return AuthService.instance;
   }
 
+  // Login with email and password
   public async signIn(email: string, password: string): Promise<AuthUser> {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -60,6 +65,7 @@ export class AuthService {
     }
   }
 
+  // Create new account with email and password
   public async signUp(email: string, password: string, displayName?: string): Promise<AuthUser> {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -80,16 +86,17 @@ export class AuthService {
     }
   }
 
+  // Login using username instead of email
   public async signInWithUsername(username: string, password: string): Promise<AuthUser> {
     try {
-      // Get email associated with username
+      // Firebase only supports email login, so we need to look up the email first
       const email = await this.usernameService.getEmailByUsername(username);
       
       if (!email) {
         throw new Error('Username not found');
       }
       
-      // Sign in with the associated email
+      // Now login with the email
       return await this.signIn(email, password);
     } catch (error) {
       console.error('Username sign in error:', error);
@@ -97,23 +104,24 @@ export class AuthService {
     }
   }
 
+  // Create account with username, stores username->email mapping
   public async signUpWithUsername(username: string, password: string, email: string): Promise<AuthUser> {
     try {
-      // Check if username is already taken
+      // Make sure username isn't taken before creating account
       const isTaken = await this.usernameService.isUsernameTaken(username);
       if (isTaken) {
         throw new Error('Username is already taken');
       }
       
-      // Create user account
+      // Create the Firebase account
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
-      // Update display name
+      // Set their display name to the username
       if (userCredential.user) {
         await updateProfile(userCredential.user, { displayName: username });
       }
       
-      // Create username mapping
+      // Store the username->email mapping in Firestore so we can look it up later
       await this.usernameService.createUsernameMapping(username, email, userCredential.user.uid);
       
       return {
@@ -127,6 +135,7 @@ export class AuthService {
     }
   }
 
+  // Logout current user
   public async signOut(): Promise<void> {
     try {
       await signOut(auth);
@@ -136,18 +145,21 @@ export class AuthService {
     }
   }
 
+  // Get the current logged-in user
   public getCurrentUser(): AuthUser | null {
     return this.currentUser;
   }
 
+  // Check if someone is logged in
   public isAuthenticated(): boolean {
     return this.currentUser !== null;
   }
 
+  // Subscribe to auth state changes
   public onAuthStateChange(callback: (user: AuthUser | null) => void): () => void {
     this.authStateListeners.push(callback);
     
-    // Return unsubscribe function
+    // Return a function to unsubscribe later if needed
     return () => {
       const index = this.authStateListeners.indexOf(callback);
       if (index > -1) {

@@ -9,6 +9,7 @@ export class Preloader extends Phaser.Scene
         });
     }
 
+    // Load all game assets
     preload ()
     {
         this.load.setPath("assets/");
@@ -36,6 +37,7 @@ export class Preloader extends Phaser.Scene
 
     }
 
+    // Assets loaded, start the game
     create ()
     {
         this.scene.start("Play");

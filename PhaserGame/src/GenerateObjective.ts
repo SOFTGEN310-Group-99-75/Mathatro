@@ -5,6 +5,7 @@ const EASY_OBJECTIVES = ["Equal to", "Odd number", "Even number"];
 const MEDIUM_OBJECTIVES = ["Greater than", "Less than", "Divisible by", "Prime number"];
 const HARD_OBJECTIVES = ["Power of", "Factor of", "Prime number", "Divisible by"];
 
+// Generate a random objective based on difficulty level
 export const GenerateObjective = (difficulty: DifficultyMode): string => {
     let pool: readonly string[];
 
@@ -58,6 +59,7 @@ export const GenerateObjective = (difficulty: DifficultyMode): string => {
     return objective;
 };
 
+// Generate a random non-prime number
 export const generateNonPrime = (): number => {
     let num = Phaser.Math.Between(GAME_CONFIG.OBJECTIVE.MIN_FACTOR, GAME_CONFIG.OBJECTIVE.MAX_FACTOR);
     while (PRIME_NUMBERS.includes(num as any)) {

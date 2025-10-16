@@ -1,5 +1,6 @@
 import { Parser } from "expr-eval";
 
+// Evaluate math expression from card array
 export function evaluateExpression(cards: string[]): number {
   // Concatenate adjacent numbers, evaluate normally when operators are present
   if (!cards || cards.length === 0) return NaN;
