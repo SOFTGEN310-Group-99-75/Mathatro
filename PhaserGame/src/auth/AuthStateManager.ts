@@ -1,5 +1,7 @@
 import { AuthService, AuthUser } from './AuthService';
 
+// Wrapper around AuthService for easier access to user state
+// Use this when you just need to check if someone's logged in
 export class AuthStateManager {
     private static instance: AuthStateManager;
     private authService: AuthService;
@@ -22,12 +24,12 @@ export class AuthStateManager {
             return;
         }
 
-        // Listen for authentication state changes
+        // Keep our local copy of user in sync with auth changes
         this.authService.onAuthStateChange((user: AuthUser | null) => {
             this.currentUser = user;
         });
 
-        // Get initial user state
+        // Grab the current user on startup
         this.currentUser = this.authService.getCurrentUser();
         this.isInitialized = true;
     }
@@ -41,6 +43,7 @@ export class AuthStateManager {
     }
 
     public async requireAuthentication(): Promise<AuthUser> {
+        // Throw an error if user isn't logged in - useful for protected features
         if (!this.isAuthenticated()) {
             throw new Error('User must be authenticated to access this feature');
         }

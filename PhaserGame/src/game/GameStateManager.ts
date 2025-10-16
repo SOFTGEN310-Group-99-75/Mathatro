@@ -29,12 +29,10 @@ interface GameEventData {
     level?: number;
 }
 
-/**
- * GameStateManager - Handles all game state and core game logic
- * Separated from UI concerns for better maintainability and testability
- */
+// Holds all the game state - health, score, cards, etc.
+// Keeps game logic separate from UI rendering
 export class GameStateManager {
-    // Game state
+    // Player stuff
     public lives: number;
     public score: number;
     public currentLevel: number;
@@ -43,16 +41,16 @@ export class GameStateManager {
     public isGameWon: boolean;
     public isGameOver: boolean;
 
-    // Card state
+    // What cards are in play
     public handCards: any[];
     public resultCards: any[];
     public availableCards: any[];
 
-    // Game progression
+    // Progress tracking
     public gamesPlayed: number;
     public maxGames: number;
     public difficulty: DifficultyMode = 'easy';
-    // Track objectives seen in current game (for uniqueness)
+    // Don't repeat objectives in same game session
     private usedObjectives: Set<string> = new Set();
 
 
@@ -334,28 +332,27 @@ export class GameStateManager {
         return [...nums, ...ops];
     }
 
-    /** Generate a solvable round whose objective has not yet appeared in this game */
+    // Generate a round that's actually solvable AND hasn't been used yet
+    // This took way too long to debug but it works now
     private generateUniqueSolvableRound(maxAttempts: number = 200) {
         let lastRound = generateSolvableHandAndObjective(this.difficulty);
-        // Phase 1: normal attempts
+        // Phase 1: try to get a unique solvable objective
         for (let i = 0; i < maxAttempts; i++) {
             const round = i === 0 ? lastRound : generateSolvableHandAndObjective(this.difficulty);
             lastRound = round;
-            if (this.usedObjectives.has(round.objective)) continue; // uniqueness check
+            if (this.usedObjectives.has(round.objective)) continue; // skip if we've seen this before
             const validation = isObjectiveSolvable(round.hand, round.objective, { maxNumbers: 3 });
-            // Debug logging removed for security - no sensitive game state exposure
             console.debug('[RoundGen][Phase1]', { attempt: i, validated: validation.solvable });
             if (validation.solvable) return round;
         }
-        // Phase 2: escalate by forcing uniqueness relaxation but still require solvable
+        // Phase 2: okay fine, we'll allow repeats but it still has to be solvable
         for (let j = 0; j < 100; j++) {
             const round = generateSolvableHandAndObjective(this.difficulty);
             const validation = isObjectiveSolvable(round.hand, round.objective, { maxNumbers: 3 });
-            // Debug logging removed for security - no sensitive game state exposure
             console.warn('[RoundGen][Phase2]', { attempt: j, validated: validation.solvable });
             if (validation.solvable) return round;
         }
-        // Final emergency fallback: ensure at least trivial solvable condition by forcing Equal to 2 expression
+        // Emergency escape hatch: give them 1+1=2 if all else fails
         const fallback = {
             hand: ['1', '1', '+', '+', '2', '3', '+', '4'],
             objective: 'Equal to 2',

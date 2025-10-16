@@ -16,6 +16,8 @@ export interface UsernameMapping {
   createdAt: Date;
 }
 
+// Handles username -> email mapping since Firebase Auth only supports email login
+// We store usernames in Firestore and look them up when users try to login
 export class UsernameService {
   private static instance: UsernameService;
   private readonly COLLECTION_NAME = 'usernameMappings';
@@ -29,11 +31,10 @@ export class UsernameService {
     return UsernameService.instance;
   }
 
-  /**
-   * Create a mapping between username and email
-   */
+  // Store a username -> email mapping when someone signs up
   public async createUsernameMapping(username: string, email: string, userId: string): Promise<void> {
     try {
+      // Use lowercase for case-insensitive lookups
       const usernameDoc = doc(db, this.COLLECTION_NAME, username.toLowerCase());
       const mapping: UsernameMapping = {
         username: username.toLowerCase(),
@@ -49,9 +50,7 @@ export class UsernameService {
     }
   }
 
-  /**
-   * Get email associated with a username
-   */
+  // Look up what email goes with a username (for login)
   public async getEmailByUsername(username: string): Promise<string | null> {
     try {
       const usernameDoc = doc(db, this.COLLECTION_NAME, username.toLowerCase());
@@ -69,9 +68,7 @@ export class UsernameService {
     }
   }
 
-  /**
-   * Check if username is already taken
-   */
+  // Check if someone already grabbed this username
   public async isUsernameTaken(username: string): Promise<boolean> {
     try {
       const usernameDoc = doc(db, this.COLLECTION_NAME, username.toLowerCase());
@@ -83,9 +80,7 @@ export class UsernameService {
     }
   }
 
-  /**
-   * Get username by email (reverse lookup)
-   */
+  // Reverse lookup - get username from email
   public async getUsernameByEmail(email: string): Promise<string | null> {
     try {
       const q = query(
@@ -108,13 +103,11 @@ export class UsernameService {
     }
   }
 
-  /**
-   * Delete username mapping (for account deletion)
-   */
+  // Clean up username mapping when deleting an account
   public async deleteUsernameMapping(username: string): Promise<void> {
     try {
       const usernameDoc = doc(db, this.COLLECTION_NAME, username.toLowerCase());
-      await setDoc(usernameDoc, {}, { merge: false }); // This will delete the document
+      await setDoc(usernameDoc, {}, { merge: false });
     } catch (error) {
       console.error('Error deleting username mapping:', error);
       throw error;

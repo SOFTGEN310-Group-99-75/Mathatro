@@ -6,21 +6,12 @@ import { UserProfile } from './auth/UserProfile';
 
 type DifficultyMode = 'easy' | 'medium' | 'hard';
 
-/**
- * Maths Card Game
- * -----------------------------------------------
- *
- * Test your math skills in this fun and challenging game!
- *
- * Music credits:
- * "Fat Caps" by Audionautix is licensed under the Creative Commons Attribution 4.0 license. https://creativecommons.org/licenses/by/4.0/
- * Artist http://audionautix.com/
- */
+// Main menu scene - difficulty selection
+// Music credit: "Fat Caps" by Audionautix (CC BY 4.0)
+// http://audionautix.com/
 export class Play extends Phaser.Scene {
-    // Game manager - centralized game coordination
     private gameManager!: GameManager;
     private userProfile: UserProfile;
-
 
     constructor() {
         super({
@@ -29,11 +20,11 @@ export class Play extends Phaser.Scene {
     }
 
     init() {
-        // Initialize game manager (singleton)
+        // Grab the game manager and get it ready
         this.gameManager = GameManager.getInstance();
         this.gameManager.initialize(this);
 
-        // Fadein camera
+        // Smooth fade in
         this.cameras.main.fadeIn(GAME_CONFIG.ANIMATION.FADE_DURATION);
         this.createVolumeButton();
     }
@@ -44,16 +35,16 @@ export class Play extends Phaser.Scene {
     create() {
     const { width, height } = this.sys.game.scale;
 
-    // 🌈 Proper vertical gradient background (top = teal, bottom = soft blue)
+    // Background (gradient commented out for now)
     const bg = this.add.graphics();
     // bg.fillGradientStyle(
-    //     0x89f7fe, 0x89f7fe, // top-left, top-right
-    //     0x66a6ff, 0x66a6ff, // bottom-left, bottom-right
+    //     0x89f7fe, 0x89f7fe,
+    //     0x66a6ff, 0x66a6ff,
     //     1, 1, 1, 1
     // );
     bg.fillRect(0, 0, width, height);
 
-    // 🎉 Title (playful + bounce)
+    // Big bouncy title animation
     const title = this.add.text(width / 2, height / 4, "Mathatro", {
         fontSize: "96px",
         fontFamily: "Poppins, Nunito, Arial, sans-serif",
@@ -64,6 +55,7 @@ export class Play extends Phaser.Scene {
         shadow: { offsetX: 6, offsetY: 6, color: "#000000", blur: 10, fill: true }
     }).setOrigin(0.5);
 
+    // Make title bounce forever
     this.tweens.add({
         targets: title,
         scale: { from: 1, to: 1.08 },
@@ -73,7 +65,7 @@ export class Play extends Phaser.Scene {
         ease: "Sine.easeInOut"
     });
 
-    // 🪧 Subheading
+    // Subtitle
     this.add.text(width / 2, height / 3 + 30, "Select Your Difficulty", {
         fontSize: "30px",
         color: "#ffffff",
@@ -102,10 +94,11 @@ export class Play extends Phaser.Scene {
     const buttonHeight = 80;
     const radius = 25;
 
+    // Color gradients for each difficulty
     const [cTop, cBottom] = ({
-        easy:   [0x43e97b, 0x38f9d7],
-        medium: [0xf6d365, 0xfda085],
-        hard:   [0xf093fb, 0xf5576c],
+        easy:   [0x43e97b, 0x38f9d7], // green -> cyan
+        medium: [0xf6d365, 0xfda085], // yellow -> orange
+        hard:   [0xf093fb, 0xf5576c], // pink -> red
     } as Record<DifficultyMode, [number, number]>)[mode];
 
     const btn = this.add.container(width / 2, y);
@@ -126,14 +119,14 @@ export class Play extends Phaser.Scene {
 
     btn.add([g, txt]);
 
-    // 💡 Use a Zone as the true interactive area
+    // Invisible hitbox for interaction (prevents scaling issues)
     const zone = this.add.zone(0, 0, buttonWidth, buttonHeight)
         .setOrigin(0.5)
         .setInteractive({ useHandCursor: true });
 
     btn.add(zone);
 
-    // Stable hover / click detection
+    // Hover and click animations
     zone.on("pointerover", () => this.animateButtonHover(btn, 1.08));
     zone.on("pointerout",  () => this.animateButtonHover(btn, 1.0));
     zone.on("pointerdown", () => {
@@ -185,10 +178,12 @@ export class Play extends Phaser.Scene {
     }
 
     private handleDifficultySelection(mode: 'easy' | 'medium' | 'hard') {
+        // Set difficulty and reset game
         const state = this.gameManager.getGameState();
         state.setDifficulty(mode);
         state.restartGame();
 
+        // Clean up menu and start playing
         this.cleanupDifficultyButtons();
         this.startThemeMusic();
         this.startGameUI();

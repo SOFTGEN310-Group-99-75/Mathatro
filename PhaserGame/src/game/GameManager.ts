@@ -1,10 +1,7 @@
 import { GameStateManager } from './GameStateManager';
 
-/**
- * GameManager - Centralized game coordination
- * Handles game state management and coordinates between scenes
- * Implements proper separation of concerns
- */
+// Main controller for the game
+// Bridges between game state and UI scenes - keeps them from talking directly
 export class GameManager {
     private static instance: GameManager;
     private readonly gameState: GameStateManager;
@@ -15,9 +12,7 @@ export class GameManager {
         this.gameState = new GameStateManager();
     }
 
-    /**
-     * Get singleton instance
-     */
+    // Singleton so any scene can grab the same game manager
     public static getInstance(): GameManager {
         if (!GameManager.instance) {
             GameManager.instance = new GameManager();
@@ -25,11 +20,10 @@ export class GameManager {
         return GameManager.instance;
     }
 
-    /**
-     * Initialize with a scene (usually the main Play scene)
-     */
+    // Hook up the manager to a Phaser scene
     public initialize(scene: Phaser.Scene): void {
         this.scene = scene;
+        // Only setup listeners once, even if we reinit
         if (!this.listenersRegistered) {
             this.setupGameEventListeners();
             this.listenersRegistered = true;
@@ -121,11 +115,10 @@ export class GameManager {
         return this.gameState.getGameStatus();
     }
 
-    /**
-     * Setup event listeners to coordinate between scenes
-     */
+    // Wire up events so UI updates when game state changes
+    // This keeps the UI and game logic decoupled
     private setupGameEventListeners(): void {
-        // Listen to game state events and coordinate with scenes
+        // Update score display when it changes
         this.gameState.onGameEvent('scoreChanged', (score: number) => {
             if (this.scene?.scene.isActive('GameUI')) {
                 const gameUIScene = this.scene.scene.get('GameUI') as any;
@@ -133,6 +126,7 @@ export class GameManager {
             }
         });
 
+        // Update health bar when lives change
         this.gameState.onGameEvent('livesChanged', (lives: number) => {
             if (this.scene?.scene.isActive('GameUI')) {
                 const healthRatio = this.gameState.getHealthRatio();

@@ -3,8 +3,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getAnalytics } from 'firebase/analytics';
 
-// Firebase configuration
-// Your web app's Firebase configuration
+// Firebase project config - grabbed from console
 const firebaseConfig = {
   apiKey: "AIzaSyAsodsLtIQcuhHqkAlDPZHU3DFEeHsp8PU",
   authDomain: "mathatro.firebaseapp.com",
@@ -15,21 +14,20 @@ const firebaseConfig = {
   measurementId: "G-PCBLWN1V7P"
 };
 
-// Initialize Firebase
+// Boot up Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firebase Authentication and get a reference to the service
+// Auth for login/signup
 export const auth = getAuth(app);
 
-// Initialize Cloud Firestore and get a reference to the service
+// Firestore DB for storing user data
 export const db = getFirestore(app);
 
-// Initialize Analytics and get a reference to the service
+// Analytics to track user behavior
 export const analytics = getAnalytics(app);
 
-// Connect to emulators in development (optional)
+// Dev mode: uncomment to use local emulators instead of prod Firebase
 if ((import.meta as any).env?.DEV) {
-  // Uncomment these lines if you want to use Firebase emulators for development
   // connectAuthEmulator(auth, "http://localhost:9099");
   // connectFirestoreEmulator(db, 'localhost', 8080);
 }

@@ -15,6 +15,8 @@ export interface AuthUser {
   displayName: string | null;
 }
 
+// Main service for handling all authentication
+// Singleton pattern so we can access it from anywhere
 export class AuthService {
   private static instance: AuthService;
   private currentUser: AuthUser | null = null;
@@ -22,7 +24,8 @@ export class AuthService {
   private readonly usernameService: UsernameService = UsernameService.getInstance();
 
   private constructor() {
-    // Listen for authentication state changes
+    // Hook into Firebase's auth state listener
+    // This fires whenever login/logout happens
     onAuthStateChanged(auth, (user: User | null) => {
       if (user) {
         this.currentUser = {
@@ -34,7 +37,7 @@ export class AuthService {
         this.currentUser = null;
       }
       
-      // Notify all listeners
+      // Tell everyone who's listening that auth state changed
       this.authStateListeners.forEach(listener => listener(this.currentUser));
     });
   }
@@ -82,14 +85,14 @@ export class AuthService {
 
   public async signInWithUsername(username: string, password: string): Promise<AuthUser> {
     try {
-      // Get email associated with username
+      // Firebase only supports email login, so we need to look up the email first
       const email = await this.usernameService.getEmailByUsername(username);
       
       if (!email) {
         throw new Error('Username not found');
       }
       
-      // Sign in with the associated email
+      // Now login with the email
       return await this.signIn(email, password);
     } catch (error) {
       console.error('Username sign in error:', error);
@@ -99,21 +102,21 @@ export class AuthService {
 
   public async signUpWithUsername(username: string, password: string, email: string): Promise<AuthUser> {
     try {
-      // Check if username is already taken
+      // Make sure username isn't taken before creating account
       const isTaken = await this.usernameService.isUsernameTaken(username);
       if (isTaken) {
         throw new Error('Username is already taken');
       }
       
-      // Create user account
+      // Create the Firebase account
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
-      // Update display name
+      // Set their display name to the username
       if (userCredential.user) {
         await updateProfile(userCredential.user, { displayName: username });
       }
       
-      // Create username mapping
+      // Store the username->email mapping in Firestore so we can look it up later
       await this.usernameService.createUsernameMapping(username, email, userCredential.user.uid);
       
       return {
@@ -147,7 +150,7 @@ export class AuthService {
   public onAuthStateChange(callback: (user: AuthUser | null) => void): () => void {
     this.authStateListeners.push(callback);
     
-    // Return unsubscribe function
+    // Return a function to unsubscribe later if needed
     return () => {
       const index = this.authStateListeners.indexOf(callback);
       if (index > -1) {
