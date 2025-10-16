@@ -17,6 +17,7 @@ export class UserProfile {
         this.profileContainer.setDepth(1000); // Ensure it's on top
     }
 
+    // Build the profile UI at given position
     public create(x: number, y: number) {
         // Profile background with modern rounded corners effect
         const profileBg = this.scene.add.rectangle(x, y, 180, 60, 0x34495e, 0.95);
@@ -64,6 +65,7 @@ export class UserProfile {
         this.updateUserInfo();
     }
 
+    // Update the displayed username
     private updateUserInfo() {
         if (this.currentUser) {
             const displayName = this.currentUser.displayName || 'User';
@@ -74,6 +76,7 @@ export class UserProfile {
         }
     }
 
+    // Handle logout button click
     private async handleLogout() {
         try {
             await this.authService.signOut();
@@ -85,10 +88,12 @@ export class UserProfile {
         }
     }
 
+    // Show or hide the profile widget
     public setVisible(visible: boolean) {
         this.profileContainer.setVisible(visible);
     }
 
+    // Clean up when removing from scene
     public destroy() {
         this.profileContainer.destroy();
     }

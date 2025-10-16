@@ -5,6 +5,7 @@ import { LoginScene } from './auth/LoginScene';
 import { GAME_CONFIG } from './config/GameConstants';
 import Phaser from 'phaser';
 
+// Phaser game configuration
 const config = {
     title: 'Card Memory Game',
     type: Phaser.AUTO,

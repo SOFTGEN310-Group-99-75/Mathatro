@@ -7,7 +7,9 @@ const mockScene = {
         container: vi.fn().mockReturnValue({
             add: vi.fn(),
             setSize: vi.fn(),
-            setInteractive: vi.fn()
+            setInteractive: vi.fn(),
+            on: vi.fn(),
+            setScale: vi.fn().mockReturnThis()
         }),
         rectangle: vi.fn().mockReturnValue({
             setOrigin: vi.fn().mockReturnThis(),
@@ -16,6 +18,13 @@ const mockScene = {
         text: vi.fn().mockReturnValue({
             setOrigin: vi.fn().mockReturnThis(),
             setText: vi.fn().mockReturnThis()
+        }),
+        graphics: vi.fn().mockReturnValue({
+            fillStyle: vi.fn().mockReturnThis(),
+            fillRoundedRect: vi.fn().mockReturnThis(),
+            lineStyle: vi.fn().mockReturnThis(),
+            strokeRoundedRect: vi.fn().mockReturnThis(),
+            setAlpha: vi.fn().mockReturnThis()
         })
     },
     input: {

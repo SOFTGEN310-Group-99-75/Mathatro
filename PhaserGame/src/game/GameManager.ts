@@ -31,86 +31,62 @@ export class GameManager {
         this.gameState.initializeGame();
     }
 
-    /**
-     * Get the game state manager
-     */
+    // Access the game state manager
     public getGameState(): GameStateManager {
         return this.gameState;
     }
 
-    /**
-     * Generate a new objective using game state
-     */
+    // Generate a random objective for the current difficulty
     public generateObjective(): string {
         return this.gameState.generateObjective();
     }
 
-    /**
-     * Set objective in game state
-     */
+    // Set the current objective
     public setObjective(objective: string): void {
         this.gameState.setObjective(objective);
     }
 
-    /**
-     * Get current objective from game state
-     */
+    // Get the current objective string
     public getCurrentObjective(): string {
         return this.gameState.currentObjective;
     }
 
-    /**
-     * Update score
-     */
+    // Add or subtract points from score
     public updateScore(points: number): void {
         this.gameState.updateScore(points);
     }
 
-    /**
-     * Get current score
-     */
+    // Get current score value
     public getCurrentScore(): number {
         return this.gameState.score;
     }
 
-    /**
-     * Update lives
-     */
+    // Change player's lives (positive or negative)
     public updateLives(delta: number): void {
         this.gameState.updateLives(delta);
     }
 
-    /**
-     * Get current lives
-     */
+    // Get current lives count
     public getCurrentLives(): number {
         return this.gameState.lives;
     }
 
-    /**
-     * Get health ratio
-     */
+    // Get health as a 0-1 ratio for the health bar
     public getHealthRatio(): number {
         return this.gameState.getHealthRatio();
     }
 
-    /**
-     * Start a new game
-     */
+    // Start a fresh game
     public startNewGame(): void {
         this.gameState.startNewGame();
     }
 
-    /**
-     * Restart the current game
-     */
+    // Reset and restart the current game
     public restartGame(): void {
         this.gameState.restartGame();
     }
 
-    /**
-     * Get game status
-     */
+    // Get full game state info
     public getGameStatus() {
         return this.gameState.getGameStatus();
     }
@@ -155,9 +131,7 @@ export class GameManager {
         });
     }
 
-    /**
-     * Show game won message
-     */
+    // Display win message to player
     private showGameWon(): void {
         if (this.scene) {
             const winnerText = this.scene.children.getByName('winnerText') as Phaser.GameObjects.Text;
@@ -171,9 +145,7 @@ export class GameManager {
         }
     }
 
-    /**
-     * Show game over message
-     */
+    // Display game over message to player
     private showGameOver(): void {
         if (this.scene) {
             const gameOverText = this.scene.children.getByName('gameOverText') as Phaser.GameObjects.Text;

@@ -42,6 +42,7 @@ export class AuthService {
     });
   }
 
+  // Get the singleton instance
   public static getInstance(): AuthService {
     if (!AuthService.instance) {
       AuthService.instance = new AuthService();
@@ -49,6 +50,7 @@ export class AuthService {
     return AuthService.instance;
   }
 
+  // Login with email and password
   public async signIn(email: string, password: string): Promise<AuthUser> {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -63,6 +65,7 @@ export class AuthService {
     }
   }
 
+  // Create new account with email and password
   public async signUp(email: string, password: string, displayName?: string): Promise<AuthUser> {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -83,6 +86,7 @@ export class AuthService {
     }
   }
 
+  // Login using username instead of email
   public async signInWithUsername(username: string, password: string): Promise<AuthUser> {
     try {
       // Firebase only supports email login, so we need to look up the email first
@@ -100,6 +104,7 @@ export class AuthService {
     }
   }
 
+  // Create account with username, stores username->email mapping
   public async signUpWithUsername(username: string, password: string, email: string): Promise<AuthUser> {
     try {
       // Make sure username isn't taken before creating account
@@ -130,6 +135,7 @@ export class AuthService {
     }
   }
 
+  // Logout current user
   public async signOut(): Promise<void> {
     try {
       await signOut(auth);
@@ -139,14 +145,17 @@ export class AuthService {
     }
   }
 
+  // Get the current logged-in user
   public getCurrentUser(): AuthUser | null {
     return this.currentUser;
   }
 
+  // Check if someone is logged in
   public isAuthenticated(): boolean {
     return this.currentUser !== null;
   }
 
+  // Subscribe to auth state changes
   public onAuthStateChange(callback: (user: AuthUser | null) => void): () => void {
     this.authStateListeners.push(callback);
     

@@ -24,6 +24,7 @@ export class UsernameService {
 
   private constructor() {}
 
+  // Get the singleton instance
   public static getInstance(): UsernameService {
     if (!UsernameService.instance) {
       UsernameService.instance = new UsernameService();

@@ -1,6 +1,6 @@
 # Firebase Setup Guide
 
-To enable authentication in your Mathatro game, you need to set up a Firebase project and configure the authentication.
+To enable authentication in the Mathatro game, we need to set up a Firebase project and configure the authentication.
 
 ## Step 1: Create a Firebase Project
 
