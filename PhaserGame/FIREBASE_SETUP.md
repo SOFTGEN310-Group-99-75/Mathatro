@@ -26,18 +26,24 @@ To enable authentication in your Mathatro game, you need to set up a Firebase pr
 
 ## Step 4: Update Firebase Configuration
 
-Open `src/config/firebase.ts` and replace the placeholder values with your actual Firebase configuration:
+1. Copy the `.env.example` file to create a new `.env` file:
+   ```bash
+   cp .env.example .env
+   ```
 
-```typescript
-const firebaseConfig = {
-  apiKey: "your-actual-api-key",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-actual-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "your-actual-sender-id",
-  appId: "your-actual-app-id"
-};
-```
+2. Open the `.env` file and replace the placeholder values with your actual Firebase configuration:
+
+   ```
+   VITE_FIREBASE_API_KEY=your-actual-api-key
+   VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+   VITE_FIREBASE_PROJECT_ID=your-actual-project-id
+   VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+   VITE_FIREBASE_MESSAGING_SENDER_ID=your-actual-sender-id
+   VITE_FIREBASE_APP_ID=your-actual-app-id
+   VITE_FIREBASE_MEASUREMENT_ID=your-actual-measurement-id
+   ```
+
+3. **Important**: The `.env` file contains sensitive credentials and should never be committed to version control. It's already listed in `.gitignore`.
 
 ## Step 5: Install Dependencies
 
@@ -66,8 +72,17 @@ For production, you may want to set up Firestore security rules. In the Firebase
 
 - Make sure your Firebase project has Authentication enabled
 - Verify that Email/Password sign-in method is enabled
-- Check that your Firebase configuration values are correct
+- Check that your `.env` file exists and contains the correct Firebase configuration values
+- Ensure all environment variables start with `VITE_` prefix (required by Vite)
+- If you get "Property 'env' does not exist" errors, restart your TypeScript server or reload VS Code
 - Ensure your domain is authorized in Firebase Authentication settings (for production)
+
+## Security Notes
+
+- **Never commit the `.env` file** to version control - it contains your actual API keys
+- The `.env.example` file is safe to commit as it only contains placeholders
+- For production deployments, set environment variables through your hosting platform (Vercel, Netlify, etc.)
+- The Firebase API key is safe to expose in client-side code but should still be kept in `.env` for easier management
 
 ## Features Included
 
